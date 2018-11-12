@@ -1,7 +1,7 @@
 Module for PostgreSQL to support approximate algorithms based on the Datasketches core library sketches-core-cpp.
 See https://datasketches.github.io/ for details.
 
-This module currently supportstwo sketches:
+This module currently supports two sketches:
 
 - CPC (Compressed Probabilistic Counting) sketch - very compact (when serialized) distinct-counting sketch
 - KLL float quantiles sketch - for estimating distributions: quantile, rank, PMF (hystogram), CDF
