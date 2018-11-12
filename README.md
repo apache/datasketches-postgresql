@@ -6,9 +6,9 @@ This module currently supportstwo sketches:
 - CPC (Compressed Probabilistic Counting) sketch - very compact (when serialized) distinct-counting sketch
 - KLL float quantiles sketch - for estimating distributions: quantile, rank, PMF (hystogram), CDF
 
-Examples:
+<h1>Examples</h1>
 
-Distinct counting:
+<h2>Distinct counting with CPC sketch</h2>
 
 Exact count distinct:
 
@@ -32,7 +32,7 @@ Approximate count distinct:
 
 Note that the above one-off distinct count is just to show the basic usage. Most importantly, the sketch can be used as an "additive" disctinct count metric in a data cube.
 
-Estimating quanitles and ranks:
+<h2>Estimating quanitles and ranks with KLL sketch</h2>
 
 Table "normal" has 1 million values from the normal distribution mean=0 and stddev=1
 We can build a sketch, which represents the distribution (create table kll\_float\_sketch\_test(sketch kll\_float\_sketch)):
