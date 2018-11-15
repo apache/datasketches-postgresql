@@ -58,15 +58,11 @@ void cpc_sketch_to_string(const void* sketchptr, char* buffer, unsigned length) 
 }
 
 void* cpc_sketch_serialize(const void* sketchptr) {
-  // intermediate copy in unavoidable with the current cpc_sketch API
-  // potential improvement
   try {
-    std::stringstream s;
-    static_cast<const datasketches::cpc_sketch*>(sketchptr)->serialize(s);
-    unsigned length = s.tellp();
-    bytea* buffer = (bytea*) palloc(length + VARHDRSZ);
-    SET_VARSIZE(buffer, length + VARHDRSZ);
-    s.read(VARDATA(buffer), length);
+    auto data = static_cast<const datasketches::cpc_sketch*>(sketchptr)->serialize(VARHDRSZ);
+    bytea* buffer = (bytea*) data.first.release();
+    const size_t length = data.second;
+    SET_VARSIZE(buffer, length);
     return buffer;
   } catch (std::exception& e) {
     elog(ERROR, e.what());
