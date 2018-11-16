@@ -70,12 +70,8 @@ void* cpc_sketch_serialize(const void* sketchptr) {
 }
 
 void* cpc_sketch_deserialize(const char* buffer, unsigned length) {
-  // intermediate copy in unavoidable with the current cpc_sketch API
-  // potential improvement
   try {
-    std::stringstream s;
-    s.write(buffer, length);
-    auto ptr = datasketches::cpc_sketch::deserialize(s, datasketches::DEFAULT_SEED, &palloc, &pfree);
+    auto ptr = datasketches::cpc_sketch::deserialize(buffer, length, datasketches::DEFAULT_SEED, &palloc, &pfree);
     return ptr.release();
   } catch (std::exception& e) {
     elog(ERROR, e.what());
