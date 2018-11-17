@@ -4,13 +4,13 @@ See https://datasketches.github.io/ for details.
 This module currently supports two sketches:
 
 - CPC (Compressed Probabilistic Counting) sketch - very compact (when serialized) distinct-counting sketch
-- KLL float quantiles sketch - for estimating distributions: quantile, rank, PMF (hystogram), CDF
+- KLL float quantiles sketch - for estimating distributions: quantile, rank, PMF (histogram), CDF
 
 <h1>Examples</h1>
 
 <h2>Distinct counting with CPC sketch</h2>
 
-Suppose 100 million random integer values unniformly distributed in the range from 1 to 100M have been generated and inserted into a table
+Suppose 100 million random integer values uniformly distributed in the range from 1 to 100M have been generated and inserted into a table
 
 Exact count distinct:
 
@@ -32,7 +32,7 @@ Approximate count distinct:
 	
 	real	0m21.811s
 
-Note that the above one-off distinct count is just to show the basic usage. Most importantly, the sketch can be used as an "additive" disctinct count metric in a data cube.
+Note that the above one-off distinct count is just to show the basic usage. Most importantly, the sketch can be used as an "additive" distinct count metric in a data cube.
 
 Merging sketches:
 
