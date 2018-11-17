@@ -86,6 +86,15 @@ void* cpc_union_new(unsigned lg_k) {
   }
 }
 
+void cpc_union_delete(void* unionptr) {
+  try {
+    static_cast<datasketches::cpc_union*>(unionptr)->~cpc_union();
+    pfree(unionptr);
+  } catch (std::exception& e) {
+    elog(ERROR, e.what());
+  }
+}
+
 void cpc_union_update(void* unionptr, const void* sketchptr) {
   try {
     static_cast<datasketches::cpc_union*>(unionptr)->update(*static_cast<const datasketches::cpc_sketch*>(sketchptr));

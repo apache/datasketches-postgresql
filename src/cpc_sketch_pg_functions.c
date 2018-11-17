@@ -222,7 +222,7 @@ Datum pg_cpc_union_get_result(PG_FUNCTION_ARGS) {
   sketchptr = cpc_union_get_result(unionptr);
   bytes_out = cpc_sketch_serialize(sketchptr);
   cpc_sketch_delete(sketchptr);
-  //cpc_union_delete(unionptr);
+  cpc_union_delete(unionptr);
 
   MemoryContextSwitchTo(oldcontext);
 

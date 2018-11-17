@@ -22,6 +22,7 @@ void* cpc_sketch_serialize(const void* sketchptr);
 void* cpc_sketch_deserialize(const char* buffer, unsigned length);
 
 void* cpc_union_new(unsigned lg_k);
+void cpc_union_delete(void* unionptr);
 void cpc_union_update(void* unionptr, const void* sketchptr);
 void* cpc_union_get_result(void* unionptr);
 
