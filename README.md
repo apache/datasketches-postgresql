@@ -47,7 +47,7 @@ Merging sketches:
 
 <h2>Estimating quanitles and ranks with KLL sketch</h2>
 
-Table "normal" has 1 million values from the normal distribution mean=0 and stddev=1
+Table "normal" has 1 million values from the normal distribution with mean=0 and stddev=1.
 We can build a sketch, which represents the distribution (create table kll\_float\_sketch\_test(sketch kll\_float\_sketch)):
 
 	$ psql test -c "insert into kll_float_sketch_test select kll_float_sketch_build(value) from normal";
