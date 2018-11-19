@@ -16,7 +16,6 @@ CREATE OR REPLACE FUNCTION cpc_sketch_send(cpc_sketch) RETURNS bytea
      AS '$libdir/datasketches', 'pg_cpc_sketch_send'
      LANGUAGE C STRICT IMMUTABLE;
 
--- actual LogLog counter data type
 CREATE TYPE cpc_sketch (
     INPUT = cpc_sketch_in,
     OUTPUT = cpc_sketch_out,

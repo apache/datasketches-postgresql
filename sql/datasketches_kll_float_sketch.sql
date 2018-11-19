@@ -16,7 +16,6 @@ CREATE OR REPLACE FUNCTION kll_float_sketch_send(kll_float_sketch) RETURNS bytea
      AS '$libdir/datasketches', 'pg_kll_float_sketch_send'
      LANGUAGE C STRICT IMMUTABLE;
 
--- actual LogLog counter data type
 CREATE TYPE kll_float_sketch (
     INPUT = kll_float_sketch_in,
     OUTPUT = kll_float_sketch_out,
