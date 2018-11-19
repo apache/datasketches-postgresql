@@ -11,7 +11,7 @@
 #include "cpc_sketch_c_adapter.h"
 #include "base64.h"
 
-const unsigned DEFAULT_LG_K = 13;
+const unsigned DEFAULT_LG_K = 12;
 
 /* PG_FUNCTION_INFO_V1 macro to pass functions to postgres */
 PG_FUNCTION_INFO_V1(pg_cpc_sketch_recv);
