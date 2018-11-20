@@ -27,10 +27,10 @@ Approximate count distinct:
 	$ time psql test -c "select cpc_sketch_distinct(id) from random_ints_100m;"
 	 cpc_sketch_distinct 
 	---------------------
-	    62716231.1448033
+	    63423695.9451363
 	(1 row)
 	
-	real	0m21.811s
+	real	0m20.680s
 
 Note that the above one-off distinct count is just to show the basic usage. Most importantly, the sketch can be used as an "additive" distinct count metric in a data cube.
 
@@ -43,7 +43,7 @@ Merging sketches:
 	select cpc_sketch_get_estimate(cpc_sketch_merge(sketch)) from cpc_sketch_test;
 	cpc_sketch_get_estimate
 	-------------------------
-	        3.00012205882677
+	        3.00024414612919
 
 <h2>Estimating quanitles and ranks with KLL sketch</h2>
 
