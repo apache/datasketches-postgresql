@@ -14,21 +14,21 @@
 /* PG_FUNCTION_INFO_V1 macro to pass functions to postgres */
 PG_FUNCTION_INFO_V1(pg_kll_float_sketch_recv);
 PG_FUNCTION_INFO_V1(pg_kll_float_sketch_send);
-PG_FUNCTION_INFO_V1(pg_kll_float_sketch_add_item_default);
+PG_FUNCTION_INFO_V1(pg_kll_float_sketch_add_item);
 PG_FUNCTION_INFO_V1(pg_kll_float_sketch_get_rank);
 PG_FUNCTION_INFO_V1(pg_kll_float_sketch_get_quantile);
 PG_FUNCTION_INFO_V1(pg_kll_float_sketch_to_string);
-PG_FUNCTION_INFO_V1(pg_kll_float_sketch_merge_default);
+PG_FUNCTION_INFO_V1(pg_kll_float_sketch_merge);
 PG_FUNCTION_INFO_V1(pg_kll_float_sketch_from_internal);
 
 /* function declarations */
 Datum pg_kll_float_sketch_recv(PG_FUNCTION_ARGS);
 Datum pg_kll_float_sketch_send(PG_FUNCTION_ARGS);
-Datum pg_kll_float_sketch_add_item_default(PG_FUNCTION_ARGS);
+Datum pg_kll_float_sketch_add_item(PG_FUNCTION_ARGS);
 Datum pg_kll_float_sketch_get_rank(PG_FUNCTION_ARGS);
 Datum pg_kll_float_sketch_get_quantile(PG_FUNCTION_ARGS);
 Datum pg_kll_float_sketch_to_string(PG_FUNCTION_ARGS);
-Datum pg_kll_float_sketch_merge_default(PG_FUNCTION_ARGS);
+Datum pg_kll_float_sketch_merge(PG_FUNCTION_ARGS);
 Datum pg_kll_float_sketch_from_internal(PG_FUNCTION_ARGS);
 
 static const unsigned DEFAULT_K = 200;
@@ -47,9 +47,10 @@ Datum pg_kll_float_sketch_send(PG_FUNCTION_ARGS) {
   PG_RETURN_BYTEA_P(0);
 }
 
-Datum pg_kll_float_sketch_add_item_default(PG_FUNCTION_ARGS) {
+Datum pg_kll_float_sketch_add_item(PG_FUNCTION_ARGS) {
   void* sketchptr;
   float value;
+  int k;
 
   MemoryContext oldcontext;
   MemoryContext aggcontext;
@@ -61,12 +62,13 @@ Datum pg_kll_float_sketch_add_item_default(PG_FUNCTION_ARGS) {
   }
 
   if (!AggCheckCallContext(fcinfo, &aggcontext)) {
-    elog(ERROR, "kll_float_sketch_add_item_default called in non-aggregate context");
+    elog(ERROR, "kll_float_sketch_add_item called in non-aggregate context");
   }
   oldcontext = MemoryContextSwitchTo(aggcontext);
 
   if (PG_ARGISNULL(0)) {
-    sketchptr = kll_float_sketch_new(DEFAULT_K);
+    k = PG_GETARG_INT32(2);
+    sketchptr = kll_float_sketch_new(k ? k : DEFAULT_K);
   } else {
     sketchptr = PG_GETARG_POINTER(0);
   }
@@ -116,10 +118,11 @@ Datum pg_kll_float_sketch_to_string(PG_FUNCTION_ARGS) {
   PG_RETURN_TEXT_P(cstring_to_text(str));
 }
 
-Datum pg_kll_float_sketch_merge_default(PG_FUNCTION_ARGS) {
+Datum pg_kll_float_sketch_merge(PG_FUNCTION_ARGS) {
   void* unionptr;
   bytea* sketch_bytes;
   void* sketchptr;
+  int k;
 
   MemoryContext oldcontext;
   MemoryContext aggcontext;
@@ -136,7 +139,8 @@ Datum pg_kll_float_sketch_merge_default(PG_FUNCTION_ARGS) {
   oldcontext = MemoryContextSwitchTo(aggcontext);
 
   if (PG_ARGISNULL(0)) {
-    unionptr = kll_float_sketch_new(DEFAULT_K);
+    k = PG_GETARG_INT32(2);
+    unionptr = kll_float_sketch_new(k ? k : DEFAULT_K);
   } else {
     unionptr = PG_GETARG_POINTER(0);
   }

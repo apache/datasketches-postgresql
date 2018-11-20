@@ -27,8 +27,12 @@ CREATE TYPE kll_float_sketch (
 CREATE CAST (bytea as kll_float_sketch) WITHOUT FUNCTION AS ASSIGNMENT;
 CREATE CAST (kll_float_sketch as bytea) WITHOUT FUNCTION AS ASSIGNMENT;
 
-CREATE OR REPLACE FUNCTION kll_float_sketch_add_item_default(internal, real) RETURNS internal
-    AS '$libdir/datasketches', 'pg_kll_float_sketch_add_item_default'
+CREATE OR REPLACE FUNCTION kll_float_sketch_add_item(internal, real) RETURNS internal
+    AS '$libdir/datasketches', 'pg_kll_float_sketch_add_item'
+    LANGUAGE C IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION kll_float_sketch_add_item(internal, real, int) RETURNS internal
+    AS '$libdir/datasketches', 'pg_kll_float_sketch_add_item'
     LANGUAGE C IMMUTABLE;
 
 CREATE OR REPLACE FUNCTION kll_float_sketch_get_rank(kll_float_sketch, real) RETURNS double precision
@@ -43,8 +47,12 @@ CREATE OR REPLACE FUNCTION kll_float_sketch_to_string(kll_float_sketch) RETURNS 
     AS '$libdir/datasketches', 'pg_kll_float_sketch_to_string'
     LANGUAGE C STRICT IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION kll_float_sketch_merge_default(internal, kll_float_sketch) RETURNS internal
-    AS '$libdir/datasketches', 'pg_kll_float_sketch_merge_default'
+CREATE OR REPLACE FUNCTION kll_float_sketch_merge(internal, kll_float_sketch) RETURNS internal
+    AS '$libdir/datasketches', 'pg_kll_float_sketch_merge'
+    LANGUAGE C IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION kll_float_sketch_merge(internal, kll_float_sketch, int) RETURNS internal
+    AS '$libdir/datasketches', 'pg_kll_float_sketch_merge'
     LANGUAGE C IMMUTABLE;
 
 CREATE OR REPLACE FUNCTION kll_float_sketch_from_internal(internal) RETURNS kll_float_sketch
@@ -52,13 +60,25 @@ CREATE OR REPLACE FUNCTION kll_float_sketch_from_internal(internal) RETURNS kll_
     LANGUAGE C STRICT IMMUTABLE;
 
 CREATE AGGREGATE kll_float_sketch_build(real) (
-    sfunc = kll_float_sketch_add_item_default,
+    sfunc = kll_float_sketch_add_item,
+    stype = internal,
+    finalfunc = kll_float_sketch_from_internal
+);
+
+CREATE AGGREGATE kll_float_sketch_build(real, int) (
+    sfunc = kll_float_sketch_add_item,
     stype = internal,
     finalfunc = kll_float_sketch_from_internal
 );
 
 CREATE AGGREGATE kll_float_sketch_merge(kll_float_sketch) (
-    sfunc = kll_float_sketch_merge_default,
+    sfunc = kll_float_sketch_merge,
+    stype = internal,
+    finalfunc = kll_float_sketch_from_internal
+);
+
+CREATE AGGREGATE kll_float_sketch_merge(kll_float_sketch, int) (
+    sfunc = kll_float_sketch_merge,
     stype = internal,
     finalfunc = kll_float_sketch_from_internal
 );
