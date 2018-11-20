@@ -16,10 +16,10 @@ const unsigned DEFAULT_LG_K = 12;
 /* PG_FUNCTION_INFO_V1 macro to pass functions to postgres */
 PG_FUNCTION_INFO_V1(pg_cpc_sketch_recv);
 PG_FUNCTION_INFO_V1(pg_cpc_sketch_send);
-PG_FUNCTION_INFO_V1(pg_cpc_sketch_add_item_default);
+PG_FUNCTION_INFO_V1(pg_cpc_sketch_add_item);
 PG_FUNCTION_INFO_V1(pg_cpc_sketch_get_estimate);
 PG_FUNCTION_INFO_V1(pg_cpc_sketch_to_string);
-PG_FUNCTION_INFO_V1(pg_cpc_sketch_merge_default);
+PG_FUNCTION_INFO_V1(pg_cpc_sketch_merge);
 PG_FUNCTION_INFO_V1(pg_cpc_sketch_from_internal);
 PG_FUNCTION_INFO_V1(pg_cpc_sketch_get_estimate_from_internal);
 PG_FUNCTION_INFO_V1(pg_cpc_union_get_result);
@@ -27,10 +27,10 @@ PG_FUNCTION_INFO_V1(pg_cpc_union_get_result);
 /* function declarations */
 Datum pg_cpc_sketch_recv(PG_FUNCTION_ARGS);
 Datum pg_cpc_sketch_send(PG_FUNCTION_ARGS);
-Datum pg_cpc_sketch_add_item_default(PG_FUNCTION_ARGS);
+Datum pg_cpc_sketch_add_item(PG_FUNCTION_ARGS);
 Datum pg_cpc_sketch_get_estimate(PG_FUNCTION_ARGS);
 Datum pg_cpc_sketch_to_string(PG_FUNCTION_ARGS);
-Datum pg_cpc_sketch_merge_default(PG_FUNCTION_ARGS);
+Datum pg_cpc_sketch_merge(PG_FUNCTION_ARGS);
 Datum pg_cpc_sketch_from_internal(PG_FUNCTION_ARGS);
 Datum pg_cpc_sketch_get_estimate_from_internal(PG_FUNCTION_ARGS);
 Datum pg_cpc_union_get_result(PG_FUNCTION_ARGS);
@@ -49,8 +49,9 @@ Datum pg_cpc_sketch_send(PG_FUNCTION_ARGS) {
   PG_RETURN_BYTEA_P(0);
 }
 
-Datum pg_cpc_sketch_add_item_default(PG_FUNCTION_ARGS) {
+Datum pg_cpc_sketch_add_item(PG_FUNCTION_ARGS) {
   void* sketchptr;
+  int lg_k;
 
   // anyelement
   Oid   element_type;
@@ -69,12 +70,13 @@ Datum pg_cpc_sketch_add_item_default(PG_FUNCTION_ARGS) {
   }
 
   if (!AggCheckCallContext(fcinfo, &aggcontext)) {
-    elog(ERROR, "cpc_sketch_add_item_default called in non-aggregate context");
+    elog(ERROR, "cpc_sketch_add_item called in non-aggregate context");
   }
   oldcontext = MemoryContextSwitchTo(aggcontext);
 
   if (PG_ARGISNULL(0)) {
-    sketchptr = cpc_sketch_new(DEFAULT_LG_K);
+    lg_k = PG_GETARG_INT32(2);
+    sketchptr = cpc_sketch_new(lg_k ? lg_k : DEFAULT_LG_K);
   } else {
     sketchptr = PG_GETARG_POINTER(0);
   }
@@ -120,10 +122,11 @@ Datum pg_cpc_sketch_to_string(PG_FUNCTION_ARGS) {
   PG_RETURN_TEXT_P(cstring_to_text(str));
 }
 
-Datum pg_cpc_sketch_merge_default(PG_FUNCTION_ARGS) {
+Datum pg_cpc_sketch_merge(PG_FUNCTION_ARGS) {
   void* unionptr;
   bytea* sketch_bytes;
   void* sketchptr;
+  int lg_k;
 
   MemoryContext oldcontext;
   MemoryContext aggcontext;
@@ -135,15 +138,14 @@ Datum pg_cpc_sketch_merge_default(PG_FUNCTION_ARGS) {
   }
 
   if (!AggCheckCallContext(fcinfo, &aggcontext)) {
-    elog(ERROR, "cpc_sketch_merge_default called in non-aggregate context");
+    elog(ERROR, "cpc_sketch_merge called in non-aggregate context");
   }
   oldcontext = MemoryContextSwitchTo(aggcontext);
 
   if (PG_ARGISNULL(0)) {
-    //elog(LOG, "pg_cpc_sketch_merge_defalut: initializing union state");
-    unionptr = cpc_union_new(DEFAULT_LG_K);
+    lg_k = PG_GETARG_INT32(2);
+    unionptr = cpc_union_new(lg_k ? lg_k : DEFAULT_LG_K);
   } else {
-    //elog(LOG, "pg_cpc_sketch_merge_defalut: loading existing union state");
     unionptr = PG_GETARG_POINTER(0);
   }
 
