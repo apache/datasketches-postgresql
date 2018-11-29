@@ -16,7 +16,8 @@ extern "C" {
 
 void* cpc_sketch_new(unsigned lg_k) {
   try {
-    return new (palloc(sizeof(datasketches::cpc_sketch))) datasketches::cpc_sketch(lg_k, datasketches::DEFAULT_SEED, &palloc, &pfree);
+    datasketches::cpc_init(&palloc, &pfree);
+    return new (palloc(sizeof(datasketches::cpc_sketch))) datasketches::cpc_sketch(lg_k, datasketches::DEFAULT_SEED);
   } catch (std::exception& e) {
     elog(ERROR, e.what());
   }
@@ -71,7 +72,8 @@ void* cpc_sketch_serialize(const void* sketchptr) {
 
 void* cpc_sketch_deserialize(const char* buffer, unsigned length) {
   try {
-    auto ptr = datasketches::cpc_sketch::deserialize(buffer, length, datasketches::DEFAULT_SEED, &palloc, &pfree);
+    datasketches::cpc_init(&palloc, &pfree);
+    auto ptr = datasketches::cpc_sketch::deserialize(buffer, length, datasketches::DEFAULT_SEED);
     return ptr.release();
   } catch (std::exception& e) {
     elog(ERROR, e.what());
@@ -80,7 +82,8 @@ void* cpc_sketch_deserialize(const char* buffer, unsigned length) {
 
 void* cpc_union_new(unsigned lg_k) {
   try {
-    return new (palloc(sizeof(datasketches::cpc_union))) datasketches::cpc_union(lg_k, datasketches::DEFAULT_SEED, &palloc, &pfree);
+    datasketches::cpc_init(&palloc, &pfree);
+    return new (palloc(sizeof(datasketches::cpc_union))) datasketches::cpc_union(lg_k, datasketches::DEFAULT_SEED);
   } catch (std::exception& e) {
     elog(ERROR, e.what());
   }
