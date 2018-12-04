@@ -71,25 +71,21 @@ void kll_float_sketch_to_string(const void* sketchptr, char* buffer, unsigned le
   }
 }
 
-void kll_float_sketch_serialize(const void* sketchptr, char* buffer) {
-  // intermediate copy in unavoidable with the current kll_sketch API
-  // potential improvement
+void* kll_float_sketch_serialize(const void* sketchptr) {
   try {
-    std::stringstream s;
-    static_cast<const kll_float_sketch*>(sketchptr)->serialize(s);
-    s.read(buffer, s.tellp());
+    auto data = static_cast<const kll_float_sketch*>(sketchptr)->serialize(VARHDRSZ);
+    bytea* buffer = (bytea*) data.first.release();
+    const size_t length = data.second;
+    SET_VARSIZE(buffer, length);
+    return buffer;
   } catch (std::exception& e) {
     elog(ERROR, e.what());
   }
 }
 
 void* kll_float_sketch_deserialize(const char* buffer, unsigned length) {
-  // intermediate copy in unavoidable with the current kll_sketch API
-  // potential improvement
   try {
-    std::stringstream s;
-    s.write(buffer, length);
-    auto ptr = kll_float_sketch::deserialize(s);
+    auto ptr = kll_float_sketch::deserialize(buffer, length);
     return ptr.release();
   } catch (std::exception& e) {
     elog(ERROR, e.what());

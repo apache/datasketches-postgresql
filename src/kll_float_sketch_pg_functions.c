@@ -165,10 +165,7 @@ Datum pg_kll_float_sketch_from_internal(PG_FUNCTION_ARGS) {
     elog(ERROR, "kll_float_sketch_from_internal called in non-aggregate context");
   }
   sketchptr = PG_GETARG_POINTER(0);
-  length = VARHDRSZ + kll_float_sketch_get_serialized_size_bytes(sketchptr);
-  bytes_out = palloc(length);
-  SET_VARSIZE(bytes_out, length);
-  kll_float_sketch_serialize(sketchptr, VARDATA(bytes_out));
+  bytes_out = kll_float_sketch_serialize(sketchptr);
   kll_float_sketch_delete(sketchptr);
   PG_RETURN_BYTEA_P(bytes_out);
 }

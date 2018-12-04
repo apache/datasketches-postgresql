@@ -19,7 +19,7 @@ double kll_float_sketch_get_rank(const void* sketchptr, float value);
 float kll_float_sketch_get_quantile(const void* sketchptr, double rank);
 void kll_float_sketch_to_string(const void* sketchptr, char* buffer, unsigned length);
 
-void kll_float_sketch_serialize(const void* sketchptr, char* buffer);
+void* kll_float_sketch_serialize(const void* sketchptr);
 void* kll_float_sketch_deserialize(const char* buffer, unsigned length);
 unsigned kll_float_sketch_get_serialized_size_bytes(const void* sketchptr);
 
