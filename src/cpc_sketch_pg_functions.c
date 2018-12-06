@@ -14,8 +14,6 @@
 const unsigned DEFAULT_LG_K = 12;
 
 /* PG_FUNCTION_INFO_V1 macro to pass functions to postgres */
-PG_FUNCTION_INFO_V1(pg_cpc_sketch_recv);
-PG_FUNCTION_INFO_V1(pg_cpc_sketch_send);
 PG_FUNCTION_INFO_V1(pg_cpc_sketch_add_item);
 PG_FUNCTION_INFO_V1(pg_cpc_sketch_get_estimate);
 PG_FUNCTION_INFO_V1(pg_cpc_sketch_to_string);
@@ -34,20 +32,6 @@ Datum pg_cpc_sketch_merge(PG_FUNCTION_ARGS);
 Datum pg_cpc_sketch_from_internal(PG_FUNCTION_ARGS);
 Datum pg_cpc_sketch_get_estimate_from_internal(PG_FUNCTION_ARGS);
 Datum pg_cpc_union_get_result(PG_FUNCTION_ARGS);
-
-// external binary to type
-Datum pg_cpc_sketch_recv(PG_FUNCTION_ARGS) {
-  // not invoked for nulls
-  elog(FATAL, "pg_cpc_sketch_recv is not implemented yet");
-  PG_RETURN_NULL();
-}
-
-// type to external binary
-Datum pg_cpc_sketch_send(PG_FUNCTION_ARGS) {
-  // not invoked for nulls
-  elog(FATAL, "pg_cpc_sketch_send is not implemented yet");
-  PG_RETURN_BYTEA_P(0);
-}
 
 Datum pg_cpc_sketch_add_item(PG_FUNCTION_ARGS) {
   void* sketchptr;

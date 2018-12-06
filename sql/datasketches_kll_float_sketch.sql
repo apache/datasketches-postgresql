@@ -1,6 +1,6 @@
 CREATE TYPE kll_float_sketch;
 
-CREATE FUNCTION kll_float_sketch_in(cstring) RETURNS kll_float_sketch
+CREATE OR REPLACE FUNCTION kll_float_sketch_in(cstring) RETURNS kll_float_sketch
      AS '$libdir/datasketches', 'pg_sketch_in'
      LANGUAGE C STRICT IMMUTABLE;
 
@@ -8,20 +8,10 @@ CREATE OR REPLACE FUNCTION kll_float_sketch_out(kll_float_sketch) RETURNS cstrin
      AS '$libdir/datasketches', 'pg_sketch_out'
      LANGUAGE C STRICT IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION kll_float_sketch_recv(internal) RETURNS kll_float_sketch
-     AS '$libdir/datasketches', 'pg_kll_float_sketch_recv'
-     LANGUAGE C STRICT IMMUTABLE;
-
-CREATE OR REPLACE FUNCTION kll_float_sketch_send(kll_float_sketch) RETURNS bytea
-     AS '$libdir/datasketches', 'pg_kll_float_sketch_send'
-     LANGUAGE C STRICT IMMUTABLE;
-
 CREATE TYPE kll_float_sketch (
     INPUT = kll_float_sketch_in,
     OUTPUT = kll_float_sketch_out,
-    STORAGE = EXTERNAL,
-    RECEIVE = kll_float_sketch_recv,
-    SEND = kll_float_sketch_send
+    STORAGE = EXTERNAL
 );
 
 CREATE CAST (bytea as kll_float_sketch) WITHOUT FUNCTION AS ASSIGNMENT;

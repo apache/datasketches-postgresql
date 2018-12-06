@@ -12,8 +12,6 @@
 #include "base64.h"
 
 /* PG_FUNCTION_INFO_V1 macro to pass functions to postgres */
-PG_FUNCTION_INFO_V1(pg_kll_float_sketch_recv);
-PG_FUNCTION_INFO_V1(pg_kll_float_sketch_send);
 PG_FUNCTION_INFO_V1(pg_kll_float_sketch_add_item);
 PG_FUNCTION_INFO_V1(pg_kll_float_sketch_get_rank);
 PG_FUNCTION_INFO_V1(pg_kll_float_sketch_get_quantile);
@@ -32,20 +30,6 @@ Datum pg_kll_float_sketch_merge(PG_FUNCTION_ARGS);
 Datum pg_kll_float_sketch_from_internal(PG_FUNCTION_ARGS);
 
 static const unsigned DEFAULT_K = 200;
-
-// external binary to type
-Datum pg_kll_float_sketch_recv(PG_FUNCTION_ARGS) {
-  // not invoked for nulls
-  elog(FATAL, "pg_kll_float_sketch_recv is not implemented yet");
-  PG_RETURN_NULL();
-}
-
-// type to external binary
-Datum pg_kll_float_sketch_send(PG_FUNCTION_ARGS) {
-  // not invoked for nulls
-  elog(FATAL, "pg_kll_float_sketch_send is not implemented yet");
-  PG_RETURN_BYTEA_P(0);
-}
 
 Datum pg_kll_float_sketch_add_item(PG_FUNCTION_ARGS) {
   void* sketchptr;

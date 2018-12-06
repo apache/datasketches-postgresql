@@ -1,6 +1,6 @@
 CREATE TYPE cpc_sketch;
 
-CREATE FUNCTION cpc_sketch_in(cstring) RETURNS cpc_sketch
+CREATE OR REPLACE FUNCTION cpc_sketch_in(cstring) RETURNS cpc_sketch
      AS '$libdir/datasketches', 'pg_sketch_in'
      LANGUAGE C STRICT IMMUTABLE;
 
@@ -8,20 +8,10 @@ CREATE OR REPLACE FUNCTION cpc_sketch_out(cpc_sketch) RETURNS cstring
      AS '$libdir/datasketches', 'pg_sketch_out'
      LANGUAGE C STRICT IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION cpc_sketch_recv(internal) RETURNS cpc_sketch
-     AS '$libdir/datasketches', 'pg_cpc_sketch_recv'
-     LANGUAGE C STRICT IMMUTABLE;
-
-CREATE OR REPLACE FUNCTION cpc_sketch_send(cpc_sketch) RETURNS bytea
-     AS '$libdir/datasketches', 'pg_cpc_sketch_send'
-     LANGUAGE C STRICT IMMUTABLE;
-
 CREATE TYPE cpc_sketch (
     INPUT = cpc_sketch_in,
     OUTPUT = cpc_sketch_out,
-    STORAGE = EXTERNAL,
-    RECEIVE = cpc_sketch_recv,
-    SEND = cpc_sketch_send
+    STORAGE = EXTERNAL
 );
 
 CREATE CAST (bytea as cpc_sketch) WITHOUT FUNCTION AS ASSIGNMENT;
