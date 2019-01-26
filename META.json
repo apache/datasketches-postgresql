@@ -10,11 +10,13 @@
    "provides": {
       "cpc_sketch": {
          "abstract": "CPC sketch for approximate distinct counting",
-         "file": "sql/datasketches_cpc_sketch.sql"
+         "file": "sql/datasketches_cpc_sketch.sql",
+         "version": "1.0.0"
       },
       "kll_float_sketch": {
          "abstract": "KLL quantiles sketch for approximating distributions of float values (quanitles, ranks, histograms)",
-         "file": "sql/datasketches_kll_float_sketch.sql"
+         "file": "sql/datasketches_kll_float_sketch.sql",
+         "version": "1.0.0"
       }
    },
    "resources": {
@@ -22,8 +24,8 @@
          "web": "https://github.com/DataSketches/sketches-postgres/issues"
       },
       "repository": {
-        "url":  "git@github.com:DataSketches/sketches-postgres.git",
-        "web":  "https://github.com/DataSketches/sketches-postgres.git",
+        "url":  "https://github.com/DataSketches/sketches-postgres.git",
+        "web":  "https://github.com/DataSketches/sketches-postgres",
         "type": "git"
       }
    },
