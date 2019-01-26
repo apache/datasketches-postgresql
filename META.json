@@ -1,0 +1,31 @@
+{
+   "name": "datasketches",
+   "abstract": "approximate algorithms for big data analysis",
+   "version": "1.0.0",
+   "maintainer": "Alexander Saydakov <saydakov@verizonmedia.com>",
+   "license": "postgresql",
+   "provides": {
+      "cpc_sketch": {
+         "abstract": "CPC sketch for approximate distinct counting",
+         "file": "sql/datasketches_cpc_sketch.sql"
+      },
+      "kll_float_sketch": {
+         "abstract": "KLL quantiles sketch for approximating distributions of float values (quanitles, ranks, histograms)",
+         "file": "sql/datasketches_kll_float_sketch.sql"
+      }
+   },
+   "resources": {
+      "bugtracker": {
+         "web": "https://github.com/DataSketches/sketches-postgres/issues"
+      },
+      "repository": {
+        "url":  "git@github.com:DataSketches/sketches-postgres.git",
+        "web":  "https://github.com/DataSketches/sketches-postgres.git",
+        "type": "git"
+      }
+   },
+   "meta-spec": {
+      "version": "1.0.0",
+      "url": "http://pgxn.org/meta/spec.txt"
+   },
+}
