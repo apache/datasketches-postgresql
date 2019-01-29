@@ -7,6 +7,8 @@
 #include <fmgr.h>
 #include <utils/lsyscache.h>
 #include <utils/builtins.h>
+#include <utils/array.h>
+#include <catalog/pg_type.h>
 
 #include "kll_float_sketch_c_adapter.h"
 #include "base64.h"
@@ -15,9 +17,12 @@
 PG_FUNCTION_INFO_V1(pg_kll_float_sketch_add_item);
 PG_FUNCTION_INFO_V1(pg_kll_float_sketch_get_rank);
 PG_FUNCTION_INFO_V1(pg_kll_float_sketch_get_quantile);
+PG_FUNCTION_INFO_V1(pg_kll_float_sketch_get_n);
 PG_FUNCTION_INFO_V1(pg_kll_float_sketch_to_string);
 PG_FUNCTION_INFO_V1(pg_kll_float_sketch_merge);
 PG_FUNCTION_INFO_V1(pg_kll_float_sketch_from_internal);
+PG_FUNCTION_INFO_V1(pg_kll_float_sketch_get_pmf);
+PG_FUNCTION_INFO_V1(pg_kll_float_sketch_get_quantiles);
 
 /* function declarations */
 Datum pg_kll_float_sketch_recv(PG_FUNCTION_ARGS);
@@ -25,9 +30,12 @@ Datum pg_kll_float_sketch_send(PG_FUNCTION_ARGS);
 Datum pg_kll_float_sketch_add_item(PG_FUNCTION_ARGS);
 Datum pg_kll_float_sketch_get_rank(PG_FUNCTION_ARGS);
 Datum pg_kll_float_sketch_get_quantile(PG_FUNCTION_ARGS);
+Datum pg_kll_float_sketch_get_n(PG_FUNCTION_ARGS);
 Datum pg_kll_float_sketch_to_string(PG_FUNCTION_ARGS);
 Datum pg_kll_float_sketch_merge(PG_FUNCTION_ARGS);
 Datum pg_kll_float_sketch_from_internal(PG_FUNCTION_ARGS);
+Datum pg_kll_float_sketch_get_pmf(PG_FUNCTION_ARGS);
+Datum pg_kll_float_sketch_get_quantiles(PG_FUNCTION_ARGS);
 
 static const unsigned DEFAULT_K = 200;
 
@@ -91,6 +99,17 @@ Datum pg_kll_float_sketch_get_quantile(PG_FUNCTION_ARGS) {
   PG_RETURN_FLOAT4(value);
 }
 
+Datum pg_kll_float_sketch_get_n(PG_FUNCTION_ARGS) {
+  const bytea* bytes_in;
+  void* sketchptr;
+  uint64 n;
+  bytes_in = PG_GETARG_BYTEA_P(0);
+  sketchptr = kll_float_sketch_deserialize(VARDATA(bytes_in), VARSIZE(bytes_in) - VARHDRSZ);
+  n = kll_float_sketch_get_n(sketchptr);
+  kll_float_sketch_delete(sketchptr);
+  PG_RETURN_INT64(n);
+}
+
 Datum pg_kll_float_sketch_to_string(PG_FUNCTION_ARGS) {
   const bytea* bytes_in;
   void* sketchptr;
@@ -141,7 +160,6 @@ Datum pg_kll_float_sketch_merge(PG_FUNCTION_ARGS) {
 
 Datum pg_kll_float_sketch_from_internal(PG_FUNCTION_ARGS) {
   void* sketchptr;
-  unsigned length;
   bytea* bytes_out;
   MemoryContext aggcontext;
   if (PG_ARGISNULL(0)) PG_RETURN_NULL();
@@ -152,4 +170,102 @@ Datum pg_kll_float_sketch_from_internal(PG_FUNCTION_ARGS) {
   bytes_out = kll_float_sketch_serialize(sketchptr);
   kll_float_sketch_delete(sketchptr);
   PG_RETURN_BYTEA_P(bytes_out);
+}
+
+Datum pg_kll_float_sketch_get_pmf(PG_FUNCTION_ARGS) {
+  const bytea* bytes_in;
+  void* sketchptr;
+
+  // input array of split points
+  ArrayType* arr_in;
+  Oid elmtype_in;
+  int16 elmlen_in;
+  bool elmbyval_in;
+  char elmalign_in;
+  Datum* data_in;
+  bool* nulls_in;
+  int arr_len_in;
+  float* split_points;
+
+  // output array of fractions
+  Datum* pmf;
+  ArrayType* arr_out;
+  int16 elmlen_out;
+  bool elmbyval_out;
+  char elmalign_out;
+  int arr_len_out;
+
+  int i;
+
+  bytes_in = PG_GETARG_BYTEA_P(0);
+  sketchptr = kll_float_sketch_deserialize(VARDATA(bytes_in), VARSIZE(bytes_in) - VARHDRSZ);
+
+  arr_in = PG_GETARG_ARRAYTYPE_P(1);
+  elmtype_in = ARR_ELEMTYPE(arr_in);
+  get_typlenbyvalalign(elmtype_in, &elmlen_in, &elmbyval_in, &elmalign_in);
+  deconstruct_array(arr_in, elmtype_in, elmlen_in, elmbyval_in, elmalign_in, &data_in, &nulls_in, &arr_len_in);
+
+  split_points = palloc(sizeof(float) * arr_len_in);
+  for (i = 0; i < arr_len_in; i++) {
+    split_points[i] = DatumGetFloat4(data_in[i]);
+  }
+  pmf = kll_float_sketch_get_pmf(sketchptr, split_points, arr_len_in);
+  pfree(split_points);
+
+  // construct output array of fractions
+  arr_len_out = arr_len_in + 1; // N split points devide the number line into N+1 intervals
+  get_typlenbyvalalign(FLOAT8OID, &elmlen_out, &elmbyval_out, &elmalign_out);
+  arr_out = construct_array(pmf, arr_len_out, FLOAT8OID, elmlen_out, elmbyval_out, elmalign_out);
+
+  kll_float_sketch_delete(sketchptr);
+
+  PG_RETURN_ARRAYTYPE_P(arr_out);
+}
+
+Datum pg_kll_float_sketch_get_quantiles(PG_FUNCTION_ARGS) {
+  const bytea* bytes_in;
+  void* sketchptr;
+
+  // input array of fractions
+  ArrayType* arr_in;
+  Oid elmtype_in;
+  int16 elmlen_in;
+  bool elmbyval_in;
+  char elmalign_in;
+  Datum* data_in;
+  bool* nulls_in;
+  int arr_len;
+  double* fractions;
+
+  // output array of quantiles
+  Datum* quantiles;
+  ArrayType* arr_out;
+  int16 elmlen_out;
+  bool elmbyval_out;
+  char elmalign_out;
+
+  int i;
+
+  bytes_in = PG_GETARG_BYTEA_P(0);
+  sketchptr = kll_float_sketch_deserialize(VARDATA(bytes_in), VARSIZE(bytes_in) - VARHDRSZ);
+
+  arr_in = PG_GETARG_ARRAYTYPE_P(1);
+  elmtype_in = ARR_ELEMTYPE(arr_in);
+  get_typlenbyvalalign(elmtype_in, &elmlen_in, &elmbyval_in, &elmalign_in);
+  deconstruct_array(arr_in, elmtype_in, elmlen_in, elmbyval_in, elmalign_in, &data_in, &nulls_in, &arr_len);
+
+  fractions = palloc(sizeof(double) * arr_len);
+  for (i = 0; i < arr_len; i++) {
+    fractions[i] = DatumGetFloat8(data_in[i]);
+  }
+  quantiles = kll_float_sketch_get_quantiles(sketchptr, fractions, arr_len);
+  pfree(fractions);
+
+  // construct output array of quantiles
+  get_typlenbyvalalign(FLOAT4OID, &elmlen_out, &elmbyval_out, &elmalign_out);
+  arr_out = construct_array(quantiles, arr_len, FLOAT4OID, elmlen_out, elmbyval_out, elmalign_out);
+
+  kll_float_sketch_delete(sketchptr);
+
+  PG_RETURN_ARRAYTYPE_P(arr_out);
 }

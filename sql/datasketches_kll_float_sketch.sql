@@ -33,6 +33,10 @@ CREATE OR REPLACE FUNCTION kll_float_sketch_get_quantile(kll_float_sketch, doubl
     AS '$libdir/datasketches', 'pg_kll_float_sketch_get_quantile'
     LANGUAGE C STRICT IMMUTABLE;
 
+CREATE OR REPLACE FUNCTION kll_float_sketch_get_n(kll_float_sketch) RETURNS bigint
+    AS '$libdir/datasketches', 'pg_kll_float_sketch_get_n'
+    LANGUAGE C STRICT IMMUTABLE;
+
 CREATE OR REPLACE FUNCTION kll_float_sketch_to_string(kll_float_sketch) RETURNS TEXT
     AS '$libdir/datasketches', 'pg_kll_float_sketch_to_string'
     LANGUAGE C STRICT IMMUTABLE;
@@ -72,3 +76,11 @@ CREATE AGGREGATE kll_float_sketch_merge(kll_float_sketch, int) (
     stype = internal,
     finalfunc = kll_float_sketch_from_internal
 );
+
+CREATE OR REPLACE FUNCTION kll_float_sketch_get_pmf(kll_float_sketch, real[]) RETURNS double precision[]
+    AS '$libdir/datasketches', 'pg_kll_float_sketch_get_pmf'
+    LANGUAGE C STRICT IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION kll_float_sketch_get_quantiles(kll_float_sketch, double precision[]) RETURNS real[]
+    AS '$libdir/datasketches', 'pg_kll_float_sketch_get_quantiles'
+    LANGUAGE C STRICT IMMUTABLE;

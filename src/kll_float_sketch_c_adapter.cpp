@@ -61,6 +61,14 @@ float kll_float_sketch_get_quantile(const void* sketchptr, double rank) {
   }
 }
 
+uint64 kll_float_sketch_get_n(const void* sketchptr) {
+  try {
+    return static_cast<const kll_float_sketch*>(sketchptr)->get_n();
+  } catch (std::exception& e) {
+    elog(ERROR, e.what());
+  }
+}
+
 void kll_float_sketch_to_string(const void* sketchptr, char* buffer, unsigned length) {
   try {
     std::stringstream s;
@@ -95,6 +103,32 @@ void* kll_float_sketch_deserialize(const char* buffer, unsigned length) {
 unsigned kll_float_sketch_get_serialized_size_bytes(const void* sketchptr) {
   try {
     return static_cast<const kll_float_sketch*>(sketchptr)->get_serialized_size_bytes();
+  } catch (std::exception& e) {
+    elog(ERROR, e.what());
+  }
+}
+
+Datum* kll_float_sketch_get_pmf(const void* sketchptr, const float* split_points, unsigned num_split_points) {
+  try {
+    auto ptr = static_cast<const kll_float_sketch*>(sketchptr)->get_PMF(split_points, num_split_points);
+    Datum* pmf = (Datum*) palloc(sizeof(Datum) * (num_split_points + 1));
+    for (unsigned i = 0; i < num_split_points + 1; i++) {
+      pmf[i] = Float8GetDatum(ptr[i]);
+    }
+    return pmf;
+  } catch (std::exception& e) {
+    elog(ERROR, e.what());
+  }
+}
+
+Datum* kll_float_sketch_get_quantiles(const void* sketchptr, const double* fractions, unsigned num_fractions) {
+  try {
+    auto ptr = static_cast<const kll_float_sketch*>(sketchptr)->get_quantiles(fractions, num_fractions);
+    Datum* quantiles = (Datum*) palloc(sizeof(Datum) * num_fractions);
+    for (unsigned i = 0; i < num_fractions; i++) {
+      quantiles[i] = Float4GetDatum(ptr[i]);
+    }
+    return quantiles;
   } catch (std::exception& e) {
     elog(ERROR, e.what());
   }
