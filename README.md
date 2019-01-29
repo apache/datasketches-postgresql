@@ -88,6 +88,6 @@ The ARRAY[-2, -1, 0, 1, 2] of 5 split points defines 6 intervals (bins): (-inf,-
 	------------------------
 	                1000000
 
-In this simple example we know the value of N since we constructed this sketch, but in a general case skethes are mergeg across dimensions of data hypercube, so the vale of N is not known in advance.
+In this simple example we know the value of N since we constructed this sketch, but in a general case sketches are merged across dimensions of data hypercube, so the vale of N is not known in advance.
 
 Note that the normal distribution was used just to show the basic usage. The sketch does not make any assumptions about the distribution.
