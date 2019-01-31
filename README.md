@@ -83,7 +83,7 @@ Getting the probability mass function (PMF):
 
 The ARRAY[-2, -1, 0, 1, 2] of 5 split points defines 6 intervals (bins): (-inf,-2), [-2,-1), [-1,0), [0,1), [1,2), [2,inf). The result is 6 estimates of probability mass in these bins (fractions of input values that fall into the bins). These fractions can be transformed to counts (histogram) by scaling them by the factor of N (the total number of input values), which can be obtained from the sketch:
 
-	$ psql saydakov -c "select kll_float_sketch_get_n(sketch) from kll_float_sketch_test"
+	$ psql test -c "select kll_float_sketch_get_n(sketch) from kll_float_sketch_test"
 	 kll_float_sketch_get_n
 	------------------------
 	                1000000
