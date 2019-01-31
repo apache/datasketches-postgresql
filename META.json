@@ -1,7 +1,7 @@
 {
    "name": "datasketches",
    "abstract": "approximate algorithms for big data analysis",
-   "version": "1.0.0",
+   "version": "1.1.0",
    "maintainer": [
      "Alexander Saydakov <saydakov@verizonmedia.com>",
      "Sketches User List <sketches-user@googlegroups.com>"
@@ -11,12 +11,12 @@
       "cpc_sketch": {
          "abstract": "CPC sketch for approximate distinct counting",
          "file": "sql/datasketches_cpc_sketch.sql",
-         "version": "1.0.0"
+         "version": "1.1.0"
       },
       "kll_float_sketch": {
          "abstract": "KLL quantiles sketch for approximating distributions of float values (quanitles, ranks, histograms)",
          "file": "sql/datasketches_kll_float_sketch.sql",
-         "version": "1.0.0"
+         "version": "1.1.0"
       }
    },
    "resources": {
