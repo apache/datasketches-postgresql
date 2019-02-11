@@ -1,3 +1,6 @@
+-- Copyright 2019, Verizon Media.
+-- Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
+
 CREATE TYPE cpc_sketch;
 
 CREATE OR REPLACE FUNCTION cpc_sketch_in(cstring) RETURNS cpc_sketch
