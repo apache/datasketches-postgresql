@@ -46,7 +46,7 @@ public:
     return static_cast<size_type>(-1) / sizeof(T);
   }
 
-  void construct(pointer p, const value_type&& x) {
+  void construct(pointer p, const value_type& x) {
     new(p) value_type(std::forward<const value_type>(x));
   }
   void destroy(pointer p) { p->~value_type(); }
