@@ -15,7 +15,7 @@
 PG_FUNCTION_INFO_V1(pg_theta_sketch_add_item);
 PG_FUNCTION_INFO_V1(pg_theta_sketch_get_estimate);
 PG_FUNCTION_INFO_V1(pg_theta_sketch_to_string);
-PG_FUNCTION_INFO_V1(pg_theta_sketch_merge);
+PG_FUNCTION_INFO_V1(pg_theta_sketch_union);
 PG_FUNCTION_INFO_V1(pg_theta_sketch_from_internal);
 PG_FUNCTION_INFO_V1(pg_theta_sketch_get_estimate_from_internal);
 PG_FUNCTION_INFO_V1(pg_theta_union_get_result);
