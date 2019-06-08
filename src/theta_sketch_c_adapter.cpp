@@ -14,11 +14,13 @@ extern "C" {
 
 #include <theta_sketch.hpp>
 #include <theta_union.hpp>
+#include <theta_intersection.hpp>
 
 typedef datasketches::theta_sketch_alloc<palloc_allocator<void>> theta_sketch_pg;
 typedef datasketches::update_theta_sketch_alloc<palloc_allocator<void>> update_theta_sketch_pg;
 typedef datasketches::compact_theta_sketch_alloc<palloc_allocator<void>> compact_theta_sketch_pg;
 typedef datasketches::theta_union_alloc<palloc_allocator<void>> theta_union_pg;
+typedef datasketches::theta_intersection_alloc<palloc_allocator<void>> theta_intersection_pg;
 
 void* theta_sketch_new_default() {
   try {
@@ -139,6 +141,39 @@ void theta_union_update(void* unionptr, const void* sketchptr) {
 void* theta_union_get_result(void* unionptr) {
   try {
     return new (palloc(sizeof(compact_theta_sketch_pg))) compact_theta_sketch_pg(static_cast<theta_union_pg*>(unionptr)->get_result());
+  } catch (std::exception& e) {
+    elog(ERROR, e.what());
+  }
+}
+
+void* theta_intersection_new_default() {
+  try {
+    return new (palloc(sizeof(theta_intersection_pg))) theta_intersection_pg;
+  } catch (std::exception& e) {
+    elog(ERROR, e.what());
+  }
+}
+
+void theta_intersection_delete(void* interptr) {
+  try {
+    static_cast<theta_intersection_pg*>(interptr)->~theta_intersection_pg();
+    pfree(interptr);
+  } catch (std::exception& e) {
+    elog(ERROR, e.what());
+  }
+}
+
+void theta_intersection_update(void* interptr, const void* sketchptr) {
+  try {
+    static_cast<theta_intersection_pg*>(interptr)->update(*static_cast<const theta_sketch_pg*>(sketchptr));
+  } catch (std::exception& e) {
+    elog(ERROR, e.what());
+  }
+}
+
+void* theta_intersection_get_result(void* interptr) {
+  try {
+    return new (palloc(sizeof(compact_theta_sketch_pg))) compact_theta_sketch_pg(static_cast<theta_intersection_pg*>(interptr)->get_result());
   } catch (std::exception& e) {
     elog(ERROR, e.what());
   }
