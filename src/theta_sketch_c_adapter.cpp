@@ -15,12 +15,14 @@ extern "C" {
 #include <theta_sketch.hpp>
 #include <theta_union.hpp>
 #include <theta_intersection.hpp>
+#include <theta_a_not_b.hpp>
 
 typedef datasketches::theta_sketch_alloc<palloc_allocator<void>> theta_sketch_pg;
 typedef datasketches::update_theta_sketch_alloc<palloc_allocator<void>> update_theta_sketch_pg;
 typedef datasketches::compact_theta_sketch_alloc<palloc_allocator<void>> compact_theta_sketch_pg;
 typedef datasketches::theta_union_alloc<palloc_allocator<void>> theta_union_pg;
 typedef datasketches::theta_intersection_alloc<palloc_allocator<void>> theta_intersection_pg;
+typedef datasketches::theta_a_not_b_alloc<palloc_allocator<void>> theta_a_not_b_pg;
 
 void* theta_sketch_new_default() {
   try {
@@ -138,9 +140,9 @@ void theta_union_update(void* unionptr, const void* sketchptr) {
   }
 }
 
-void* theta_union_get_result(void* unionptr) {
+void* theta_union_get_result(const void* unionptr) {
   try {
-    return new (palloc(sizeof(compact_theta_sketch_pg))) compact_theta_sketch_pg(static_cast<theta_union_pg*>(unionptr)->get_result());
+    return new (palloc(sizeof(compact_theta_sketch_pg))) compact_theta_sketch_pg(static_cast<const theta_union_pg*>(unionptr)->get_result());
   } catch (std::exception& e) {
     elog(ERROR, e.what());
   }
@@ -171,9 +173,21 @@ void theta_intersection_update(void* interptr, const void* sketchptr) {
   }
 }
 
-void* theta_intersection_get_result(void* interptr) {
+void* theta_intersection_get_result(const void* interptr) {
   try {
-    return new (palloc(sizeof(compact_theta_sketch_pg))) compact_theta_sketch_pg(static_cast<theta_intersection_pg*>(interptr)->get_result());
+    return new (palloc(sizeof(compact_theta_sketch_pg))) compact_theta_sketch_pg(static_cast<const theta_intersection_pg*>(interptr)->get_result());
+  } catch (std::exception& e) {
+    elog(ERROR, e.what());
+  }
+}
+
+void* theta_a_not_b(const void* sketchptr1, const void* sketchptr2) {
+  try {
+    theta_a_not_b_pg a_not_b;
+    return new (palloc(sizeof(compact_theta_sketch_pg))) compact_theta_sketch_pg(a_not_b.compute(
+      *static_cast<const theta_sketch_pg*>(sketchptr1),
+      *static_cast<const theta_sketch_pg*>(sketchptr2)
+    ));
   } catch (std::exception& e) {
     elog(ERROR, e.what());
   }

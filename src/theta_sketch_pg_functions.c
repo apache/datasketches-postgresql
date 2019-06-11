@@ -21,6 +21,7 @@ PG_FUNCTION_INFO_V1(pg_theta_sketch_get_estimate_from_internal);
 PG_FUNCTION_INFO_V1(pg_theta_union_get_result);
 PG_FUNCTION_INFO_V1(pg_theta_sketch_union);
 PG_FUNCTION_INFO_V1(pg_theta_sketch_intersection);
+PG_FUNCTION_INFO_V1(pg_theta_sketch_a_not_b);
 
 /* function declarations */
 Datum pg_theta_sketch_recv(PG_FUNCTION_ARGS);
@@ -34,6 +35,7 @@ Datum pg_theta_sketch_get_estimate_from_internal(PG_FUNCTION_ARGS);
 Datum pg_theta_union_get_result(PG_FUNCTION_ARGS);
 Datum pg_theta_sketch_union(PG_FUNCTION_ARGS);
 Datum pg_theta_sketch_intersection(PG_FUNCTION_ARGS);
+Datum pg_theta_sketch_a_not_b(PG_FUNCTION_ARGS);
 
 Datum pg_theta_sketch_add_item(PG_FUNCTION_ARGS) {
   void* sketchptr;
@@ -271,6 +273,30 @@ Datum pg_theta_sketch_intersection(PG_FUNCTION_ARGS) {
   }
   sketchptr = theta_intersection_get_result(interptr);
   theta_intersection_delete(interptr);
+  bytes_out = theta_sketch_serialize(sketchptr);
+  theta_sketch_delete(sketchptr);
+  PG_RETURN_BYTEA_P(bytes_out);
+}
+
+Datum pg_theta_sketch_a_not_b(PG_FUNCTION_ARGS) {
+  const bytea* bytes_in1;
+  const bytea* bytes_in2;
+  void* sketchptr1;
+  void* sketchptr2;
+  void* sketchptr;
+  bytea* bytes_out;
+
+  if (PG_ARGISNULL(0) || PG_ARGISNULL(1)) {
+    elog(ERROR, "theta_a_not_b expects two valid theta sketches");
+  }
+
+  bytes_in1 = PG_GETARG_BYTEA_P(0);
+  sketchptr1 = theta_sketch_deserialize(VARDATA(bytes_in1), VARSIZE(bytes_in1) - VARHDRSZ);
+  bytes_in2 = PG_GETARG_BYTEA_P(1);
+  sketchptr2 = theta_sketch_deserialize(VARDATA(bytes_in2), VARSIZE(bytes_in2) - VARHDRSZ);
+  sketchptr = theta_a_not_b(sketchptr1, sketchptr2);
+  theta_sketch_delete(sketchptr1);
+  theta_sketch_delete(sketchptr2);
   bytes_out = theta_sketch_serialize(sketchptr);
   theta_sketch_delete(sketchptr);
   PG_RETURN_BYTEA_P(bytes_out);

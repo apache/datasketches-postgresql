@@ -27,12 +27,14 @@ void* theta_union_new_default();
 void* theta_union_new(unsigned lg_k);
 void theta_union_delete(void* unionptr);
 void theta_union_update(void* unionptr, const void* sketchptr);
-void* theta_union_get_result(void* unionptr);
+void* theta_union_get_result(const void* unionptr);
 
 void* theta_intersection_new_default();
 void theta_intersection_delete(void* interptr);
 void theta_intersection_update(void* interptr, const void* sketchptr);
-void* theta_intersection_get_result(void* interptr);
+void* theta_intersection_get_result(const void* interptr);
+
+void* theta_a_not_b(const void* sketchptr1, const void* sketchptr2);
 
 #ifdef __cplusplus
 }
