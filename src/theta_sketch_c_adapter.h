@@ -11,7 +11,8 @@ extern "C" {
 #endif
 
 void* theta_sketch_new_default();
-void* theta_sketch_new(unsigned lg_k);
+void* theta_sketch_new_lgk(unsigned lg_k);
+void* theta_sketch_new_lgk_p(unsigned lg_k, float p);
 void theta_sketch_delete(void* sketchptr);
 
 void theta_sketch_update(void* sketchptr, const void* data, unsigned length);

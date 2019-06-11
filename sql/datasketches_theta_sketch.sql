@@ -28,6 +28,10 @@ CREATE OR REPLACE FUNCTION theta_sketch_add_item(internal, anyelement, int) RETU
     AS '$libdir/datasketches', 'pg_theta_sketch_add_item'
     LANGUAGE C IMMUTABLE;
 
+CREATE OR REPLACE FUNCTION theta_sketch_add_item(internal, anyelement, int, real) RETURNS internal
+    AS '$libdir/datasketches', 'pg_theta_sketch_add_item'
+    LANGUAGE C IMMUTABLE;
+
 CREATE OR REPLACE FUNCTION theta_sketch_get_estimate(theta_sketch) RETURNS double precision
     AS '$libdir/datasketches', 'pg_theta_sketch_get_estimate'
     LANGUAGE C STRICT IMMUTABLE;
@@ -75,6 +79,12 @@ CREATE AGGREGATE theta_sketch_build(anyelement) (
 );
 
 CREATE AGGREGATE theta_sketch_build(anyelement, int) (
+    sfunc = theta_sketch_add_item,
+    stype = internal,
+    finalfunc = theta_sketch_from_internal
+);
+
+CREATE AGGREGATE theta_sketch_build(anyelement, int, real) (
     sfunc = theta_sketch_add_item,
     stype = internal,
     finalfunc = theta_sketch_from_internal

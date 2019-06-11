@@ -40,6 +40,7 @@ Datum pg_theta_sketch_a_not_b(PG_FUNCTION_ARGS);
 Datum pg_theta_sketch_add_item(PG_FUNCTION_ARGS) {
   void* sketchptr;
   int lg_k;
+  float p;
 
   // anyelement
   Oid   element_type;
@@ -64,7 +65,12 @@ Datum pg_theta_sketch_add_item(PG_FUNCTION_ARGS) {
 
   if (PG_ARGISNULL(0)) {
     lg_k = PG_GETARG_INT32(2);
-    sketchptr = lg_k ? theta_sketch_new(lg_k) : theta_sketch_new_default();
+    p = PG_GETARG_FLOAT4(3);
+    if (lg_k) {
+      sketchptr = p ? theta_sketch_new_lgk_p(lg_k, p) : theta_sketch_new_lgk(lg_k);
+    } else {
+      sketchptr = theta_sketch_new_default();
+    }
   } else {
     sketchptr = PG_GETARG_POINTER(0);
   }

@@ -32,9 +32,17 @@ void* theta_sketch_new_default() {
   }
 }
 
-void* theta_sketch_new(unsigned lg_k) {
+void* theta_sketch_new_lgk(unsigned lg_k) {
   try {
     return new (palloc(sizeof(update_theta_sketch_pg))) update_theta_sketch_pg(update_theta_sketch_pg::builder().set_lg_k(lg_k).build());
+  } catch (std::exception& e) {
+    elog(ERROR, e.what());
+  }
+}
+
+void* theta_sketch_new_lgk_p(unsigned lg_k, float p) {
+  try {
+    return new (palloc(sizeof(update_theta_sketch_pg))) update_theta_sketch_pg(update_theta_sketch_pg::builder().set_lg_k(lg_k).set_p(p).build());
   } catch (std::exception& e) {
     elog(ERROR, e.what());
   }
