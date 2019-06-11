@@ -228,8 +228,10 @@ Datum pg_theta_sketch_union(PG_FUNCTION_ARGS) {
   void* unionptr;
   void* sketchptr;
   bytea* bytes_out;
+  int lg_k;
   
-  unionptr = theta_union_new_default();
+  lg_k = PG_GETARG_INT32(2);
+  unionptr = lg_k ? theta_union_new(lg_k) : theta_union_new_default();
   if (!PG_ARGISNULL(0)) {
     bytes_in1 = PG_GETARG_BYTEA_P(0);
     sketchptr1 = theta_sketch_deserialize(VARDATA(bytes_in1), VARSIZE(bytes_in1) - VARHDRSZ);
