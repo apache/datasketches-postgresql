@@ -4,19 +4,19 @@ VER=$1
 
 DST=datasketches-$VER
 
-PGARCH=postgres-$VER.zip
+PGARCH=postgresql-$VER.zip
 COREARCH=core-$VER.zip
 
 rm -rf $DST
 rm $DST.zip
 
 git archive --format zip --prefix=$DST/ --output $PGARCH master
-cd ../sketches-core-cpp
-git archive --format zip --output ../sketches-postgres/$COREARCH master
-cd ../sketches-postgres
+cd ../datasketches-cpp
+git archive --format zip --output ../datasketches-postgresql/$COREARCH master
+cd ../datasketches-postgresql
 
 unzip $PGARCH
-COREDIR=$DST/sketches-core-cpp
+COREDIR=$DST/datasketches-cpp
 mkdir $COREDIR
 unzip $COREARCH -d $COREDIR
 
