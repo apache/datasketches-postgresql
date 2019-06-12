@@ -84,6 +84,18 @@ double theta_sketch_get_estimate(const void* sketchptr) {
   }
 }
 
+Datum* theta_sketch_get_estimate_and_bounds(const void* sketchptr, unsigned num_std_devs) {
+  try {
+    Datum* est_and_bounds = (Datum*) palloc(sizeof(Datum) * 3);
+    est_and_bounds[0] = Float8GetDatum(static_cast<const theta_sketch_pg*>(sketchptr)->get_estimate());
+    est_and_bounds[1] = Float8GetDatum(static_cast<const theta_sketch_pg*>(sketchptr)->get_lower_bound(num_std_devs));
+    est_and_bounds[2] = Float8GetDatum(static_cast<const theta_sketch_pg*>(sketchptr)->get_upper_bound(num_std_devs));
+    return est_and_bounds;
+  } catch (std::exception& e) {
+    elog(ERROR, e.what());
+  }
+}
+
 void theta_sketch_to_string(const void* sketchptr, char* buffer, unsigned length) {
   try {
     std::stringstream s;

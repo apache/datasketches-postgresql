@@ -36,6 +36,14 @@ CREATE OR REPLACE FUNCTION theta_sketch_get_estimate(theta_sketch) RETURNS doubl
     AS '$libdir/datasketches', 'pg_theta_sketch_get_estimate'
     LANGUAGE C STRICT IMMUTABLE;
 
+CREATE OR REPLACE FUNCTION theta_sketch_get_estimate_and_bounds(theta_sketch) RETURNS double precision[]
+    AS '$libdir/datasketches', 'pg_theta_sketch_get_estimate_and_bounds'
+    LANGUAGE C STRICT IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION theta_sketch_get_estimate_and_bounds(theta_sketch, int) RETURNS double precision[]
+    AS '$libdir/datasketches', 'pg_theta_sketch_get_estimate_and_bounds'
+    LANGUAGE C STRICT IMMUTABLE;
+
 CREATE OR REPLACE FUNCTION theta_sketch_from_internal(internal) RETURNS theta_sketch
     AS '$libdir/datasketches', 'pg_theta_sketch_from_internal'
     LANGUAGE C STRICT IMMUTABLE;
