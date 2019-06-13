@@ -10,7 +10,7 @@
 
 #include <kll_sketch.hpp>
 
-typedef datasketches::kll_sketch<float, palloc_allocator<void>> kll_float_sketch;
+typedef datasketches::kll_sketch<float, std::less<float>, datasketches::serde<float>, palloc_allocator<float>> kll_float_sketch;
 
 void* kll_float_sketch_new(unsigned k) {
   try {
@@ -72,7 +72,7 @@ uint64 kll_float_sketch_get_n(const void* sketchptr) {
 void kll_float_sketch_to_string(const void* sketchptr, char* buffer, unsigned length) {
   try {
     std::stringstream s;
-    s << *(static_cast<const kll_float_sketch*>(sketchptr));
+    static_cast<const kll_float_sketch*>(sketchptr)->to_stream(s);
     snprintf(buffer, length, s.str().c_str());
   } catch (std::exception& e) {
     elog(ERROR, e.what());
@@ -93,8 +93,7 @@ void* kll_float_sketch_serialize(const void* sketchptr) {
 
 void* kll_float_sketch_deserialize(const char* buffer, unsigned length) {
   try {
-    auto ptr = kll_float_sketch::deserialize(buffer, length);
-    return ptr.release();
+    return new (palloc(sizeof(kll_float_sketch))) kll_float_sketch(kll_float_sketch::deserialize(buffer, length));
   } catch (std::exception& e) {
     elog(ERROR, e.what());
   }

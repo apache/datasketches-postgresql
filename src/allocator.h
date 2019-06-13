@@ -40,13 +40,13 @@ public:
     return static_cast<pointer>(p);
   }
 
-  void deallocate(pointer p, size_type) { pfree(p); }
+  void deallocate(pointer p, size_type) { if (p) pfree(p); }
 
   size_type max_size() const {
     return static_cast<size_type>(-1) / sizeof(T);
   }
 
-  void construct(pointer p, const value_type&& x) {
+  void construct(pointer p, const value_type& x) {
     new(p) value_type(std::forward<const value_type>(x));
   }
   void destroy(pointer p) { p->~value_type(); }
