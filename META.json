@@ -1,7 +1,7 @@
 {
    "name": "datasketches",
    "abstract": "approximate algorithms for big data analysis",
-   "version": "1.1.0",
+   "version": "1.2.0",
    "maintainer": [
      "Alexander Saydakov <alsay@apache.org>",
      "Sketches User List <sketches-user@googlegroups.com>"
@@ -31,11 +31,11 @@
    },
    "resources": {
       "bugtracker": {
-         "web": "https://github.com/DataSketches/sketches-postgres/issues"
+         "web": "https://github.com/apache/incubator-datasketches-postgresql/issues"
       },
       "repository": {
-        "url":  "https://github.com/DataSketches/sketches-postgres.git",
-        "web":  "https://github.com/DataSketches/sketches-postgres",
+        "url":  "https://github.com/apache/incubator-datasketches-postgresql.git",
+        "web":  "https://github.com/apache/incubator-datasketches-postgresql",
         "type": "git"
       }
    },
