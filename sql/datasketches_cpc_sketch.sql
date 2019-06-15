@@ -58,12 +58,12 @@ CREATE OR REPLACE FUNCTION cpc_sketch_to_string(cpc_sketch) RETURNS TEXT
     AS '$libdir/datasketches', 'pg_cpc_sketch_to_string'
     LANGUAGE C STRICT IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION cpc_sketch_merge(internal, cpc_sketch) RETURNS internal
-    AS '$libdir/datasketches', 'pg_cpc_sketch_merge'
+CREATE OR REPLACE FUNCTION cpc_sketch_union_agg(internal, cpc_sketch) RETURNS internal
+    AS '$libdir/datasketches', 'pg_cpc_sketch_union_agg'
     LANGUAGE C IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION cpc_sketch_merge(internal, cpc_sketch, int) RETURNS internal
-    AS '$libdir/datasketches', 'pg_cpc_sketch_merge'
+CREATE OR REPLACE FUNCTION cpc_sketch_union_agg(internal, cpc_sketch, int) RETURNS internal
+    AS '$libdir/datasketches', 'pg_cpc_sketch_union_agg'
     LANGUAGE C IMMUTABLE;
 
 CREATE OR REPLACE FUNCTION cpc_union_get_result(internal) RETURNS cpc_sketch
@@ -94,14 +94,22 @@ CREATE AGGREGATE cpc_sketch_build(anyelement, int) (
     finalfunc = cpc_sketch_from_internal
 );
 
-CREATE AGGREGATE cpc_sketch_merge(cpc_sketch) (
-    sfunc = cpc_sketch_merge,
+CREATE AGGREGATE cpc_sketch_union(cpc_sketch) (
+    sfunc = cpc_sketch_union_agg,
     stype = internal,
     finalfunc = cpc_union_get_result
 );
 
-CREATE AGGREGATE cpc_sketch_merge(cpc_sketch, int) (
-    sfunc = cpc_sketch_merge,
+CREATE AGGREGATE cpc_sketch_union(cpc_sketch, int) (
+    sfunc = cpc_sketch_union_agg,
     stype = internal,
     finalfunc = cpc_union_get_result
 );
+
+CREATE OR REPLACE FUNCTION cpc_sketch_union(cpc_sketch, cpc_sketch) RETURNS cpc_sketch
+    AS '$libdir/datasketches', 'pg_cpc_sketch_union'
+    LANGUAGE C IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION cpc_sketch_union(cpc_sketch, cpc_sketch, int) RETURNS cpc_sketch
+    AS '$libdir/datasketches', 'pg_cpc_sketch_union'
+    LANGUAGE C IMMUTABLE;
