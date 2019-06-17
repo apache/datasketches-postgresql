@@ -42,7 +42,7 @@ Merging sketches:
 	insert into cpc_sketch_test select cpc_sketch_build(1);
 	insert into cpc_sketch_test select cpc_sketch_build(2);
 	insert into cpc_sketch_test select cpc_sketch_build(3);
-	select cpc_sketch_get_estimate(cpc_sketch_merge(sketch)) from cpc_sketch_test;
+	select cpc_sketch_get_estimate(cpc_sketch_union(sketch)) from cpc_sketch_test;
 	 cpc_sketch_get_estimate
 	-------------------------
 	        3.00024414612919

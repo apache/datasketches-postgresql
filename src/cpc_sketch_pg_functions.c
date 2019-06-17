@@ -31,10 +31,11 @@ const unsigned DEFAULT_LG_K = 11;
 PG_FUNCTION_INFO_V1(pg_cpc_sketch_add_item);
 PG_FUNCTION_INFO_V1(pg_cpc_sketch_get_estimate);
 PG_FUNCTION_INFO_V1(pg_cpc_sketch_to_string);
-PG_FUNCTION_INFO_V1(pg_cpc_sketch_merge);
+PG_FUNCTION_INFO_V1(pg_cpc_sketch_union_agg);
 PG_FUNCTION_INFO_V1(pg_cpc_sketch_from_internal);
 PG_FUNCTION_INFO_V1(pg_cpc_sketch_get_estimate_from_internal);
 PG_FUNCTION_INFO_V1(pg_cpc_union_get_result);
+PG_FUNCTION_INFO_V1(pg_cpc_sketch_union);
 
 /* function declarations */
 Datum pg_cpc_sketch_recv(PG_FUNCTION_ARGS);
@@ -42,10 +43,11 @@ Datum pg_cpc_sketch_send(PG_FUNCTION_ARGS);
 Datum pg_cpc_sketch_add_item(PG_FUNCTION_ARGS);
 Datum pg_cpc_sketch_get_estimate(PG_FUNCTION_ARGS);
 Datum pg_cpc_sketch_to_string(PG_FUNCTION_ARGS);
-Datum pg_cpc_sketch_merge(PG_FUNCTION_ARGS);
+Datum pg_cpc_sketch_union_agg(PG_FUNCTION_ARGS);
 Datum pg_cpc_sketch_from_internal(PG_FUNCTION_ARGS);
 Datum pg_cpc_sketch_get_estimate_from_internal(PG_FUNCTION_ARGS);
 Datum pg_cpc_union_get_result(PG_FUNCTION_ARGS);
+Datum pg_cpc_sketch_union(PG_FUNCTION_ARGS);
 
 Datum pg_cpc_sketch_add_item(PG_FUNCTION_ARGS) {
   void* sketchptr;
@@ -120,7 +122,7 @@ Datum pg_cpc_sketch_to_string(PG_FUNCTION_ARGS) {
   PG_RETURN_TEXT_P(cstring_to_text(str));
 }
 
-Datum pg_cpc_sketch_merge(PG_FUNCTION_ARGS) {
+Datum pg_cpc_sketch_union_agg(PG_FUNCTION_ARGS) {
   void* unionptr;
   bytea* sketch_bytes;
   void* sketchptr;
@@ -226,5 +228,36 @@ Datum pg_cpc_union_get_result(PG_FUNCTION_ARGS) {
 
   MemoryContextSwitchTo(oldcontext);
 
+  PG_RETURN_BYTEA_P(bytes_out);
+}
+
+Datum pg_cpc_sketch_union(PG_FUNCTION_ARGS) {
+  const bytea* bytes_in1;
+  const bytea* bytes_in2;
+  void* sketchptr1;
+  void* sketchptr2;
+  void* unionptr;
+  void* sketchptr;
+  bytea* bytes_out;
+  int lg_k;
+
+  lg_k = PG_GETARG_INT32(2);
+  unionptr = cpc_union_new(lg_k ? lg_k : DEFAULT_LG_K);
+  if (!PG_ARGISNULL(0)) {
+    bytes_in1 = PG_GETARG_BYTEA_P(0);
+    sketchptr1 = cpc_sketch_deserialize(VARDATA(bytes_in1), VARSIZE(bytes_in1) - VARHDRSZ);
+    cpc_union_update(unionptr, sketchptr1);
+    cpc_sketch_delete(sketchptr1);
+  }
+  if (!PG_ARGISNULL(1)) {
+    bytes_in2 = PG_GETARG_BYTEA_P(1);
+    sketchptr2 = cpc_sketch_deserialize(VARDATA(bytes_in2), VARSIZE(bytes_in2) - VARHDRSZ);
+    cpc_union_update(unionptr, sketchptr2);
+    cpc_sketch_delete(sketchptr2);
+  }
+  sketchptr = cpc_union_get_result(unionptr);
+  cpc_union_delete(unionptr);
+  bytes_out = cpc_sketch_serialize(sketchptr);
+  cpc_sketch_delete(sketchptr);
   PG_RETURN_BYTEA_P(bytes_out);
 }
