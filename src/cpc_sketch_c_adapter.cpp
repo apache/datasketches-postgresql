@@ -19,10 +19,6 @@
 
 #include "cpc_sketch_c_adapter.h"
 
-extern "C" {
-#include <postgres.h>
-}
-
 #include <sstream>
 
 #include <cpc_sketch.hpp>
@@ -57,6 +53,18 @@ void cpc_sketch_update(void* sketchptr, const void* data, unsigned length) {
 double cpc_sketch_get_estimate(const void* sketchptr) {
   try {
     return static_cast<const datasketches::cpc_sketch*>(sketchptr)->get_estimate();
+  } catch (std::exception& e) {
+    elog(ERROR, e.what());
+  }
+}
+
+Datum* cpc_sketch_get_estimate_and_bounds(const void* sketchptr, unsigned num_std_devs) {
+  try {
+    Datum* est_and_bounds = (Datum*) palloc(sizeof(Datum) * 3);
+    est_and_bounds[0] = Float8GetDatum(static_cast<const datasketches::cpc_sketch*>(sketchptr)->get_estimate());
+    est_and_bounds[1] = Float8GetDatum(static_cast<const datasketches::cpc_sketch*>(sketchptr)->get_lower_bound(num_std_devs));
+    est_and_bounds[2] = Float8GetDatum(static_cast<const datasketches::cpc_sketch*>(sketchptr)->get_upper_bound(num_std_devs));
+    return est_and_bounds;
   } catch (std::exception& e) {
     elog(ERROR, e.what());
   }

@@ -21,6 +21,8 @@
 #include <fmgr.h>
 #include <utils/lsyscache.h>
 #include <utils/builtins.h>
+#include <utils/array.h>
+#include <catalog/pg_type.h>
 
 #include "cpc_sketch_c_adapter.h"
 #include "base64.h"
@@ -30,6 +32,7 @@ const unsigned DEFAULT_LG_K = 11;
 /* PG_FUNCTION_INFO_V1 macro to pass functions to postgres */
 PG_FUNCTION_INFO_V1(pg_cpc_sketch_add_item);
 PG_FUNCTION_INFO_V1(pg_cpc_sketch_get_estimate);
+PG_FUNCTION_INFO_V1(pg_cpc_sketch_get_estimate_and_bounds);
 PG_FUNCTION_INFO_V1(pg_cpc_sketch_to_string);
 PG_FUNCTION_INFO_V1(pg_cpc_sketch_union_agg);
 PG_FUNCTION_INFO_V1(pg_cpc_sketch_from_internal);
@@ -42,6 +45,7 @@ Datum pg_cpc_sketch_recv(PG_FUNCTION_ARGS);
 Datum pg_cpc_sketch_send(PG_FUNCTION_ARGS);
 Datum pg_cpc_sketch_add_item(PG_FUNCTION_ARGS);
 Datum pg_cpc_sketch_get_estimate(PG_FUNCTION_ARGS);
+Datum pg_cpc_sketch_get_estimate_and_bounds(PG_FUNCTION_ARGS);
 Datum pg_cpc_sketch_to_string(PG_FUNCTION_ARGS);
 Datum pg_cpc_sketch_union_agg(PG_FUNCTION_ARGS);
 Datum pg_cpc_sketch_from_internal(PG_FUNCTION_ARGS);
@@ -109,6 +113,31 @@ Datum pg_cpc_sketch_get_estimate(PG_FUNCTION_ARGS) {
   estimate = cpc_sketch_get_estimate(sketchptr);
   cpc_sketch_delete(sketchptr);
   PG_RETURN_FLOAT8(estimate);
+}
+
+Datum pg_cpc_sketch_get_estimate_and_bounds(PG_FUNCTION_ARGS) {
+  const bytea* bytes_in;
+  void* sketchptr;
+  int num_std_devs;
+
+  // output array
+  Datum* est_and_bounds;
+  ArrayType* arr_out;
+  int16 elmlen_out;
+  bool elmbyval_out;
+  char elmalign_out;
+
+  bytes_in = PG_GETARG_BYTEA_P(0);
+  sketchptr = cpc_sketch_deserialize(VARDATA(bytes_in), VARSIZE(bytes_in) - VARHDRSZ);
+  num_std_devs = PG_GETARG_INT32(1);
+  if (num_std_devs == 0) num_std_devs = 1; // default
+  est_and_bounds = cpc_sketch_get_estimate_and_bounds(sketchptr, num_std_devs);
+  cpc_sketch_delete(sketchptr);
+
+  // construct output array
+  get_typlenbyvalalign(FLOAT8OID, &elmlen_out, &elmbyval_out, &elmalign_out);
+  arr_out = construct_array(est_and_bounds, 3, FLOAT8OID, elmlen_out, elmbyval_out, elmalign_out);
+  PG_RETURN_ARRAYTYPE_P(arr_out);
 }
 
 Datum pg_cpc_sketch_to_string(PG_FUNCTION_ARGS) {

@@ -46,6 +46,14 @@ CREATE OR REPLACE FUNCTION cpc_sketch_get_estimate(cpc_sketch) RETURNS double pr
     AS '$libdir/datasketches', 'pg_cpc_sketch_get_estimate'
     LANGUAGE C STRICT IMMUTABLE;
 
+CREATE OR REPLACE FUNCTION cpc_sketch_get_estimate_and_bounds(cpc_sketch) RETURNS double precision[]
+    AS '$libdir/datasketches', 'pg_cpc_sketch_get_estimate_and_bounds'
+    LANGUAGE C STRICT IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION cpc_sketch_get_estimate_and_bounds(cpc_sketch, int) RETURNS double precision[]
+    AS '$libdir/datasketches', 'pg_cpc_sketch_get_estimate_and_bounds'
+    LANGUAGE C STRICT IMMUTABLE;
+
 CREATE OR REPLACE FUNCTION cpc_sketch_from_internal(internal) RETURNS cpc_sketch
     AS '$libdir/datasketches', 'pg_cpc_sketch_from_internal'
     LANGUAGE C STRICT IMMUTABLE;
