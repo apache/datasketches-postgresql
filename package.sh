@@ -2,6 +2,11 @@
 
 VER=$1
 
+if [ -z $1 ]; then
+  echo version must be specified: x.y.z
+  exit;
+fi
+
 DST=datasketches-$VER
 
 PGARCH=postgresql-$VER.zip
@@ -21,3 +26,6 @@ mkdir $COREDIR
 unzip $COREARCH -d $COREDIR
 
 zip -r $DST.zip $DST
+
+rm $PGARCH $COREARCH
+rm -r $DST
