@@ -60,8 +60,9 @@ public:
     return static_cast<size_type>(-1) / sizeof(T);
   }
 
-  void construct(pointer p, const value_type& x) {
-    new(p) value_type(std::forward<const value_type>(x));
+  template<typename... Args>
+  void construct(pointer p, Args&&... args) {
+    new(p) value_type(std::forward<Args>(args)...);
   }
   void destroy(pointer p) { p->~value_type(); }
 
