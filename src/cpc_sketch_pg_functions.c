@@ -27,7 +27,7 @@
 #include "cpc_sketch_c_adapter.h"
 #include "base64.h"
 
-const unsigned DEFAULT_LG_K = 11;
+const unsigned CPC_DEFAULT_LG_K = 11;
 
 /* PG_FUNCTION_INFO_V1 macro to pass functions to postgres */
 PG_FUNCTION_INFO_V1(pg_cpc_sketch_add_item);
@@ -80,7 +80,7 @@ Datum pg_cpc_sketch_add_item(PG_FUNCTION_ARGS) {
 
   if (PG_ARGISNULL(0)) {
     lg_k = PG_GETARG_INT32(2);
-    sketchptr = cpc_sketch_new(lg_k ? lg_k : DEFAULT_LG_K);
+    sketchptr = cpc_sketch_new(lg_k ? lg_k : CPC_DEFAULT_LG_K);
   } else {
     sketchptr = PG_GETARG_POINTER(0);
   }
@@ -167,13 +167,13 @@ Datum pg_cpc_sketch_union_agg(PG_FUNCTION_ARGS) {
   }
 
   if (!AggCheckCallContext(fcinfo, &aggcontext)) {
-    elog(ERROR, "cpc_sketch_merge called in non-aggregate context");
+    elog(ERROR, "cpc_sketch_union_agg called in non-aggregate context");
   }
   oldcontext = MemoryContextSwitchTo(aggcontext);
 
   if (PG_ARGISNULL(0)) {
     lg_k = PG_GETARG_INT32(2);
-    unionptr = cpc_union_new(lg_k ? lg_k : DEFAULT_LG_K);
+    unionptr = cpc_union_new(lg_k ? lg_k : CPC_DEFAULT_LG_K);
   } else {
     unionptr = PG_GETARG_POINTER(0);
   }
@@ -271,7 +271,7 @@ Datum pg_cpc_sketch_union(PG_FUNCTION_ARGS) {
   int lg_k;
 
   lg_k = PG_GETARG_INT32(2);
-  unionptr = cpc_union_new(lg_k ? lg_k : DEFAULT_LG_K);
+  unionptr = cpc_union_new(lg_k ? lg_k : CPC_DEFAULT_LG_K);
   if (!PG_ARGISNULL(0)) {
     bytes_in1 = PG_GETARG_BYTEA_P(0);
     sketchptr1 = cpc_sketch_deserialize(VARDATA(bytes_in1), VARSIZE(bytes_in1) - VARHDRSZ);
