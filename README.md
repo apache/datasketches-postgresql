@@ -3,8 +3,9 @@ See [Datasketches documentation](https://datasketches.github.io/) for details.
 
 This module currently supports the following sketches:
 
-- CPC (Compressed Probabilistic Counting) sketch - very compact (when serialized) distinct-counting sketch
+- CPC (Compressed Probabilistic Counting) sketch - very compact (smaller than HLL when serialized) distinct-counting sketch
 - Theta sketch - distinct counting with set operations (intersection, a-not-b)
+- HLL sketch - very compact distinct-counting sketch based on HyperLogLog algorithm
 - KLL float quantiles sketch - for estimating distributions: quantile, rank, PMF (histogram), CDF
 - Frequent strings sketch - capture the heaviest items (strings) by count or by some other weight
 
@@ -36,7 +37,7 @@ Approximate count distinct:
 
 Note that the above one-off distinct count is just to show the basic usage. Most importantly, the sketch can be used as an "additive" distinct count metric in a data cube.
 
-Merging sketches:
+Aggregate union:
 
 	create table cpc_sketch_test(sketch cpc_sketch);
 	insert into cpc_sketch_test select cpc_sketch_build(1);
@@ -46,6 +47,13 @@ Merging sketches:
 	 cpc_sketch_get_estimate
 	-------------------------
 	        3.00024414612919
+
+Non-aggregate union:
+
+	select cpc_sketch_get_estimate(cpc_sketch_union(cpc_sketch_build(1), cpc_sketch_build(2)));
+	 cpc_sketch_get_estimate 
+	-------------------------
+	        2.00016277723359
 
 <h2>Distinct counting with Theta sketch</h2>
 
@@ -101,9 +109,43 @@ Non-aggregate set operations:
 	                         1
 	(2 rows)
 
+<h2>Distinct counting with HLL sketch</h2>
+
+See above for the exact distinct count of 100 million random integers
+
+Approximate distinct count:
+
+	$ time psql test -c "select hll_sketch_distinct(id) from random_ints_100m"
+	 hll_sketch_distinct 
+	---------------------
+	    63826337.5738399
+	(1 row)
+
+	real	0m19.075s
+
+Note that the above one-off distinct count is just to show the basic usage. Most importantly, the sketch can be used as an "additive" distinct count metric in a data cube.
+
+Aggregate union:
+
+	create table hll_sketch_test(sketch hll_sketch);
+	insert into hll_sketch_test select hll_sketch_build(1);
+	insert into hll_sketch_test select hll_sketch_build(2);
+	insert into hll_sketch_test select hll_sketch_build(3);
+	select hll_sketch_get_estimate(hll_sketch_union(sketch)) from hll_sketch_test;
+		 hll_sketch_get_estimate 
+	-------------------------
+	        3.00000001490116
+
+Non-aggregate union:
+
+	select hll_sketch_get_estimate(hll_sketch_union(hll_sketch_build(1), hll_sketch_build(2)));
+	 hll_sketch_get_estimate 
+	-------------------------
+	        2.00000000496705
+
 <h2>Estimating quanitles, ranks and histograms with KLL sketch</h2>
 
-Table "normal" has 1 million values from the normal distribution with mean=0 and stddev=1.
+Table "normal" has 1 million values from the normal (Gaussian) distribution with mean=0 and stddev=1.
 We can build a sketch, which represents the distribution (create table kll\_float\_sketch\_test(sketch kll\_float\_sketch)):
 
 	$ psql test -c "insert into kll_float_sketch_test select kll_float_sketch_build(value) from normal"
