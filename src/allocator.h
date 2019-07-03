@@ -17,8 +17,13 @@
  * under the License.
  */
 
+#ifndef PALLOC_ALLOCATOR_H
+#define PALLOC_ALLOCATOR_H
+
+// these extern declarations are to avoid including postgres.h in C++ code
 extern "C" {
-#include <postgres.h>
+extern void *palloc(unsigned long long size);
+extern void pfree(void *pointer);
 }
 
 #include <new>
@@ -90,3 +95,5 @@ template <class T>
 inline bool operator!=(const palloc_allocator<T>&, const palloc_allocator<T>&) {
   return false;
 }
+
+#endif

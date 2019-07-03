@@ -19,6 +19,7 @@
 
 #include "frequent_strings_sketch_c_adapter.h"
 #include "allocator.h"
+#include "postgres_h_substitute.h"
 
 #include <string>
 #include <sstream>
@@ -90,8 +91,9 @@ void* frequent_strings_sketch_new(unsigned lg_k) {
   try {
     return new (palloc(sizeof(frequent_strings_sketch))) frequent_strings_sketch(lg_k);
   } catch (std::exception& e) {
-    elog(ERROR, e.what());
+    pg_error(e.what());
   }
+  pg_unreachable();
 }
 
 void frequent_strings_sketch_delete(void* sketchptr) {
@@ -99,7 +101,7 @@ void frequent_strings_sketch_delete(void* sketchptr) {
     static_cast<frequent_strings_sketch*>(sketchptr)->~frequent_strings_sketch();
     pfree(sketchptr);
   } catch (std::exception& e) {
-    elog(ERROR, e.what());
+    pg_error(e.what());
   }
 }
 
@@ -107,7 +109,7 @@ void frequent_strings_sketch_update(void* sketchptr, const char* str, unsigned l
   try {
     static_cast<frequent_strings_sketch*>(sketchptr)->update(string(str, length), weight);
   } catch (std::exception& e) {
-    elog(ERROR, e.what());
+    pg_error(e.what());
   }
 }
 
@@ -115,7 +117,7 @@ void frequent_strings_sketch_merge(void* sketchptr1, const void* sketchptr2) {
   try {
     static_cast<frequent_strings_sketch*>(sketchptr1)->merge(*static_cast<const frequent_strings_sketch*>(sketchptr2));
   } catch (std::exception& e) {
-    elog(ERROR, e.what());
+    pg_error(e.what());
   }
 }
 
@@ -128,20 +130,22 @@ char* frequent_strings_sketch_to_string(const void* sketchptr, bool print_items)
     strncpy(buffer, s.str().c_str(), len);
     return buffer;
   } catch (std::exception& e) {
-    elog(ERROR, e.what());
+    pg_error(e.what());
   }
+  pg_unreachable();
 }
 
-void* frequent_strings_sketch_serialize(const void* sketchptr) {
+ptr_with_size frequent_strings_sketch_serialize(const void* sketchptr, unsigned header_size) {
   try {
-    auto data = static_cast<const frequent_strings_sketch*>(sketchptr)->serialize(VARHDRSZ);
-    bytea* buffer = (bytea*) data.first.release();
-    const size_t length = data.second;
-    SET_VARSIZE(buffer, length);
-    return buffer;
+    ptr_with_size p;
+    auto data = static_cast<const frequent_strings_sketch*>(sketchptr)->serialize(header_size);
+    p.ptr = data.first.release();
+    p.size = data.second;
+    return p;
   } catch (std::exception& e) {
-    elog(ERROR, e.what());
+    pg_error(e.what());
   }
+  pg_unreachable();
 }
 
 void* frequent_strings_sketch_deserialize(const char* buffer, unsigned length) {
@@ -150,16 +154,18 @@ void* frequent_strings_sketch_deserialize(const char* buffer, unsigned length) {
       frequent_strings_sketch(frequent_strings_sketch::deserialize(buffer, length));
     return sketchptr;
   } catch (std::exception& e) {
-    elog(ERROR, e.what());
+    pg_error(e.what());
   }
+  pg_unreachable();
 }
 
 unsigned frequent_strings_sketch_get_serialized_size_bytes(const void* sketchptr) {
   try {
     return static_cast<const frequent_strings_sketch*>(sketchptr)->get_serialized_size_bytes();
   } catch (std::exception& e) {
-    elog(ERROR, e.what());
+    pg_error(e.what());
   }
+  pg_unreachable();
 }
 
 frequent_strings_sketch_result* frequent_strings_sketch_get_frequent_items(void* sketchptr, bool no_false_positives, unsigned long long threshold) {
@@ -184,6 +190,7 @@ frequent_strings_sketch_result* frequent_strings_sketch_get_frequent_items(void*
     result->num = data.size();
     return result;
   } catch (std::exception& e) {
-    elog(ERROR, e.what());
+    pg_error(e.what());
   }
+  pg_unreachable();
 }

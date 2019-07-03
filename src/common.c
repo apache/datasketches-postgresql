@@ -30,6 +30,10 @@ PG_FUNCTION_INFO_V1(pg_sketch_out);
 Datum pg_sketch_in(PG_FUNCTION_ARGS);
 Datum pg_sketch_out(PG_FUNCTION_ARGS);
 
+void pg_error(const char* message);
+Datum pg_float4_get_datum(float x);
+Datum pg_float8_get_datum(double x);
+
 // cstring to type
 Datum pg_sketch_in(PG_FUNCTION_ARGS) {
   // not invoked for nulls
@@ -52,5 +56,25 @@ Datum pg_sketch_out(PG_FUNCTION_ARGS) {
   encoded = palloc(encoded_length + 1);
   b64_encode(VARDATA(bytes), VARSIZE(bytes) - VARHDRSZ, encoded);
   encoded[encoded_length] = '\0';
-  PG_RETURN_CSTRING(encoded); // who should free it?
+  PG_RETURN_CSTRING(encoded);
+}
+
+// These are implementations of redirects defined in postgres_h_substitute.h
+
+Datum pg_float4_get_datum(float x) {
+  return Float4GetDatum(x);
+}
+
+Datum pg_float8_get_datum(double x) {
+  return Float8GetDatum(x);
+}
+
+void pg_error(const char* message) {
+  ereport(
+    ERROR,
+    (
+      errcode(ERRCODE_INTERNAL_ERROR),
+      errmsg("%s", message)
+    )
+  );
 }

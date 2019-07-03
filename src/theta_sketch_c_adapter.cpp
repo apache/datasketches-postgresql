@@ -19,10 +19,7 @@
 
 #include "theta_sketch_c_adapter.h"
 #include "allocator.h"
-
-extern "C" {
-#include <postgres.h>
-}
+#include "postgres_h_substitute.h"
 
 #include <sstream>
 
@@ -42,24 +39,27 @@ void* theta_sketch_new_default() {
   try {
     return new (palloc(sizeof(update_theta_sketch_pg))) update_theta_sketch_pg(update_theta_sketch_pg::builder().build());
   } catch (std::exception& e) {
-    elog(ERROR, e.what());
+    pg_error(e.what());
   }
+  pg_unreachable();
 }
 
 void* theta_sketch_new_lgk(unsigned lg_k) {
   try {
     return new (palloc(sizeof(update_theta_sketch_pg))) update_theta_sketch_pg(update_theta_sketch_pg::builder().set_lg_k(lg_k).build());
   } catch (std::exception& e) {
-    elog(ERROR, e.what());
+    pg_error(e.what());
   }
+  pg_unreachable();
 }
 
 void* theta_sketch_new_lgk_p(unsigned lg_k, float p) {
   try {
     return new (palloc(sizeof(update_theta_sketch_pg))) update_theta_sketch_pg(update_theta_sketch_pg::builder().set_lg_k(lg_k).set_p(p).build());
   } catch (std::exception& e) {
-    elog(ERROR, e.what());
+    pg_error(e.what());
   }
+  pg_unreachable();
 }
 
 void theta_sketch_delete(void* sketchptr) {
@@ -67,7 +67,7 @@ void theta_sketch_delete(void* sketchptr) {
     static_cast<theta_sketch_pg*>(sketchptr)->~theta_sketch_pg();
     pfree(sketchptr);
   } catch (std::exception& e) {
-    elog(ERROR, e.what());
+    pg_error(e.what());
   }
 }
 
@@ -75,7 +75,7 @@ void theta_sketch_update(void* sketchptr, const void* data, unsigned length) {
   try {
     static_cast<update_theta_sketch_pg*>(sketchptr)->update(data, length);
   } catch (std::exception& e) {
-    elog(ERROR, e.what());
+    pg_error(e.what());
   }
 }
 
@@ -86,50 +86,54 @@ void* theta_sketch_compact(void* sketchptr) {
     pfree(sketchptr);
     return newptr;
   } catch (std::exception& e) {
-    elog(ERROR, e.what());
+    pg_error(e.what());
   }
+  pg_unreachable();
 }
 
 double theta_sketch_get_estimate(const void* sketchptr) {
   try {
     return static_cast<const theta_sketch_pg*>(sketchptr)->get_estimate();
   } catch (std::exception& e) {
-    elog(ERROR, e.what());
+    pg_error(e.what());
   }
+  pg_unreachable();
 }
 
 Datum* theta_sketch_get_estimate_and_bounds(const void* sketchptr, unsigned num_std_devs) {
   try {
     Datum* est_and_bounds = (Datum*) palloc(sizeof(Datum) * 3);
-    est_and_bounds[0] = Float8GetDatum(static_cast<const theta_sketch_pg*>(sketchptr)->get_estimate());
-    est_and_bounds[1] = Float8GetDatum(static_cast<const theta_sketch_pg*>(sketchptr)->get_lower_bound(num_std_devs));
-    est_and_bounds[2] = Float8GetDatum(static_cast<const theta_sketch_pg*>(sketchptr)->get_upper_bound(num_std_devs));
+    est_and_bounds[0] = pg_float8_get_datum(static_cast<const theta_sketch_pg*>(sketchptr)->get_estimate());
+    est_and_bounds[1] = pg_float8_get_datum(static_cast<const theta_sketch_pg*>(sketchptr)->get_lower_bound(num_std_devs));
+    est_and_bounds[2] = pg_float8_get_datum(static_cast<const theta_sketch_pg*>(sketchptr)->get_upper_bound(num_std_devs));
     return est_and_bounds;
   } catch (std::exception& e) {
-    elog(ERROR, e.what());
+    pg_error(e.what());
   }
+  pg_unreachable();
 }
 
 void theta_sketch_to_string(const void* sketchptr, char* buffer, unsigned length) {
   try {
     std::stringstream s;
     static_cast<const theta_sketch_pg*>(sketchptr)->to_stream(s);
-    snprintf(buffer, length, s.str().c_str());
+    snprintf(buffer, length, "%s", s.str().c_str());
   } catch (std::exception& e) {
-    elog(ERROR, e.what());
+    pg_error(e.what());
   }
 }
 
-void* theta_sketch_serialize(const void* sketchptr) {
+ptr_with_size theta_sketch_serialize(const void* sketchptr, unsigned header_size) {
   try {
-    auto data = static_cast<const theta_sketch_pg*>(sketchptr)->serialize(VARHDRSZ);
-    bytea* buffer = (bytea*) data.first.release();
-    const size_t length = data.second;
-    SET_VARSIZE(buffer, length);
-    return buffer;
+    ptr_with_size p;
+    auto data = static_cast<const theta_sketch_pg*>(sketchptr)->serialize(header_size);
+    p.ptr = data.first.release();
+    p.size = data.second;
+    return p;
   } catch (std::exception& e) {
-    elog(ERROR, e.what());
+    pg_error(e.what());
   }
+  pg_unreachable();
 }
 
 void* theta_sketch_deserialize(const char* buffer, unsigned length) {
@@ -137,24 +141,27 @@ void* theta_sketch_deserialize(const char* buffer, unsigned length) {
     auto ptr = theta_sketch_pg::deserialize(buffer, length);
     return ptr.release();
   } catch (std::exception& e) {
-    elog(ERROR, e.what());
+    pg_error(e.what());
   }
+  pg_unreachable();
 }
 
 void* theta_union_new_default() {
   try {
     return new (palloc(sizeof(theta_union_pg))) theta_union_pg(theta_union_pg::builder().build());
   } catch (std::exception& e) {
-    elog(ERROR, e.what());
+    pg_error(e.what());
   }
+  pg_unreachable();
 }
 
 void* theta_union_new(unsigned lg_k) {
   try {
     return new (palloc(sizeof(theta_union_pg))) theta_union_pg(theta_union_pg::builder().set_lg_k(lg_k).build());
   } catch (std::exception& e) {
-    elog(ERROR, e.what());
+    pg_error(e.what());
   }
+  pg_unreachable();
 }
 
 void theta_union_delete(void* unionptr) {
@@ -162,7 +169,7 @@ void theta_union_delete(void* unionptr) {
     static_cast<theta_union_pg*>(unionptr)->~theta_union_pg();
     pfree(unionptr);
   } catch (std::exception& e) {
-    elog(ERROR, e.what());
+    pg_error(e.what());
   }
 }
 
@@ -170,7 +177,7 @@ void theta_union_update(void* unionptr, const void* sketchptr) {
   try {
     static_cast<theta_union_pg*>(unionptr)->update(*static_cast<const theta_sketch_pg*>(sketchptr));
   } catch (std::exception& e) {
-    elog(ERROR, e.what());
+    pg_error(e.what());
   }
 }
 
@@ -178,16 +185,18 @@ void* theta_union_get_result(const void* unionptr) {
   try {
     return new (palloc(sizeof(compact_theta_sketch_pg))) compact_theta_sketch_pg(static_cast<const theta_union_pg*>(unionptr)->get_result());
   } catch (std::exception& e) {
-    elog(ERROR, e.what());
+    pg_error(e.what());
   }
+  pg_unreachable();
 }
 
 void* theta_intersection_new_default() {
   try {
     return new (palloc(sizeof(theta_intersection_pg))) theta_intersection_pg;
   } catch (std::exception& e) {
-    elog(ERROR, e.what());
+    pg_error(e.what());
   }
+  pg_unreachable();
 }
 
 void theta_intersection_delete(void* interptr) {
@@ -195,7 +204,7 @@ void theta_intersection_delete(void* interptr) {
     static_cast<theta_intersection_pg*>(interptr)->~theta_intersection_pg();
     pfree(interptr);
   } catch (std::exception& e) {
-    elog(ERROR, e.what());
+    pg_error(e.what());
   }
 }
 
@@ -203,7 +212,7 @@ void theta_intersection_update(void* interptr, const void* sketchptr) {
   try {
     static_cast<theta_intersection_pg*>(interptr)->update(*static_cast<const theta_sketch_pg*>(sketchptr));
   } catch (std::exception& e) {
-    elog(ERROR, e.what());
+    pg_error(e.what());
   }
 }
 
@@ -211,8 +220,9 @@ void* theta_intersection_get_result(const void* interptr) {
   try {
     return new (palloc(sizeof(compact_theta_sketch_pg))) compact_theta_sketch_pg(static_cast<const theta_intersection_pg*>(interptr)->get_result());
   } catch (std::exception& e) {
-    elog(ERROR, e.what());
+    pg_error(e.what());
   }
+  pg_unreachable();
 }
 
 void* theta_a_not_b(const void* sketchptr1, const void* sketchptr2) {
@@ -223,6 +233,7 @@ void* theta_a_not_b(const void* sketchptr1, const void* sketchptr2) {
       *static_cast<const theta_sketch_pg*>(sketchptr2)
     ));
   } catch (std::exception& e) {
-    elog(ERROR, e.what());
+    pg_error(e.what());
   }
+  pg_unreachable();
 }
