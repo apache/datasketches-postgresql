@@ -146,8 +146,9 @@ Non-aggregate union:
 <h2>Estimating quanitles, ranks and histograms with KLL sketch</h2>
 
 Table "normal" has 1 million values from the normal (Gaussian) distribution with mean=0 and stddev=1.
-We can build a sketch, which represents the distribution (create table kll\_float\_sketch\_test(sketch kll\_float\_sketch)):
+We can build a sketch, which represents the distribution:
 
+	create table kll_float_sketch_test(sketch kll_float_sketch);
 	$ psql test -c "insert into kll_float_sketch_test select kll_float_sketch_build(value) from normal"
 	INSERT 0 1
 
@@ -189,6 +190,15 @@ The ARRAY[-2, -1, 0, 1, 2] of 5 split points defines 6 intervals (bins): (-inf,-
 In this simple example we know the value of N since we constructed this sketch, but in a general case sketches are merged across dimensions of data hypercube, so the vale of N is not known in advance.
 
 Note that the normal distribution was used just to show the basic usage. The sketch does not make any assumptions about the distribution.
+
+Let's create two more sketches to show merging kll_float_sketch:
+
+	insert into kll_float_sketch_test select kll_float_sketch_build(value) from normal;
+	insert into kll_float_sketch_test select kll_float_sketch_build(value) from normal;
+	select kll_float_sketch_get_quantile(kll_float_sketch_merge(sketch), 0.5) from kll_float_sketch_test;
+	 kll_float_sketch_get_quantile
+	-------------------------------
+	                    0.00332207
 
 <h2>Frequent strings</h2>
 
@@ -249,3 +259,25 @@ Here is an equivalent exact computation:
 
 In this particular case the exact computation happens to be faster. This is
 just to show the basic usage. Most importantly, the sketch can be used as an "additive" metric in a data cube, and can be easily merged across dimensions.
+
+Merging frequent_strings_sketch:
+
+	create table frequent_strings_sketch_test(sketch frequent_strings_sketch);
+	insert into frequent_strings_sketch_test select frequent_strings_sketch_build(9, value) from zipf_1p1_8k_100m;
+	insert into frequent_strings_sketch_test select frequent_strings_sketch_build(9, value) from zipf_1p1_8k_100m;
+	insert into frequent_strings_sketch_test select frequent_strings_sketch_build(9, value) from zipf_1p1_8k_100m;
+	select frequent_strings_sketch_result_no_false_negatives(frequent_strings_sketch_merge(9, sketch), 3000000) from frequent_strings_sketch_test;
+	 frequent_strings_sketch_result_no_false_negatives
+	---------------------------------------------------
+	 (1,45986859,45627006,45986859)
+	 (2,21468195,21108342,21468195)
+	 (3,13735083,13375230,13735083)
+	 (4,10004424,9644571,10004424)
+	 (5,7825689,7465836,7825689)
+	 (6,6407145,6047292,6407145)
+	 (7,5405883,5046030,5405883)
+	 (8,4672299,4312446,4672299)
+	 (9,4105338,3745485,4105338)
+	 (10,3649596,3289743,3649596)
+	 (11,3294912,2935059,3294912)
+	(11 rows)
