@@ -141,7 +141,7 @@ Datum pg_hll_sketch_get_estimate_and_bounds(PG_FUNCTION_ARGS) {
   sketchptr = hll_sketch_deserialize(VARDATA(bytes_in), VARSIZE(bytes_in) - VARHDRSZ);
   num_std_devs = PG_GETARG_INT32(1);
   if (num_std_devs == 0) num_std_devs = 1; // default
-  est_and_bounds = hll_sketch_get_estimate_and_bounds(sketchptr, num_std_devs);
+  est_and_bounds = (Datum*) hll_sketch_get_estimate_and_bounds(sketchptr, num_std_devs);
   hll_sketch_delete(sketchptr);
 
   // construct output array
@@ -212,7 +212,7 @@ Datum pg_hll_sketch_union_agg(PG_FUNCTION_ARGS) {
 
 Datum pg_hll_sketch_from_internal(PG_FUNCTION_ARGS) {
   void* sketchptr;
-  bytea* bytes_out;
+  struct ptr_with_size bytes_out;
 
   MemoryContext oldcontext;
   MemoryContext aggcontext;
@@ -225,12 +225,13 @@ Datum pg_hll_sketch_from_internal(PG_FUNCTION_ARGS) {
   oldcontext = MemoryContextSwitchTo(aggcontext);
 
   sketchptr = PG_GETARG_POINTER(0);
-  bytes_out = hll_sketch_serialize(sketchptr);
+  bytes_out = hll_sketch_serialize(sketchptr, VARHDRSZ);
   hll_sketch_delete(sketchptr);
+  SET_VARSIZE(bytes_out.ptr, bytes_out.size);
 
   MemoryContextSwitchTo(oldcontext);
 
-  PG_RETURN_BYTEA_P(bytes_out);
+  PG_RETURN_BYTEA_P(bytes_out.ptr);
 }
 
 Datum pg_hll_sketch_get_estimate_from_internal(PG_FUNCTION_ARGS) {
@@ -259,7 +260,7 @@ Datum pg_hll_sketch_get_estimate_from_internal(PG_FUNCTION_ARGS) {
 Datum pg_hll_union_get_result(PG_FUNCTION_ARGS) {
   struct hll_union_state* stateptr;
   void* sketchptr;
-  bytea* bytes_out;
+  struct ptr_with_size bytes_out;
 
   MemoryContext oldcontext;
   MemoryContext aggcontext;
@@ -277,14 +278,15 @@ Datum pg_hll_union_get_result(PG_FUNCTION_ARGS) {
   } else {
     sketchptr = hll_union_get_result(stateptr->unionptr);
   }
-  bytes_out = hll_sketch_serialize(sketchptr);
+  bytes_out = hll_sketch_serialize(sketchptr, VARHDRSZ);
   hll_sketch_delete(sketchptr);
   hll_union_delete(stateptr->unionptr);
   pfree(stateptr);
+  SET_VARSIZE(bytes_out.ptr, bytes_out.size);
 
   MemoryContextSwitchTo(oldcontext);
 
-  PG_RETURN_BYTEA_P(bytes_out);
+  PG_RETURN_BYTEA_P(bytes_out.ptr);
 }
 
 Datum pg_hll_sketch_union(PG_FUNCTION_ARGS) {
@@ -294,7 +296,7 @@ Datum pg_hll_sketch_union(PG_FUNCTION_ARGS) {
   void* sketchptr2;
   void* unionptr;
   void* sketchptr;
-  bytea* bytes_out;
+  struct ptr_with_size bytes_out;
   unsigned lg_k;
   unsigned tgt_type;
 
@@ -324,7 +326,9 @@ Datum pg_hll_sketch_union(PG_FUNCTION_ARGS) {
     sketchptr = hll_union_get_result(unionptr);
   }
   hll_union_delete(unionptr);
-  bytes_out = hll_sketch_serialize(sketchptr);
+  bytes_out = hll_sketch_serialize(sketchptr, VARHDRSZ);
   hll_sketch_delete(sketchptr);
-  PG_RETURN_BYTEA_P(bytes_out);
+  SET_VARSIZE(bytes_out.ptr, bytes_out.size);
+  
+  PG_RETURN_BYTEA_P(bytes_out.ptr);
 }

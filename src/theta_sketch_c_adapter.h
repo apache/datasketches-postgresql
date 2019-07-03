@@ -24,8 +24,6 @@
 extern "C" {
 #endif
 
-#include <postgres.h>
-
 void* theta_sketch_new_default();
 void* theta_sketch_new_lgk(unsigned lg_k);
 void* theta_sketch_new_lgk_p(unsigned lg_k, float p);
@@ -35,10 +33,15 @@ void theta_sketch_update(void* sketchptr, const void* data, unsigned length);
 void* theta_sketch_compact(void* sketchptr);
 void theta_sketch_union(void* sketchptr1, const void* sketchptr2);
 double theta_sketch_get_estimate(const void* sketchptr);
-Datum* theta_sketch_get_estimate_and_bounds(const void* sketchptr, unsigned num_std_devs);
+void** theta_sketch_get_estimate_and_bounds(const void* sketchptr, unsigned num_std_devs);
 void theta_sketch_to_string(const void* sketchptr, char* buffer, unsigned length);
 
-void* theta_sketch_serialize(const void* sketchptr);
+struct ptr_with_size {
+  void* ptr;
+  unsigned long long size;
+};
+
+struct ptr_with_size theta_sketch_serialize(const void* sketchptr, unsigned header_size);
 void* theta_sketch_deserialize(const char* buffer, unsigned length);
 
 void* theta_union_new_default();

@@ -131,16 +131,17 @@ Datum pg_frequent_strings_sketch_merge(PG_FUNCTION_ARGS) {
 
 Datum pg_frequent_strings_sketch_from_internal(PG_FUNCTION_ARGS) {
   void* sketchptr;
-  bytea* bytes_out;
+  struct ptr_with_size bytes_out;
   MemoryContext aggcontext;
   if (PG_ARGISNULL(0)) PG_RETURN_NULL();
   if (!AggCheckCallContext(fcinfo, &aggcontext)) {
     elog(ERROR, "frequent_strings_sketch_from_internal called in non-aggregate context");
   }
   sketchptr = PG_GETARG_POINTER(0);
-  bytes_out = frequent_strings_sketch_serialize(sketchptr);
+  bytes_out = frequent_strings_sketch_serialize(sketchptr, VARHDRSZ);
   frequent_strings_sketch_delete(sketchptr);
-  PG_RETURN_BYTEA_P(bytes_out);
+  SET_VARSIZE(bytes_out.ptr, bytes_out.size);
+  PG_RETURN_BYTEA_P(bytes_out.ptr);
 }
 
 Datum pg_frequent_strings_sketch_to_string(PG_FUNCTION_ARGS) {

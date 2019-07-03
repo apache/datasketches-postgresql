@@ -24,8 +24,6 @@
 extern "C" {
 #endif
 
-#include <postgres.h>
-
 void* kll_float_sketch_new(unsigned k);
 void kll_float_sketch_delete(void* sketchptr);
 
@@ -33,15 +31,20 @@ void kll_float_sketch_update(void* sketchptr, float value);
 void kll_float_sketch_merge(void* sketchptr1, const void* sketchptr2);
 double kll_float_sketch_get_rank(const void* sketchptr, float value);
 float kll_float_sketch_get_quantile(const void* sketchptr, double rank);
-uint64 kll_float_sketch_get_n(const void* sketchptr);
+unsigned long long kll_float_sketch_get_n(const void* sketchptr);
 void kll_float_sketch_to_string(const void* sketchptr, char* buffer, unsigned length);
 
-void* kll_float_sketch_serialize(const void* sketchptr);
+struct ptr_with_size {
+  void* ptr;
+  unsigned long long size;
+};
+
+struct ptr_with_size kll_float_sketch_serialize(const void* sketchptr, unsigned header_size);
 void* kll_float_sketch_deserialize(const char* buffer, unsigned length);
 unsigned kll_float_sketch_get_serialized_size_bytes(const void* sketchptr);
 
-Datum* kll_float_sketch_get_pmf(const void* sketchptr, const float* split_points, unsigned num_split_points);
-Datum* kll_float_sketch_get_quantiles(const void* sketchptr, const double* fractions, unsigned num_fractions);
+void** kll_float_sketch_get_pmf(const void* sketchptr, const float* split_points, unsigned num_split_points);
+void** kll_float_sketch_get_quantiles(const void* sketchptr, const double* fractions, unsigned num_fractions);
 
 #ifdef __cplusplus
 }

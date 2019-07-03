@@ -174,16 +174,18 @@ Datum pg_kll_float_sketch_merge(PG_FUNCTION_ARGS) {
 
 Datum pg_kll_float_sketch_from_internal(PG_FUNCTION_ARGS) {
   void* sketchptr;
-  bytea* bytes_out;
+  struct ptr_with_size bytes_out;
   MemoryContext aggcontext;
+
   if (PG_ARGISNULL(0)) PG_RETURN_NULL();
   if (!AggCheckCallContext(fcinfo, &aggcontext)) {
     elog(ERROR, "kll_float_sketch_from_internal called in non-aggregate context");
   }
   sketchptr = PG_GETARG_POINTER(0);
-  bytes_out = kll_float_sketch_serialize(sketchptr);
+  bytes_out = kll_float_sketch_serialize(sketchptr, VARHDRSZ);
   kll_float_sketch_delete(sketchptr);
-  PG_RETURN_BYTEA_P(bytes_out);
+  SET_VARSIZE(bytes_out.ptr, bytes_out.size);
+  PG_RETURN_BYTEA_P(bytes_out.ptr);
 }
 
 Datum pg_kll_float_sketch_get_pmf(PG_FUNCTION_ARGS) {
@@ -223,7 +225,7 @@ Datum pg_kll_float_sketch_get_pmf(PG_FUNCTION_ARGS) {
   for (i = 0; i < arr_len_in; i++) {
     split_points[i] = DatumGetFloat4(data_in[i]);
   }
-  pmf = kll_float_sketch_get_pmf(sketchptr, split_points, arr_len_in);
+  pmf = (Datum*) kll_float_sketch_get_pmf(sketchptr, split_points, arr_len_in);
   pfree(split_points);
 
   // construct output array of fractions
@@ -272,7 +274,7 @@ Datum pg_kll_float_sketch_get_quantiles(PG_FUNCTION_ARGS) {
   for (i = 0; i < arr_len; i++) {
     fractions[i] = DatumGetFloat8(data_in[i]);
   }
-  quantiles = kll_float_sketch_get_quantiles(sketchptr, fractions, arr_len);
+  quantiles = (Datum*) kll_float_sketch_get_quantiles(sketchptr, fractions, arr_len);
   pfree(fractions);
 
   // construct output array of quantiles

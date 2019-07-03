@@ -24,8 +24,6 @@
 extern "C" {
 #endif
 
-#include <postgres.h>
-
 void* frequent_strings_sketch_new(unsigned lg_k);
 void frequent_strings_sketch_delete(void* sketchptr);
 
@@ -33,7 +31,12 @@ void frequent_strings_sketch_update(void* sketchptr, const char* str, unsigned l
 void frequent_strings_sketch_merge(void* sketchptr1, const void* sketchptr2);
 char* frequent_strings_sketch_to_string(const void* sketchptr, bool print_items);
 
-void* frequent_strings_sketch_serialize(const void* sketchptr);
+struct ptr_with_size {
+  void* ptr;
+  unsigned long long size;
+};
+
+struct ptr_with_size frequent_strings_sketch_serialize(const void* sketchptr, unsigned header_size);
 void* frequent_strings_sketch_deserialize(const char* buffer, unsigned length);
 unsigned frequent_strings_sketch_get_serialized_size_bytes(const void* sketchptr);
 
