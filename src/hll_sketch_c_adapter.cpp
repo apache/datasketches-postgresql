@@ -25,12 +25,12 @@
 
 #include <hll.hpp>
 
-typedef datasketches::HllSketch<palloc_allocator<char>> hll_sketch;
-typedef datasketches::HllUnion<palloc_allocator<char>> hll_union;
+typedef datasketches::HllSketch<palloc_allocator<char>> hll_sketch_pg;
+typedef datasketches::HllUnion<palloc_allocator<char>> hll_union_pg;
 
 void* hll_sketch_new(unsigned lg_k) {
   try {
-    return new (palloc(sizeof(hll_sketch))) hll_sketch(lg_k);
+    return new (palloc(sizeof(hll_sketch_pg))) hll_sketch_pg(lg_k);
   } catch (std::exception& e) {
     pg_error(e.what());
   }
@@ -39,7 +39,7 @@ void* hll_sketch_new(unsigned lg_k) {
 
 void* hll_sketch_new_tgt_type(unsigned lg_k, unsigned tgt_type) {
   try {
-    return new (palloc(sizeof(hll_sketch))) hll_sketch(
+    return new (palloc(sizeof(hll_sketch_pg))) hll_sketch_pg(
       lg_k,
       tgt_type == 4 ? datasketches::TgtHllType::HLL_4 : tgt_type == 6 ? datasketches::TgtHllType::HLL_6 : datasketches::TgtHllType::HLL_8
     );
@@ -51,7 +51,7 @@ void* hll_sketch_new_tgt_type(unsigned lg_k, unsigned tgt_type) {
 
 void hll_sketch_delete(void* sketchptr) {
   try {
-    static_cast<hll_sketch*>(sketchptr)->~hll_sketch();
+    static_cast<hll_sketch_pg*>(sketchptr)->~hll_sketch_pg();
     pfree(sketchptr);
   } catch (std::exception& e) {
     pg_error(e.what());
@@ -60,7 +60,7 @@ void hll_sketch_delete(void* sketchptr) {
 
 void hll_sketch_update(void* sketchptr, const void* data, unsigned length) {
   try {
-    static_cast<hll_sketch*>(sketchptr)->update(data, length);
+    static_cast<hll_sketch_pg*>(sketchptr)->update(data, length);
   } catch (std::exception& e) {
     pg_error(e.what());
   }
@@ -68,7 +68,7 @@ void hll_sketch_update(void* sketchptr, const void* data, unsigned length) {
 
 double hll_sketch_get_estimate(const void* sketchptr) {
   try {
-    return static_cast<const hll_sketch*>(sketchptr)->getEstimate();
+    return static_cast<const hll_sketch_pg*>(sketchptr)->getEstimate();
   } catch (std::exception& e) {
     pg_error(e.what());
   }
@@ -78,9 +78,9 @@ double hll_sketch_get_estimate(const void* sketchptr) {
 Datum* hll_sketch_get_estimate_and_bounds(const void* sketchptr, unsigned num_std_devs) {
   try {
     Datum* est_and_bounds = (Datum*) palloc(sizeof(Datum) * 3);
-    est_and_bounds[0] = pg_float8_get_datum(static_cast<const hll_sketch*>(sketchptr)->getEstimate());
-    est_and_bounds[1] = pg_float8_get_datum(static_cast<const hll_sketch*>(sketchptr)->getLowerBound(num_std_devs));
-    est_and_bounds[2] = pg_float8_get_datum(static_cast<const hll_sketch*>(sketchptr)->getUpperBound(num_std_devs));
+    est_and_bounds[0] = pg_float8_get_datum(static_cast<const hll_sketch_pg*>(sketchptr)->getEstimate());
+    est_and_bounds[1] = pg_float8_get_datum(static_cast<const hll_sketch_pg*>(sketchptr)->getLowerBound(num_std_devs));
+    est_and_bounds[2] = pg_float8_get_datum(static_cast<const hll_sketch_pg*>(sketchptr)->getUpperBound(num_std_devs));
     return est_and_bounds;
   } catch (std::exception& e) {
     pg_error(e.what());
@@ -91,7 +91,7 @@ Datum* hll_sketch_get_estimate_and_bounds(const void* sketchptr, unsigned num_st
 void hll_sketch_to_string(const void* sketchptr, char* buffer, unsigned length) {
   try {
     std::stringstream s;
-    static_cast<const hll_sketch*>(sketchptr)->to_string(s);
+    static_cast<const hll_sketch_pg*>(sketchptr)->to_string(s);
     snprintf(buffer, length, "%s", s.str().c_str());
   } catch (std::exception& e) {
     pg_error(e.what());
@@ -101,7 +101,7 @@ void hll_sketch_to_string(const void* sketchptr, char* buffer, unsigned length) 
 ptr_with_size hll_sketch_serialize(const void* sketchptr, unsigned header_size) {
   try {
     ptr_with_size p;
-    auto data = static_cast<const hll_sketch*>(sketchptr)->serializeCompact(header_size);
+    auto data = static_cast<const hll_sketch_pg*>(sketchptr)->serializeCompact(header_size);
     p.ptr = data.first.release();
     p.size = data.second;
     return p;
@@ -113,7 +113,7 @@ ptr_with_size hll_sketch_serialize(const void* sketchptr, unsigned header_size) 
 
 void* hll_sketch_deserialize(const char* buffer, unsigned length) {
   try {
-    hll_sketch* sketchptr = new (palloc(sizeof(hll_sketch))) hll_sketch(hll_sketch::deserialize(buffer, length));
+    hll_sketch_pg* sketchptr = new (palloc(sizeof(hll_sketch_pg))) hll_sketch_pg(hll_sketch_pg::deserialize(buffer, length));
     return sketchptr;
   } catch (std::exception& e) {
     pg_error(e.what());
@@ -123,7 +123,7 @@ void* hll_sketch_deserialize(const char* buffer, unsigned length) {
 
 void* hll_union_new(unsigned lg_k) {
   try {
-    return new (palloc(sizeof(hll_union))) hll_union(lg_k);
+    return new (palloc(sizeof(hll_union_pg))) hll_union_pg(lg_k);
   } catch (std::exception& e) {
     pg_error(e.what());
   }
@@ -132,7 +132,7 @@ void* hll_union_new(unsigned lg_k) {
 
 void hll_union_delete(void* unionptr) {
   try {
-    static_cast<hll_union*>(unionptr)->~hll_union();
+    static_cast<hll_union_pg*>(unionptr)->~hll_union_pg();
     pfree(unionptr);
   } catch (std::exception& e) {
     pg_error(e.what());
@@ -141,7 +141,7 @@ void hll_union_delete(void* unionptr) {
 
 void hll_union_update(void* unionptr, const void* sketchptr) {
   try {
-    static_cast<hll_union*>(unionptr)->update(*static_cast<const hll_sketch*>(sketchptr));
+    static_cast<hll_union_pg*>(unionptr)->update(*static_cast<const hll_sketch_pg*>(sketchptr));
   } catch (std::exception& e) {
     pg_error(e.what());
   }
@@ -149,7 +149,7 @@ void hll_union_update(void* unionptr, const void* sketchptr) {
 
 void* hll_union_get_result(void* unionptr) {
   try {
-    return new (palloc(sizeof(hll_sketch))) hll_sketch(static_cast<hll_union*>(unionptr)->getResult());
+    return new (palloc(sizeof(hll_sketch_pg))) hll_sketch_pg(static_cast<hll_union_pg*>(unionptr)->getResult());
   } catch (std::exception& e) {
     pg_error(e.what());
   }
@@ -158,7 +158,7 @@ void* hll_union_get_result(void* unionptr) {
 
 void* hll_union_get_result_tgt_type(void* unionptr, unsigned tgt_type) {
   try {
-    return new (palloc(sizeof(hll_sketch))) hll_sketch(static_cast<hll_union*>(unionptr)->getResult(
+    return new (palloc(sizeof(hll_sketch_pg))) hll_sketch_pg(static_cast<hll_union_pg*>(unionptr)->getResult(
       tgt_type == 4 ? datasketches::TgtHllType::HLL_4 : tgt_type == 6 ? datasketches::TgtHllType::HLL_6 : datasketches::TgtHllType::HLL_8
     ));
   } catch (std::exception& e) {
