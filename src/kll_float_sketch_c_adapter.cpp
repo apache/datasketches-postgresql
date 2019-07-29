@@ -129,9 +129,11 @@ unsigned kll_float_sketch_get_serialized_size_bytes(const void* sketchptr) {
   pg_unreachable();
 }
 
-Datum* kll_float_sketch_get_pmf(const void* sketchptr, const float* split_points, unsigned num_split_points) {
+Datum* kll_float_sketch_get_pmf_or_cdf(const void* sketchptr, const float* split_points, unsigned num_split_points, bool is_cdf) {
   try {
-    auto ptr = static_cast<const kll_float_sketch*>(sketchptr)->get_PMF(split_points, num_split_points);
+    auto ptr = is_cdf ?
+      static_cast<const kll_float_sketch*>(sketchptr)->get_CDF(split_points, num_split_points) :
+      static_cast<const kll_float_sketch*>(sketchptr)->get_PMF(split_points, num_split_points);
     Datum* pmf = (Datum*) palloc(sizeof(Datum) * (num_split_points + 1));
     for (unsigned i = 0; i < num_split_points + 1; i++) {
       pmf[i] = pg_float8_get_datum(ptr[i]);

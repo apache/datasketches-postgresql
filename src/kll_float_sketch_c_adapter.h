@@ -43,7 +43,7 @@ struct ptr_with_size kll_float_sketch_serialize(const void* sketchptr, unsigned 
 void* kll_float_sketch_deserialize(const char* buffer, unsigned length);
 unsigned kll_float_sketch_get_serialized_size_bytes(const void* sketchptr);
 
-void** kll_float_sketch_get_pmf(const void* sketchptr, const float* split_points, unsigned num_split_points);
+void** kll_float_sketch_get_pmf_or_cdf(const void* sketchptr, const float* split_points, unsigned num_split_points, bool is_cdf);
 void** kll_float_sketch_get_quantiles(const void* sketchptr, const double* fractions, unsigned num_fractions);
 
 #ifdef __cplusplus

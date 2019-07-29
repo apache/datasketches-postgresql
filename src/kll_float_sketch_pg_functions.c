@@ -36,6 +36,7 @@ PG_FUNCTION_INFO_V1(pg_kll_float_sketch_to_string);
 PG_FUNCTION_INFO_V1(pg_kll_float_sketch_merge);
 PG_FUNCTION_INFO_V1(pg_kll_float_sketch_from_internal);
 PG_FUNCTION_INFO_V1(pg_kll_float_sketch_get_pmf);
+PG_FUNCTION_INFO_V1(pg_kll_float_sketch_get_cdf);
 PG_FUNCTION_INFO_V1(pg_kll_float_sketch_get_quantiles);
 
 /* function declarations */
@@ -49,6 +50,7 @@ Datum pg_kll_float_sketch_to_string(PG_FUNCTION_ARGS);
 Datum pg_kll_float_sketch_merge(PG_FUNCTION_ARGS);
 Datum pg_kll_float_sketch_from_internal(PG_FUNCTION_ARGS);
 Datum pg_kll_float_sketch_get_pmf(PG_FUNCTION_ARGS);
+Datum pg_kll_float_sketch_get_cdf(PG_FUNCTION_ARGS);
 Datum pg_kll_float_sketch_get_quantiles(PG_FUNCTION_ARGS);
 
 static const unsigned DEFAULT_K = 200;
@@ -204,7 +206,7 @@ Datum pg_kll_float_sketch_get_pmf(PG_FUNCTION_ARGS) {
   float* split_points;
 
   // output array of fractions
-  Datum* pmf;
+  Datum* result;
   ArrayType* arr_out;
   int16 elmlen_out;
   bool elmbyval_out;
@@ -225,13 +227,63 @@ Datum pg_kll_float_sketch_get_pmf(PG_FUNCTION_ARGS) {
   for (i = 0; i < arr_len_in; i++) {
     split_points[i] = DatumGetFloat4(data_in[i]);
   }
-  pmf = (Datum*) kll_float_sketch_get_pmf(sketchptr, split_points, arr_len_in);
+  result = (Datum*) kll_float_sketch_get_pmf_or_cdf(sketchptr, split_points, arr_len_in, false);
   pfree(split_points);
 
   // construct output array of fractions
   arr_len_out = arr_len_in + 1; // N split points devide the number line into N+1 intervals
   get_typlenbyvalalign(FLOAT8OID, &elmlen_out, &elmbyval_out, &elmalign_out);
-  arr_out = construct_array(pmf, arr_len_out, FLOAT8OID, elmlen_out, elmbyval_out, elmalign_out);
+  arr_out = construct_array(result, arr_len_out, FLOAT8OID, elmlen_out, elmbyval_out, elmalign_out);
+
+  kll_float_sketch_delete(sketchptr);
+
+  PG_RETURN_ARRAYTYPE_P(arr_out);
+}
+
+Datum pg_kll_float_sketch_get_cdf(PG_FUNCTION_ARGS) {
+  const bytea* bytes_in;
+  void* sketchptr;
+
+  // input array of split points
+  ArrayType* arr_in;
+  Oid elmtype_in;
+  int16 elmlen_in;
+  bool elmbyval_in;
+  char elmalign_in;
+  Datum* data_in;
+  bool* nulls_in;
+  int arr_len_in;
+  float* split_points;
+
+  // output array of fractions
+  Datum* result;
+  ArrayType* arr_out;
+  int16 elmlen_out;
+  bool elmbyval_out;
+  char elmalign_out;
+  int arr_len_out;
+
+  int i;
+
+  bytes_in = PG_GETARG_BYTEA_P(0);
+  sketchptr = kll_float_sketch_deserialize(VARDATA(bytes_in), VARSIZE(bytes_in) - VARHDRSZ);
+
+  arr_in = PG_GETARG_ARRAYTYPE_P(1);
+  elmtype_in = ARR_ELEMTYPE(arr_in);
+  get_typlenbyvalalign(elmtype_in, &elmlen_in, &elmbyval_in, &elmalign_in);
+  deconstruct_array(arr_in, elmtype_in, elmlen_in, elmbyval_in, elmalign_in, &data_in, &nulls_in, &arr_len_in);
+
+  split_points = palloc(sizeof(float) * arr_len_in);
+  for (i = 0; i < arr_len_in; i++) {
+    split_points[i] = DatumGetFloat4(data_in[i]);
+  }
+  result = (Datum*) kll_float_sketch_get_pmf_or_cdf(sketchptr, split_points, arr_len_in, true);
+  pfree(split_points);
+
+  // construct output array of fractions
+  arr_len_out = arr_len_in + 1; // N split points devide the number line into N+1 intervals
+  get_typlenbyvalalign(FLOAT8OID, &elmlen_out, &elmbyval_out, &elmalign_out);
+  arr_out = construct_array(result, arr_len_out, FLOAT8OID, elmlen_out, elmbyval_out, elmalign_out);
 
   kll_float_sketch_delete(sketchptr);
 
