@@ -25,8 +25,8 @@
 
 #include <hll.hpp>
 
-typedef datasketches::HllSketch<palloc_allocator<char>> hll_sketch_pg;
-typedef datasketches::HllUnion<palloc_allocator<char>> hll_union_pg;
+typedef datasketches::hll_sketch_alloc<palloc_allocator<char>> hll_sketch_pg;
+typedef datasketches::hll_union_alloc<palloc_allocator<char>> hll_union_pg;
 
 void* hll_sketch_new(unsigned lg_k) {
   try {
@@ -41,7 +41,7 @@ void* hll_sketch_new_tgt_type(unsigned lg_k, unsigned tgt_type) {
   try {
     return new (palloc(sizeof(hll_sketch_pg))) hll_sketch_pg(
       lg_k,
-      tgt_type == 4 ? datasketches::TgtHllType::HLL_4 : tgt_type == 6 ? datasketches::TgtHllType::HLL_6 : datasketches::TgtHllType::HLL_8
+      tgt_type == 4 ? datasketches::target_hll_type::HLL_4 : tgt_type == 6 ? datasketches::target_hll_type::HLL_6 : datasketches::target_hll_type::HLL_8
     );
   } catch (std::exception& e) {
     pg_error(e.what());
@@ -68,7 +68,7 @@ void hll_sketch_update(void* sketchptr, const void* data, unsigned length) {
 
 double hll_sketch_get_estimate(const void* sketchptr) {
   try {
-    return static_cast<const hll_sketch_pg*>(sketchptr)->getEstimate();
+    return static_cast<const hll_sketch_pg*>(sketchptr)->get_estimate();
   } catch (std::exception& e) {
     pg_error(e.what());
   }
@@ -78,9 +78,9 @@ double hll_sketch_get_estimate(const void* sketchptr) {
 Datum* hll_sketch_get_estimate_and_bounds(const void* sketchptr, unsigned num_std_devs) {
   try {
     Datum* est_and_bounds = (Datum*) palloc(sizeof(Datum) * 3);
-    est_and_bounds[0] = pg_float8_get_datum(static_cast<const hll_sketch_pg*>(sketchptr)->getEstimate());
-    est_and_bounds[1] = pg_float8_get_datum(static_cast<const hll_sketch_pg*>(sketchptr)->getLowerBound(num_std_devs));
-    est_and_bounds[2] = pg_float8_get_datum(static_cast<const hll_sketch_pg*>(sketchptr)->getUpperBound(num_std_devs));
+    est_and_bounds[0] = pg_float8_get_datum(static_cast<const hll_sketch_pg*>(sketchptr)->get_estimate());
+    est_and_bounds[1] = pg_float8_get_datum(static_cast<const hll_sketch_pg*>(sketchptr)->get_lower_bound(num_std_devs));
+    est_and_bounds[2] = pg_float8_get_datum(static_cast<const hll_sketch_pg*>(sketchptr)->get_upper_bound(num_std_devs));
     return est_and_bounds;
   } catch (std::exception& e) {
     pg_error(e.what());
@@ -101,7 +101,7 @@ void hll_sketch_to_string(const void* sketchptr, char* buffer, unsigned length) 
 ptr_with_size hll_sketch_serialize(const void* sketchptr, unsigned header_size) {
   try {
     ptr_with_size p;
-    auto data = static_cast<const hll_sketch_pg*>(sketchptr)->serializeCompact(header_size);
+    auto data = static_cast<const hll_sketch_pg*>(sketchptr)->serialize_compact(header_size);
     p.ptr = data.first.release();
     p.size = data.second;
     return p;
@@ -149,7 +149,7 @@ void hll_union_update(void* unionptr, const void* sketchptr) {
 
 void* hll_union_get_result(void* unionptr) {
   try {
-    return new (palloc(sizeof(hll_sketch_pg))) hll_sketch_pg(static_cast<hll_union_pg*>(unionptr)->getResult());
+    return new (palloc(sizeof(hll_sketch_pg))) hll_sketch_pg(static_cast<hll_union_pg*>(unionptr)->get_result());
   } catch (std::exception& e) {
     pg_error(e.what());
   }
@@ -158,8 +158,8 @@ void* hll_union_get_result(void* unionptr) {
 
 void* hll_union_get_result_tgt_type(void* unionptr, unsigned tgt_type) {
   try {
-    return new (palloc(sizeof(hll_sketch_pg))) hll_sketch_pg(static_cast<hll_union_pg*>(unionptr)->getResult(
-      tgt_type == 4 ? datasketches::TgtHllType::HLL_4 : tgt_type == 6 ? datasketches::TgtHllType::HLL_6 : datasketches::TgtHllType::HLL_8
+    return new (palloc(sizeof(hll_sketch_pg))) hll_sketch_pg(static_cast<hll_union_pg*>(unionptr)->get_result(
+      tgt_type == 4 ? datasketches::target_hll_type::HLL_4 : tgt_type == 6 ? datasketches::target_hll_type::HLL_6 : datasketches::target_hll_type::HLL_8
     ));
   } catch (std::exception& e) {
     pg_error(e.what());
