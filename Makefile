@@ -6,6 +6,8 @@ SQL_MODULES = sql/datasketches_cpc_sketch.sql sql/datasketches_kll_float_sketch.
 SQL_INSTALL = sql/$(EXTENSION)--$(EXTVERSION).sql
 DATA = $(SQL_INSTALL)
 
+EXTRA_CLEAN = $(SQL_INSTALL)
+
 OBJS = src/base64.o src/common.o \
   src/kll_float_sketch_pg_functions.o src/kll_float_sketch_c_adapter.o \
   src/cpc_sketch_pg_functions.o src/cpc_sketch_c_adapter.o \
