@@ -1,6 +1,5 @@
-# Datasketches module
-comment = 'Aggregation functions and data types for approximate algorithms.'
+# DataSketches extension
+comment = 'Aggregation functions and data types for approximate algorithms'
 default_version = '1.3.0'
 relocatable = true
-
 module_pathname = '$libdir/datasketches'
