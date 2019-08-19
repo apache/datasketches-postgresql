@@ -8,7 +8,7 @@ DATA = $(SQL_INSTALL)
 
 EXTRA_CLEAN = $(SQL_INSTALL)
 
-OBJS = src/base64.o src/common.o \
+OBJS = src/global_hooks.o src/base64.o src/common.o \
   src/kll_float_sketch_pg_functions.o src/kll_float_sketch_c_adapter.o \
   src/cpc_sketch_pg_functions.o src/cpc_sketch_c_adapter.o \
   src/theta_sketch_pg_functions.o src/theta_sketch_c_adapter.o \
@@ -17,6 +17,7 @@ OBJS = src/base64.o src/common.o \
 
 # assume a copy or link datasketches-cpp in the current dir
 CORE = datasketches-cpp
+
 CPC = $(CORE)/cpc/src
 OBJS += $(CPC)/cpc_sketch.o $(CPC)/fm85.o $(CPC)/fm85Compression.o $(CPC)/fm85Confidence.o $(CPC)/fm85Merging.o $(CPC)/fm85Util.o $(CPC)/iconEstimator.o $(CPC)/u32Table.o
 
