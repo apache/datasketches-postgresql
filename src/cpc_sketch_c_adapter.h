@@ -26,6 +26,9 @@ extern "C" {
 
 #include <postgres.h>
 
+void cpc_init();
+void cpc_cleanup();
+
 void* cpc_sketch_new(unsigned lg_k);
 void cpc_sketch_delete(void* sketchptr);
 
