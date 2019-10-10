@@ -1,4 +1,4 @@
-Module for PostgreSQL to support approximate algorithms based on the Datasketches core library datasketches-cpp.
+Extension for PostgreSQL to support approximate algorithms based on the Datasketches core library datasketches-cpp.
 See [Datasketches documentation](https://datasketches.github.io/) for details.
 
 This module currently supports the following sketches:
@@ -8,6 +8,34 @@ This module currently supports the following sketches:
 - HLL sketch - very compact distinct-counting sketch based on HyperLogLog algorithm
 - KLL float quantiles sketch - for estimating distributions: quantile, rank, PMF (histogram), CDF
 - Frequent strings sketch - capture the heaviest items (strings) by count or by some other weight
+
+<h1>How to build and install</h1>
+
+This code is intended to be distributed as a PostgreSQL extension on [PGXN site](https::/pgxn.org/)
+
+This code is expected to be compatible with PostgreSQL versions 9.4 and higher. It was tested with REL_11_STABLE branch.
+PostreSQL must be installed to compile the extension. The path to PostgreSQL executables must be set up (try running 'pg_config' to test).
+
+This code requires C++11. It was tested with GCC 4.8.5 (standard in RedHat at the time of this writing), GCC 8.2.0, GCC 9.2.0, Apple LLVM version 10.0.1 (clang-1001.0.46.4) and version 11.0.0 (clang-1100.0.33.8).
+
+<h2>Building and installing PGXN extension</h2>
+
+   - Download the datasketches extension from [PGXN](https://pgxn.org/dist/datasketches/)
+   - Unzip the package (the core library datasketches-cpp is included)
+   - make
+   - sudo make install
+   - in the database console: create extension datasketches;
+
+<h2>Building and installing from source</h2>
+
+   - Clone or download from GitHub, or download from Apache archive this datasketches-postgresql code and the core library datasketches-cpp
+   - Place the core library as a subdirectory (or a link to it) inside of the datasketches-postgresql like so:
+      - datasketches-cpp
+      - datasketches-postgresql
+          - datasketches-cpp -> ../datasketches-cpp
+   - make
+   - sudo make install
+   - in the database console: create extension datasketches;
 
 <h1>Examples</h1>
 
