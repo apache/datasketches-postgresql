@@ -3,7 +3,7 @@
    "abstract": "approximate algorithms for big data analysis",
    "version": "1.3.0",
    "maintainer": [
-     "Alexander Saydakov <alsay@apache.org>",
+     "Apache DataSketches (incubating) <issues@datasketches.apache.org>",
      "Sketches User List <sketches-user@googlegroups.com>"
    ],
    "license": "postgresql",
