@@ -41,8 +41,8 @@ There are two slightly different ways to build this extension: from a PGXN distr
    - make
    - sudo make install
 
-On MacOSX Mojave, if you see a warning like this:</br>
-clang: warning: no such sysroot directory: ‘/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk’ [-Wmissing-sysroot]
+On MacOSX Mojave, if you see a warning like this:<br>
+clang: warning: no such sysroot directory: ‘/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk’ [-Wmissing-sysroot]<br>
 and the compilation fails because of not being able to find system include files, this is a known OSX problem. There are known solutions on the Internet.
 
 <h2>Verifying installation with a test database</h2>
