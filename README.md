@@ -36,7 +36,7 @@ There are two slightly different ways to build this extension: from a PGXN distr
       - datasketches-postgresql
           - datasketches-cpp -> ../datasketches-cpp
 
-<h2>Building and intalling</h2>
+<h2>Building and installing</h2>
 
    - make
    - sudo make install
