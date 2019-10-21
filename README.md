@@ -30,31 +30,74 @@ This module currently supports the following sketches:
 
 <h1>How to build and install</h1>
 
-This code is intended to be distributed as a PostgreSQL extension on [PGXN site](https::/pgxn.org/)
+This code is intended to be distributed as a PostgreSQL extension on [PGXN site](https://pgxn.org/)
 
-This code is expected to be compatible with PostgreSQL versions 9.4 and higher. It was tested with REL_11_STABLE branch.
+This code is expected to be compatible with PostgreSQL versions 9.4 and higher. It was tested with REL\_11\_STABLE branch.
 PostreSQL must be installed to compile the extension. The path to PostgreSQL executables must be set up (try running 'pg_config' to test).
+For PostgreSQL installation instructions see [PostgreSQL documentation](https://www.postgresql.org/docs/current/tutorial-start.html)
 
 This code requires C++11. It was tested with GCC 4.8.5 (standard in RedHat at the time of this writing), GCC 8.2.0, GCC 9.2.0, Apple LLVM version 10.0.1 (clang-1001.0.46.4) and version 11.0.0 (clang-1100.0.33.8).
 
-<h2>Building and installing PGXN extension</h2>
+This code depends on [datasketches-cpp version 1.0.0-incubating](https://github.com/apache/incubator-datasketches-cpp/releases/tag/1.0.0-incubating)
+
+There are two slightly different ways to build this extension: from a PGXN distribution or from two separate packages: datasketches-postgresql and datasketches-cpp (either from GitHub or from [Apache archive](http://archive.apache.org/dist/incubator/datasketches/))
+
+<h2>PGXN extension</h2>
 
    - Download the datasketches extension from [PGXN](https://pgxn.org/dist/datasketches/)
    - Unzip the package (the core library datasketches-cpp is included)
-   - make
-   - sudo make install
-   - in the database console: create extension datasketches;
 
-<h2>Building and installing from source</h2>
+<h2>GitHub or Apache archive</h2>
 
-   - Clone or download from GitHub, or download from Apache archive this datasketches-postgresql code and the core library datasketches-cpp
+   - Clone or download from GitHub or download from Apache archive both the datasketches-postgresql code and the core library datasketches-cpp (version mentioned above)
    - Place the core library as a subdirectory (or a link to it) inside of the datasketches-postgresql like so:
       - datasketches-cpp
       - datasketches-postgresql
           - datasketches-cpp -> ../datasketches-cpp
+
+<h2>Building and installing</h2>
+
    - make
    - sudo make install
-   - in the database console: create extension datasketches;
+
+On MacOSX Mojave, if you see a warning like this:<br>
+clang: warning: no such sysroot directory: ‘/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk’ [-Wmissing-sysroot]<br>
+and the compilation fails because of not being able to find system include files, this is a known OSX problem. There are known solutions on the Internet.
+
+<h2>Verifying installation with a test database</h2>
+
+   - Make sure that PostgreSQL is running. For instance, using Homebrew on MacOSX, start the service:
+     - brew services start postgresql
+   - Create a test database if it does not exist yet (on the command line):
+      - createdb test
+   - Run the client (console) using the test database:
+      - psql test
+   - Create datasketches extension in the test database:
+      - create extension datasketches;
+   - Try some of the datasketches functions:
+      - select cpc\_sketch\_to\_string(cpc\_sketch\_build(1));
+
+You should see the following result:
+
+	       cpc_sketch_to_string        
+	-----------------------------------
+	 ### CPC sketch summary:          +
+	    lgK            : 11           +
+	    seed hash      : 93cc         +
+	    C              : 1            +
+	    flavor         : 1            +
+	    merged         : false        +
+	    compressed     : false        +
+	    intresting col : 0            +
+	    HIP estimate   : 1            +
+	    kxp            : 2047.5       +
+	    offset         : 0            +
+	    table          : allocated    +
+	    num SV         : 1            +
+	    window         : not allocated+
+	 ### End sketch summary           +
+	 
+	(1 row)
 
 <h1>Examples</h1>
 

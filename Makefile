@@ -38,7 +38,8 @@ CORE = datasketches-cpp
 CPC = $(CORE)/cpc/src
 OBJS += $(CPC)/cpc_sketch.o $(CPC)/fm85.o $(CPC)/fm85Compression.o $(CPC)/fm85Confidence.o $(CPC)/fm85Merging.o $(CPC)/fm85Util.o $(CPC)/iconEstimator.o $(CPC)/u32Table.o
 
-PG_CPPFLAGS = -std=c++11 -fPIC -I/usr/local/include -I$(CORE)/kll/include -I$(CORE)/common/include -I$(CORE)/cpc/include -I$(CORE)/theta/include -I$(CORE)/fi/include -I$(CORE)/hll/include
+PG_CPPFLAGS = -fPIC -I/usr/local/include -I$(CORE)/kll/include -I$(CORE)/common/include -I$(CORE)/cpc/include -I$(CORE)/theta/include -I$(CORE)/fi/include -I$(CORE)/hll/include
+PG_CXXFLAGS = -std=c++11
 SHLIB_LINK = -lstdc++ -L/usr/local/lib
 
 PG_CONFIG = pg_config
