@@ -18,126 +18,135 @@
  */
 
 #include "cpc_sketch_c_adapter.h"
+#include "allocator.h"
+#include "postgres_h_substitute.h"
 
 #include <sstream>
 
 #include <cpc_sketch.hpp>
 #include <cpc_union.hpp>
 
+typedef datasketches::cpc_sketch_alloc<palloc_allocator<char>> cpc_sketch_pg;
+typedef datasketches::cpc_union_alloc<palloc_allocator<char>> cpc_union_pg;
+
 void cpc_init() {
-  datasketches::cpc_init(&palloc, &pfree);
+  datasketches::cpc_init<palloc_allocator<char>>();
 }
 
 void cpc_cleanup() {
-  datasketches::cpc_cleanup();
 }
 
 void* cpc_sketch_new(unsigned lg_k) {
   try {
-    return new (palloc(sizeof(datasketches::cpc_sketch))) datasketches::cpc_sketch(lg_k, datasketches::DEFAULT_SEED);
+    return new (palloc(sizeof(cpc_sketch_pg))) cpc_sketch_pg(lg_k, datasketches::DEFAULT_SEED);
   } catch (std::exception& e) {
-    elog(ERROR, "%s", e.what());
+    pg_error(e.what());
   }
+  pg_unreachable();
 }
 
 void cpc_sketch_delete(void* sketchptr) {
   try {
-    static_cast<datasketches::cpc_sketch*>(sketchptr)->~cpc_sketch();
+    static_cast<cpc_sketch_pg*>(sketchptr)->~cpc_sketch_pg();
     pfree(sketchptr);
   } catch (std::exception& e) {
-    elog(ERROR, "%s", e.what());
+    pg_error(e.what());
   }
 }
 
 void cpc_sketch_update(void* sketchptr, const void* data, unsigned length) {
   try {
-    static_cast<datasketches::cpc_sketch*>(sketchptr)->update(data, length);
+    static_cast<cpc_sketch_pg*>(sketchptr)->update(data, length);
   } catch (std::exception& e) {
-    elog(ERROR, "%s", e.what());
+    pg_error(e.what());
   }
 }
 
 double cpc_sketch_get_estimate(const void* sketchptr) {
   try {
-    return static_cast<const datasketches::cpc_sketch*>(sketchptr)->get_estimate();
+    return static_cast<const cpc_sketch_pg*>(sketchptr)->get_estimate();
   } catch (std::exception& e) {
-    elog(ERROR, "%s", e.what());
+    pg_error(e.what());
   }
+  pg_unreachable();
 }
 
 Datum* cpc_sketch_get_estimate_and_bounds(const void* sketchptr, unsigned num_std_devs) {
   try {
     Datum* est_and_bounds = (Datum*) palloc(sizeof(Datum) * 3);
-    est_and_bounds[0] = Float8GetDatum(static_cast<const datasketches::cpc_sketch*>(sketchptr)->get_estimate());
-    est_and_bounds[1] = Float8GetDatum(static_cast<const datasketches::cpc_sketch*>(sketchptr)->get_lower_bound(num_std_devs));
-    est_and_bounds[2] = Float8GetDatum(static_cast<const datasketches::cpc_sketch*>(sketchptr)->get_upper_bound(num_std_devs));
+    est_and_bounds[0] = pg_float8_get_datum(static_cast<const cpc_sketch_pg*>(sketchptr)->get_estimate());
+    est_and_bounds[1] = pg_float8_get_datum(static_cast<const cpc_sketch_pg*>(sketchptr)->get_lower_bound(num_std_devs));
+    est_and_bounds[2] = pg_float8_get_datum(static_cast<const cpc_sketch_pg*>(sketchptr)->get_upper_bound(num_std_devs));
     return est_and_bounds;
   } catch (std::exception& e) {
-    elog(ERROR, "%s", e.what());
+    pg_error(e.what());
   }
+  pg_unreachable();
 }
 
 void cpc_sketch_to_string(const void* sketchptr, char* buffer, unsigned length) {
   try {
     std::stringstream s;
-    s << *(static_cast<const datasketches::cpc_sketch*>(sketchptr));
+    static_cast<const cpc_sketch_pg*>(sketchptr)->to_stream(s);;
     snprintf(buffer, length, "%s", s.str().c_str());
   } catch (std::exception& e) {
-    elog(ERROR, "%s", e.what());
+    pg_error(e.what());
   }
 }
 
-void* cpc_sketch_serialize(const void* sketchptr) {
+struct ptr_with_size cpc_sketch_serialize(const void* sketchptr, unsigned header_size) {
   try {
-    auto data = static_cast<const datasketches::cpc_sketch*>(sketchptr)->serialize(VARHDRSZ);
-    bytea* buffer = (bytea*) data.first.release();
-    const size_t length = data.second;
-    SET_VARSIZE(buffer, length);
-    return buffer;
+    ptr_with_size p;
+    auto data = static_cast<const cpc_sketch_pg*>(sketchptr)->serialize(header_size);
+    p.ptr = data.first.release();
+    p.size = data.second;
+    return p;
   } catch (std::exception& e) {
-    elog(ERROR, "%s", e.what());
+    pg_error(e.what());
   }
+  pg_unreachable();
 }
 
 void* cpc_sketch_deserialize(const char* buffer, unsigned length) {
   try {
-    auto ptr = datasketches::cpc_sketch::deserialize(buffer, length, datasketches::DEFAULT_SEED);
-    return ptr.release();
+    return new (palloc(sizeof(cpc_sketch_pg))) cpc_sketch_pg(cpc_sketch_pg::deserialize(buffer, length, datasketches::DEFAULT_SEED));
   } catch (std::exception& e) {
-    elog(ERROR, "%s", e.what());
+    pg_error(e.what());
   }
+  pg_unreachable();
 }
 
 void* cpc_union_new(unsigned lg_k) {
   try {
-    return new (palloc(sizeof(datasketches::cpc_union))) datasketches::cpc_union(lg_k, datasketches::DEFAULT_SEED);
+    return new (palloc(sizeof(cpc_union_pg))) cpc_union_pg(lg_k, datasketches::DEFAULT_SEED);
   } catch (std::exception& e) {
-    elog(ERROR, "%s", e.what());
+    pg_error(e.what());
   }
+  pg_unreachable();
 }
 
 void cpc_union_delete(void* unionptr) {
   try {
-    static_cast<datasketches::cpc_union*>(unionptr)->~cpc_union();
+    static_cast<cpc_union_pg*>(unionptr)->~cpc_union_pg();
     pfree(unionptr);
   } catch (std::exception& e) {
-    elog(ERROR, "%s", e.what());
+    pg_error(e.what());
   }
 }
 
 void cpc_union_update(void* unionptr, const void* sketchptr) {
   try {
-    static_cast<datasketches::cpc_union*>(unionptr)->update(*static_cast<const datasketches::cpc_sketch*>(sketchptr));
+    static_cast<cpc_union_pg*>(unionptr)->update(*static_cast<const cpc_sketch_pg*>(sketchptr));
   } catch (std::exception& e) {
-    elog(ERROR, "%s", e.what());
+    pg_error(e.what());
   }
 }
 
 void* cpc_union_get_result(void* unionptr) {
   try {
-    auto ptr = static_cast<datasketches::cpc_union*>(unionptr)->get_result();
-    return ptr.release();
+    return new (palloc(sizeof(cpc_sketch_pg))) cpc_sketch_pg(static_cast<cpc_union_pg*>(unionptr)->get_result());
   } catch (std::exception& e) {
-    elog(ERROR, "%s", e.what());
+    pg_error(e.what());
   }
+  pg_unreachable();
 }

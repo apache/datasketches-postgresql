@@ -22,6 +22,9 @@
 
 #include "cpc_sketch_c_adapter.h"
 
+void _PG_init(void);
+void _PG_fini(void);
+
 void _PG_init() {
   cpc_init();
 }

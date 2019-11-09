@@ -50,7 +50,7 @@ public:
 
   pointer address(reference x) const { return &x; }
   const_pointer address(const_reference x) const {
-    return x;
+    return &x;
   }
 
   pointer allocate(size_type n, const_pointer = 0) {

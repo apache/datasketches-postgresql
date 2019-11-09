@@ -131,7 +131,7 @@ Datum pg_cpc_sketch_get_estimate_and_bounds(PG_FUNCTION_ARGS) {
   sketchptr = cpc_sketch_deserialize(VARDATA(bytes_in), VARSIZE(bytes_in) - VARHDRSZ);
   num_std_devs = PG_GETARG_INT32(1);
   if (num_std_devs == 0) num_std_devs = 1; // default
-  est_and_bounds = cpc_sketch_get_estimate_and_bounds(sketchptr, num_std_devs);
+  est_and_bounds = (Datum*) cpc_sketch_get_estimate_and_bounds(sketchptr, num_std_devs);
   cpc_sketch_delete(sketchptr);
 
   // construct output array
@@ -190,7 +190,7 @@ Datum pg_cpc_sketch_union_agg(PG_FUNCTION_ARGS) {
 
 Datum pg_cpc_sketch_from_internal(PG_FUNCTION_ARGS) {
   void* sketchptr;
-  bytea* bytes_out;
+  struct ptr_with_size bytes_out;
 
   MemoryContext oldcontext;
   MemoryContext aggcontext;
@@ -203,12 +203,13 @@ Datum pg_cpc_sketch_from_internal(PG_FUNCTION_ARGS) {
   oldcontext = MemoryContextSwitchTo(aggcontext);
 
   sketchptr = PG_GETARG_POINTER(0);
-  bytes_out = cpc_sketch_serialize(sketchptr);
+  bytes_out = cpc_sketch_serialize(sketchptr, VARHDRSZ);
   cpc_sketch_delete(sketchptr);
+  SET_VARSIZE(bytes_out.ptr, bytes_out.size);
 
   MemoryContextSwitchTo(oldcontext);
 
-  PG_RETURN_BYTEA_P(bytes_out);
+  PG_RETURN_BYTEA_P(bytes_out.ptr);
 }
 
 Datum pg_cpc_sketch_get_estimate_from_internal(PG_FUNCTION_ARGS) {
@@ -237,7 +238,7 @@ Datum pg_cpc_sketch_get_estimate_from_internal(PG_FUNCTION_ARGS) {
 Datum pg_cpc_union_get_result(PG_FUNCTION_ARGS) {
   void* unionptr;
   void* sketchptr;
-  bytea* bytes_out;
+  struct ptr_with_size bytes_out;
 
   MemoryContext oldcontext;
   MemoryContext aggcontext;
@@ -251,13 +252,14 @@ Datum pg_cpc_union_get_result(PG_FUNCTION_ARGS) {
 
   unionptr = PG_GETARG_POINTER(0);
   sketchptr = cpc_union_get_result(unionptr);
-  bytes_out = cpc_sketch_serialize(sketchptr);
+  bytes_out = cpc_sketch_serialize(sketchptr, VARHDRSZ);
   cpc_sketch_delete(sketchptr);
   cpc_union_delete(unionptr);
+  SET_VARSIZE(bytes_out.ptr, bytes_out.size);
 
   MemoryContextSwitchTo(oldcontext);
 
-  PG_RETURN_BYTEA_P(bytes_out);
+  PG_RETURN_BYTEA_P(bytes_out.ptr);
 }
 
 Datum pg_cpc_sketch_union(PG_FUNCTION_ARGS) {
@@ -267,7 +269,7 @@ Datum pg_cpc_sketch_union(PG_FUNCTION_ARGS) {
   void* sketchptr2;
   void* unionptr;
   void* sketchptr;
-  bytea* bytes_out;
+  struct ptr_with_size bytes_out;
   int lg_k;
 
   lg_k = PG_GETARG_INT32(2);
@@ -286,7 +288,8 @@ Datum pg_cpc_sketch_union(PG_FUNCTION_ARGS) {
   }
   sketchptr = cpc_union_get_result(unionptr);
   cpc_union_delete(unionptr);
-  bytes_out = cpc_sketch_serialize(sketchptr);
+  bytes_out = cpc_sketch_serialize(sketchptr, VARHDRSZ);
   cpc_sketch_delete(sketchptr);
-  PG_RETURN_BYTEA_P(bytes_out);
+  SET_VARSIZE(bytes_out.ptr, bytes_out.size);
+  PG_RETURN_BYTEA_P(bytes_out.ptr);
 }
