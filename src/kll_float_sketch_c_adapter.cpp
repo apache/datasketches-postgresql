@@ -101,9 +101,11 @@ void kll_float_sketch_to_string(const void* sketchptr, char* buffer, unsigned le
 ptr_with_size kll_float_sketch_serialize(const void* sketchptr, unsigned header_size) {
   try {
     ptr_with_size p;
-    auto data = static_cast<const kll_float_sketch*>(sketchptr)->serialize(header_size);
-    p.ptr = data.first.release();
-    p.size = data.second;
+    auto bytes = new (palloc(sizeof(kll_float_sketch::vector_bytes))) kll_float_sketch::vector_bytes(
+      static_cast<const kll_float_sketch*>(sketchptr)->serialize(header_size)
+    );
+    p.ptr = bytes->data();
+    p.size = bytes->size();
     return p;
   } catch (std::exception& e) {
     pg_error(e.what());
@@ -131,12 +133,12 @@ unsigned kll_float_sketch_get_serialized_size_bytes(const void* sketchptr) {
 
 Datum* kll_float_sketch_get_pmf_or_cdf(const void* sketchptr, const float* split_points, unsigned num_split_points, bool is_cdf) {
   try {
-    auto ptr = is_cdf ?
+    auto array = is_cdf ?
       static_cast<const kll_float_sketch*>(sketchptr)->get_CDF(split_points, num_split_points) :
       static_cast<const kll_float_sketch*>(sketchptr)->get_PMF(split_points, num_split_points);
     Datum* pmf = (Datum*) palloc(sizeof(Datum) * (num_split_points + 1));
     for (unsigned i = 0; i < num_split_points + 1; i++) {
-      pmf[i] = pg_float8_get_datum(ptr[i]);
+      pmf[i] = pg_float8_get_datum(array[i]);
     }
     return pmf;
   } catch (std::exception& e) {
@@ -147,10 +149,10 @@ Datum* kll_float_sketch_get_pmf_or_cdf(const void* sketchptr, const float* split
 
 Datum* kll_float_sketch_get_quantiles(const void* sketchptr, const double* fractions, unsigned num_fractions) {
   try {
-    auto ptr = static_cast<const kll_float_sketch*>(sketchptr)->get_quantiles(fractions, num_fractions);
+    auto array = static_cast<const kll_float_sketch*>(sketchptr)->get_quantiles(fractions, num_fractions);
     Datum* quantiles = (Datum*) palloc(sizeof(Datum) * num_fractions);
     for (unsigned i = 0; i < num_fractions; i++) {
-      quantiles[i] = pg_float4_get_datum(ptr[i]);
+      quantiles[i] = pg_float4_get_datum(array[i]);
     }
     return quantiles;
   } catch (std::exception& e) {

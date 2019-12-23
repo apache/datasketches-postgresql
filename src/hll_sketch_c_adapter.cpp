@@ -101,9 +101,11 @@ void hll_sketch_to_string(const void* sketchptr, char* buffer, unsigned length) 
 ptr_with_size hll_sketch_serialize(const void* sketchptr, unsigned header_size) {
   try {
     ptr_with_size p;
-    auto data = static_cast<const hll_sketch_pg*>(sketchptr)->serialize_compact(header_size);
-    p.ptr = data.first.release();
-    p.size = data.second;
+    auto bytes = new (palloc(sizeof(hll_sketch_pg::vector_bytes))) hll_sketch_pg::vector_bytes(
+      static_cast<const hll_sketch_pg*>(sketchptr)->serialize_compact(header_size)
+    );
+    p.ptr = bytes->data();
+    p.size = bytes->size();
     return p;
   } catch (std::exception& e) {
     pg_error(e.what());
