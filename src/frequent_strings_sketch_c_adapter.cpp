@@ -59,26 +59,26 @@ struct serde_string {
   size_t size_of_item(const string& item) {
     return sizeof(uint32_t) + item.size();
   }
-  size_t serialize(char* ptr, const string* items, unsigned num) {
+  size_t serialize(void* ptr, const string* items, unsigned num) {
     size_t size = sizeof(uint32_t) * num;
     for (unsigned i = 0; i < num; i++) {
       uint32_t length = items[i].size();
       memcpy(ptr, &length, sizeof(length));
-      ptr += sizeof(uint32_t);
+      ptr = static_cast<char*>(ptr) + sizeof(uint32_t);
       memcpy(ptr, items[i].c_str(), length);
-      ptr += length;
+      ptr = static_cast<char*>(ptr) + length;
       size += length;
     }
     return size;
   }
-  size_t deserialize(const char* ptr, string* items, unsigned num) {
+  size_t deserialize(const void* ptr, string* items, unsigned num) {
     size_t size = sizeof(uint32_t) * num;
     for (unsigned i = 0; i < num; i++) {
       uint32_t length;
       memcpy(&length, ptr, sizeof(length));
-      ptr += sizeof(uint32_t);
-      new (&items[i]) string(ptr, length);
-      ptr += length;
+      ptr = static_cast<const char*>(ptr) + sizeof(uint32_t);
+      new (&items[i]) string(static_cast<const char*>(ptr), length);
+      ptr = static_cast<const char*>(ptr) + length;
       size += length;
     }
     return size;
@@ -138,9 +138,11 @@ char* frequent_strings_sketch_to_string(const void* sketchptr, bool print_items)
 ptr_with_size frequent_strings_sketch_serialize(const void* sketchptr, unsigned header_size) {
   try {
     ptr_with_size p;
-    auto data = static_cast<const frequent_strings_sketch*>(sketchptr)->serialize(header_size);
-    p.ptr = data.first.release();
-    p.size = data.second;
+    auto bytes = new (palloc(sizeof(frequent_strings_sketch::vector_bytes))) frequent_strings_sketch::vector_bytes(
+      static_cast<const frequent_strings_sketch*>(sketchptr)->serialize(header_size)
+    );
+    p.ptr = bytes->data();
+    p.size = bytes->size();;
     return p;
   } catch (std::exception& e) {
     pg_error(e.what());
