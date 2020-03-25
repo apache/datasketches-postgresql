@@ -177,7 +177,7 @@ void theta_union_delete(void* unionptr) {
 
 void theta_union_update(void* unionptr, const void* sketchptr) {
   try {
-    static_cast<theta_union_pg*>(unionptr)->update(*static_cast<const theta_sketch_pg*>(sketchptr));
+    static_cast<theta_union_pg*>(unionptr)->update(std::move(*static_cast<const theta_sketch_pg*>(sketchptr)));
   } catch (std::exception& e) {
     pg_error(e.what());
   }
