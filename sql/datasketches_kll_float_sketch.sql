@@ -105,3 +105,11 @@ CREATE OR REPLACE FUNCTION kll_float_sketch_get_cdf(kll_float_sketch, real[]) RE
 CREATE OR REPLACE FUNCTION kll_float_sketch_get_quantiles(kll_float_sketch, double precision[]) RETURNS real[]
     AS '$libdir/datasketches', 'pg_kll_float_sketch_get_quantiles'
     LANGUAGE C STRICT IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION kll_float_sketch_get_histogram(kll_float_sketch) RETURNS double precision[]
+    AS '$libdir/datasketches', 'pg_kll_float_sketch_get_histogram'
+    LANGUAGE C STRICT IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION kll_float_sketch_get_histogram(kll_float_sketch, int) RETURNS double precision[]
+    AS '$libdir/datasketches', 'pg_kll_float_sketch_get_histogram'
+    LANGUAGE C STRICT IMMUTABLE;

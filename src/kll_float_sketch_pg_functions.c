@@ -38,6 +38,7 @@ PG_FUNCTION_INFO_V1(pg_kll_float_sketch_from_internal);
 PG_FUNCTION_INFO_V1(pg_kll_float_sketch_get_pmf);
 PG_FUNCTION_INFO_V1(pg_kll_float_sketch_get_cdf);
 PG_FUNCTION_INFO_V1(pg_kll_float_sketch_get_quantiles);
+PG_FUNCTION_INFO_V1(pg_kll_float_sketch_get_histogram);
 
 /* function declarations */
 Datum pg_kll_float_sketch_recv(PG_FUNCTION_ARGS);
@@ -52,8 +53,10 @@ Datum pg_kll_float_sketch_from_internal(PG_FUNCTION_ARGS);
 Datum pg_kll_float_sketch_get_pmf(PG_FUNCTION_ARGS);
 Datum pg_kll_float_sketch_get_cdf(PG_FUNCTION_ARGS);
 Datum pg_kll_float_sketch_get_quantiles(PG_FUNCTION_ARGS);
+Datum pg_kll_float_sketch_get_histogram(PG_FUNCTION_ARGS);
 
 static const unsigned DEFAULT_K = 200;
+static const unsigned DEFAULT_NUM_BINS = 10;
 
 Datum pg_kll_float_sketch_add_item(PG_FUNCTION_ARGS) {
   void* sketchptr;
@@ -227,7 +230,7 @@ Datum pg_kll_float_sketch_get_pmf(PG_FUNCTION_ARGS) {
   for (i = 0; i < arr_len_in; i++) {
     split_points[i] = DatumGetFloat4(data_in[i]);
   }
-  result = (Datum*) kll_float_sketch_get_pmf_or_cdf(sketchptr, split_points, arr_len_in, false);
+  result = (Datum*) kll_float_sketch_get_pmf_or_cdf(sketchptr, split_points, arr_len_in, false, false);
   pfree(split_points);
 
   // construct output array of fractions
@@ -277,7 +280,7 @@ Datum pg_kll_float_sketch_get_cdf(PG_FUNCTION_ARGS) {
   for (i = 0; i < arr_len_in; i++) {
     split_points[i] = DatumGetFloat4(data_in[i]);
   }
-  result = (Datum*) kll_float_sketch_get_pmf_or_cdf(sketchptr, split_points, arr_len_in, true);
+  result = (Datum*) kll_float_sketch_get_pmf_or_cdf(sketchptr, split_points, arr_len_in, true, false);
   pfree(split_points);
 
   // construct output array of fractions
@@ -332,6 +335,50 @@ Datum pg_kll_float_sketch_get_quantiles(PG_FUNCTION_ARGS) {
   // construct output array of quantiles
   get_typlenbyvalalign(FLOAT4OID, &elmlen_out, &elmbyval_out, &elmalign_out);
   arr_out = construct_array(quantiles, arr_len, FLOAT4OID, elmlen_out, elmbyval_out, elmalign_out);
+
+  kll_float_sketch_delete(sketchptr);
+
+  PG_RETURN_ARRAYTYPE_P(arr_out);
+}
+
+Datum pg_kll_float_sketch_get_histogram(PG_FUNCTION_ARGS) {
+  const bytea* bytes_in;
+  void* sketchptr;
+  int num_bins;
+
+  // output array of bins
+  Datum* result;
+  ArrayType* arr_out;
+  int16 elmlen_out;
+  bool elmbyval_out;
+  char elmalign_out;
+  int arr_len_out;
+
+  int i;
+
+  bytes_in = PG_GETARG_BYTEA_P(0);
+  sketchptr = kll_float_sketch_deserialize(VARDATA(bytes_in), VARSIZE(bytes_in) - VARHDRSZ);
+
+  num_bins = PG_GETARG_INT32(1);
+  if (num_bins == 0) num_bins = DEFAULT_NUM_BINS;
+  if (num_bins < 2) {
+    elog(ERROR, "at least two bins expected");
+  }
+
+  float* split_points = palloc(sizeof(float) * (num_bins - 1));
+  const float min_value = kll_float_sketch_get_quantile(sketchptr, 0);
+  const float max_value = kll_float_sketch_get_quantile(sketchptr, 1);
+  const float delta = (max_value - min_value) / num_bins;
+  for (i = 0; i < num_bins - 1; i++) {
+    split_points[i] = min_value + delta * (i + 1);
+  }
+  result = (Datum*) kll_float_sketch_get_pmf_or_cdf(sketchptr, split_points, num_bins - 1, false, true);
+  pfree(split_points);
+
+  // construct output array
+  arr_len_out = num_bins;
+  get_typlenbyvalalign(FLOAT8OID, &elmlen_out, &elmbyval_out, &elmalign_out);
+  arr_out = construct_array(result, arr_len_out, FLOAT8OID, elmlen_out, elmbyval_out, elmalign_out);
 
   kll_float_sketch_delete(sketchptr);
 
