@@ -36,33 +36,14 @@ struct hash_string {
 };
 
 struct serde_string {
-  void serialize(std::ostream& os, const string* items, unsigned num) {
-    for (unsigned i = 0; i < num; i++) {
-      uint32_t length = items[i].size();
-      os.write((char*)&length, sizeof(length));
-      os.write(items[i].c_str(), length);
-    }
-  }
-  void deserialize(std::istream& is, string* items, unsigned num) {
-    for (unsigned i = 0; i < num; i++) {
-      uint32_t length;
-      is.read((char*)&length, sizeof(length));
-      new (&items[i]) string;
-      items[i].reserve(length);
-      auto it = std::istreambuf_iterator<char>(is);
-      for (uint32_t j = 0; j < length; j++) {
-        items[i].push_back(*it);
-        ++it;
-      }
-    }
-  }
   size_t size_of_item(const string& item) {
     return sizeof(uint32_t) + item.size();
   }
-  size_t serialize(void* ptr, const string* items, unsigned num) {
+
+  size_t serialize(void* ptr, size_t capacity, const string* items, unsigned num) {
     size_t size = sizeof(uint32_t) * num;
     for (unsigned i = 0; i < num; i++) {
-      uint32_t length = items[i].size();
+      const uint32_t length = items[i].size();
       memcpy(ptr, &length, sizeof(length));
       ptr = static_cast<char*>(ptr) + sizeof(uint32_t);
       memcpy(ptr, items[i].c_str(), length);
@@ -71,7 +52,8 @@ struct serde_string {
     }
     return size;
   }
-  size_t deserialize(const void* ptr, string* items, unsigned num) {
+
+  size_t deserialize(const void* ptr, size_t capacity, string* items, unsigned num) {
     size_t size = sizeof(uint32_t) * num;
     for (unsigned i = 0; i < num; i++) {
       uint32_t length;
@@ -142,7 +124,7 @@ ptr_with_size frequent_strings_sketch_serialize(const void* sketchptr, unsigned 
       static_cast<const frequent_strings_sketch*>(sketchptr)->serialize(header_size)
     );
     p.ptr = bytes->data();
-    p.size = bytes->size();;
+    p.size = bytes->size();
     return p;
   } catch (std::exception& e) {
     pg_error(e.what());
@@ -187,7 +169,7 @@ frequent_strings_sketch_result* frequent_strings_sketch_get_frequent_items(void*
       rows[i].upper_bound = it.get_upper_bound();
       ++i;
     }
-    auto result = (frequent_strings_sketch_result*) palloc(sizeof(frequent_strings_sketch_result));;
+    auto result = (frequent_strings_sketch_result*) palloc(sizeof(frequent_strings_sketch_result));
     result->rows = rows;
     result->num = data.size();
     return result;

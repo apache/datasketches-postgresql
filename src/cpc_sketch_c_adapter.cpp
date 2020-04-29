@@ -87,7 +87,7 @@ Datum* cpc_sketch_get_estimate_and_bounds(const void* sketchptr, unsigned num_st
 void cpc_sketch_to_string(const void* sketchptr, char* buffer, unsigned length) {
   try {
     std::stringstream s;
-    static_cast<const cpc_sketch_pg*>(sketchptr)->to_stream(s);;
+    static_cast<const cpc_sketch_pg*>(sketchptr)->to_stream(s);
     snprintf(buffer, length, "%s", s.str().c_str());
   } catch (std::exception& e) {
     pg_error(e.what());
