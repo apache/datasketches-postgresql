@@ -35,6 +35,14 @@ struct hash_string {
   }
 };
 
+static inline void pg_check_memory_size(size_t requested_index, size_t capacity) {
+  if (requested_index > capacity) {
+    std::string msg("Attempt to access memory beyond limits: requested index "
+    + std::to_string(requested_index) + ", capacity " + std::to_string(capacity));
+    pg_error(msg.c_str());
+  }
+}
+
 struct serde_string {
   size_t size_of_item(const string& item) {
     return sizeof(uint32_t) + item.size();
@@ -54,16 +62,19 @@ struct serde_string {
   }
 
   size_t deserialize(const void* ptr, size_t capacity, string* items, unsigned num) {
-    size_t size = sizeof(uint32_t) * num;
+    size_t bytes_read = 0;
     for (unsigned i = 0; i < num; i++) {
       uint32_t length;
+      pg_check_memory_size(bytes_read + sizeof(length), capacity);
       memcpy(&length, ptr, sizeof(length));
       ptr = static_cast<const char*>(ptr) + sizeof(uint32_t);
-      new (&items[i]) string(static_cast<const char*>(ptr), length);
+      bytes_read += sizeof(length);
+      pg_check_memory_size(bytes_read + length, capacity);
+      new (&items[i]) std::string(static_cast<const char*>(ptr), length);
       ptr = static_cast<const char*>(ptr) + length;
-      size += length;
+      bytes_read += length;
     }
-    return size;
+    return bytes_read;
   }
 };
 
