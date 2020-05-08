@@ -55,7 +55,7 @@ void kll_float_sketch_update(void* sketchptr, float value) {
 
 void kll_float_sketch_merge(void* sketchptr1, const void* sketchptr2) {
   try {
-    static_cast<kll_float_sketch*>(sketchptr1)->merge(*static_cast<const kll_float_sketch*>(sketchptr2));
+    static_cast<kll_float_sketch*>(sketchptr1)->merge(std::move(*static_cast<const kll_float_sketch*>(sketchptr2)));
   } catch (std::exception& e) {
     pg_error(e.what());
   }
@@ -131,14 +131,19 @@ unsigned kll_float_sketch_get_serialized_size_bytes(const void* sketchptr) {
   pg_unreachable();
 }
 
-Datum* kll_float_sketch_get_pmf_or_cdf(const void* sketchptr, const float* split_points, unsigned num_split_points, bool is_cdf) {
+Datum* kll_float_sketch_get_pmf_or_cdf(const void* sketchptr, const float* split_points, unsigned num_split_points, bool is_cdf, bool scale) {
   try {
     auto array = is_cdf ?
       static_cast<const kll_float_sketch*>(sketchptr)->get_CDF(split_points, num_split_points) :
       static_cast<const kll_float_sketch*>(sketchptr)->get_PMF(split_points, num_split_points);
     Datum* pmf = (Datum*) palloc(sizeof(Datum) * (num_split_points + 1));
+    const uint64_t n = static_cast<const kll_float_sketch*>(sketchptr)->get_n();
     for (unsigned i = 0; i < num_split_points + 1; i++) {
-      pmf[i] = pg_float8_get_datum(array[i]);
+      if (scale) {
+        pmf[i] = pg_float8_get_datum(array[i] * n);
+      } else {
+        pmf[i] = pg_float8_get_datum(array[i]);
+      }
     }
     return pmf;
   } catch (std::exception& e) {

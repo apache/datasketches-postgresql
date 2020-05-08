@@ -138,7 +138,7 @@ void cpc_union_delete(void* unionptr) {
 
 void cpc_union_update(void* unionptr, const void* sketchptr) {
   try {
-    static_cast<cpc_union_pg*>(unionptr)->update(*static_cast<const cpc_sketch_pg*>(sketchptr));
+    static_cast<cpc_union_pg*>(unionptr)->update(std::move(*static_cast<const cpc_sketch_pg*>(sketchptr)));
   } catch (std::exception& e) {
     pg_error(e.what());
   }

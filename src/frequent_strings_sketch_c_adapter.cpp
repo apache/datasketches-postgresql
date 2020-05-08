@@ -85,7 +85,7 @@ struct serde_string {
   }
 };
 
-typedef datasketches::frequent_items_sketch<string, hash_string, std::equal_to<string>, serde_string, palloc_allocator<string>> frequent_strings_sketch;
+typedef datasketches::frequent_items_sketch<string, uint64_t, hash_string, std::equal_to<string>, serde_string, palloc_allocator<string>> frequent_strings_sketch;
 
 void* frequent_strings_sketch_new(unsigned lg_k) {
   try {
@@ -115,7 +115,7 @@ void frequent_strings_sketch_update(void* sketchptr, const char* str, unsigned l
 
 void frequent_strings_sketch_merge(void* sketchptr1, const void* sketchptr2) {
   try {
-    static_cast<frequent_strings_sketch*>(sketchptr1)->merge(*static_cast<const frequent_strings_sketch*>(sketchptr2));
+    static_cast<frequent_strings_sketch*>(sketchptr1)->merge(std::move(*static_cast<const frequent_strings_sketch*>(sketchptr2)));
   } catch (std::exception& e) {
     pg_error(e.what());
   }
