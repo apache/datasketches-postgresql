@@ -32,7 +32,7 @@ void hll_sketch_update(void* sketchptr, const void* data, unsigned length);
 void hll_sketch_merge(void* sketchptr1, const void* sketchptr2);
 double hll_sketch_get_estimate(const void* sketchptr);
 void** hll_sketch_get_estimate_and_bounds(const void* sketchptr, unsigned num_std_devs);
-void hll_sketch_to_string(const void* sketchptr, char* buffer, unsigned length);
+char* hll_sketch_to_string(const void* sketchptr);
 
 struct ptr_with_size {
   void* ptr;

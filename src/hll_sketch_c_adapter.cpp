@@ -21,8 +21,6 @@
 #include "allocator.h"
 #include "postgres_h_substitute.h"
 
-#include <sstream>
-
 #include <hll.hpp>
 
 typedef datasketches::hll_sketch_alloc<palloc_allocator<char>> hll_sketch_pg;
@@ -88,14 +86,17 @@ Datum* hll_sketch_get_estimate_and_bounds(const void* sketchptr, unsigned num_st
   pg_unreachable();
 }
 
-void hll_sketch_to_string(const void* sketchptr, char* buffer, unsigned length) {
+char* hll_sketch_to_string(const void* sketchptr) {
   try {
-    std::stringstream s;
-    static_cast<const hll_sketch_pg*>(sketchptr)->to_string(s);
-    snprintf(buffer, length, "%s", s.str().c_str());
+    auto str = static_cast<const hll_sketch_pg*>(sketchptr)->to_string();
+    const size_t len = str.length() + 1;
+    char* buffer = (char*) palloc(len);
+    strncpy(buffer, str.c_str(), len);
+    return buffer;
   } catch (std::exception& e) {
     pg_error(e.what());
   }
+  pg_unreachable();
 }
 
 ptr_with_size hll_sketch_serialize(const void* sketchptr, unsigned header_size) {

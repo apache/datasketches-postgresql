@@ -21,8 +21,6 @@
 #include "allocator.h"
 #include "postgres_h_substitute.h"
 
-#include <sstream>
-
 #include <theta_sketch.hpp>
 #include <theta_union.hpp>
 #include <theta_intersection.hpp>
@@ -113,14 +111,17 @@ Datum* theta_sketch_get_estimate_and_bounds(const void* sketchptr, unsigned num_
   pg_unreachable();
 }
 
-void theta_sketch_to_string(const void* sketchptr, char* buffer, unsigned length) {
+char* theta_sketch_to_string(const void* sketchptr) {
   try {
-    std::stringstream s;
-    static_cast<const theta_sketch_pg*>(sketchptr)->to_stream(s);
-    snprintf(buffer, length, "%s", s.str().c_str());
+    auto str = static_cast<const theta_sketch_pg*>(sketchptr)->to_string();
+    const size_t len = str.length() + 1;
+    char* buffer = (char*) palloc(len);
+    strncpy(buffer, str.c_str(), len);
+    return buffer;
   } catch (std::exception& e) {
     pg_error(e.what());
   }
+  pg_unreachable();
 }
 
 ptr_with_size theta_sketch_serialize(const void* sketchptr, unsigned header_size) {

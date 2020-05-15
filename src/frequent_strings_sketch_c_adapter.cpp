@@ -22,7 +22,6 @@
 #include "postgres_h_substitute.h"
 
 #include <string>
-#include <sstream>
 
 #include <frequent_items_sketch.hpp>
 
@@ -116,11 +115,10 @@ void frequent_strings_sketch_merge(void* sketchptr1, const void* sketchptr2) {
 
 char* frequent_strings_sketch_to_string(const void* sketchptr, bool print_items) {
   try {
-    std::stringstream s;
-    static_cast<const frequent_strings_sketch*>(sketchptr)->to_stream(s, print_items);
-    const unsigned len = (unsigned) s.tellp() + 1;
+    auto str = static_cast<const frequent_strings_sketch*>(sketchptr)->to_string(print_items);
+    const size_t len = str.length() + 1;
     char* buffer = (char*) palloc(len);
-    strncpy(buffer, s.str().c_str(), len);
+    strncpy(buffer, str.c_str(), len);
     return buffer;
   } catch (std::exception& e) {
     pg_error(e.what());

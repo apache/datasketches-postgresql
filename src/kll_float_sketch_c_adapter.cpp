@@ -21,8 +21,6 @@
 #include "allocator.h"
 #include "postgres_h_substitute.h"
 
-#include <sstream>
-
 #include <kll_sketch.hpp>
 
 typedef datasketches::kll_sketch<float, std::less<float>, datasketches::serde<float>, palloc_allocator<float>> kll_float_sketch;
@@ -88,14 +86,17 @@ unsigned long long kll_float_sketch_get_n(const void* sketchptr) {
   pg_unreachable();
 }
 
-void kll_float_sketch_to_string(const void* sketchptr, char* buffer, unsigned length) {
+char* kll_float_sketch_to_string(const void* sketchptr) {
   try {
-    std::stringstream s;
-    static_cast<const kll_float_sketch*>(sketchptr)->to_stream(s);
-    snprintf(buffer, length, "%s", s.str().c_str());
+    auto str = static_cast<const kll_float_sketch*>(sketchptr)->to_string();
+    const size_t len = str.length() + 1;
+    char* buffer = (char*) palloc(len);
+    strncpy(buffer, str.c_str(), len);
+    return buffer;
   } catch (std::exception& e) {
     pg_error(e.what());
   }
+  pg_unreachable();
 }
 
 ptr_with_size kll_float_sketch_serialize(const void* sketchptr, unsigned header_size) {

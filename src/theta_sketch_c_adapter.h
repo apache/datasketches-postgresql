@@ -34,7 +34,7 @@ void* theta_sketch_compact(void* sketchptr);
 void theta_sketch_union(void* sketchptr1, const void* sketchptr2);
 double theta_sketch_get_estimate(const void* sketchptr);
 void** theta_sketch_get_estimate_and_bounds(const void* sketchptr, unsigned num_std_devs);
-void theta_sketch_to_string(const void* sketchptr, char* buffer, unsigned length);
+char* theta_sketch_to_string(const void* sketchptr);
 
 struct ptr_with_size {
   void* ptr;

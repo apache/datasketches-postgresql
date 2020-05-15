@@ -151,10 +151,10 @@ Datum pg_theta_sketch_get_estimate_and_bounds(PG_FUNCTION_ARGS) {
 Datum pg_theta_sketch_to_string(PG_FUNCTION_ARGS) {
   const bytea* bytes_in;
   void* sketchptr;
-  char str[1024];
+  char* str;
   bytes_in = PG_GETARG_BYTEA_P(0);
   sketchptr = theta_sketch_deserialize(VARDATA(bytes_in), VARSIZE(bytes_in) - VARHDRSZ);
-  theta_sketch_to_string(sketchptr, str, 1024);
+  str = theta_sketch_to_string(sketchptr);
   theta_sketch_delete(sketchptr);
   PG_RETURN_TEXT_P(cstring_to_text(str));
 }
