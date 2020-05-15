@@ -82,13 +82,17 @@ Datum* cpc_sketch_get_estimate_and_bounds(const void* sketchptr, unsigned num_st
   pg_unreachable();
 }
 
-void cpc_sketch_to_string(const void* sketchptr, char* buffer, unsigned length) {
+char* cpc_sketch_to_string(const void* sketchptr) {
   try {
     auto str = static_cast<const cpc_sketch_pg*>(sketchptr)->to_string();
-    snprintf(buffer, length, "%s", str.c_str());
+    const size_t len = str.length() + 1;
+    char* buffer = (char*) palloc(len);
+    strncpy(buffer, str.c_str(), len);
+    return buffer;
   } catch (std::exception& e) {
     pg_error(e.what());
   }
+  pg_unreachable();
 }
 
 struct ptr_with_size cpc_sketch_serialize(const void* sketchptr, unsigned header_size) {

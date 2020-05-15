@@ -116,7 +116,7 @@ void frequent_strings_sketch_merge(void* sketchptr1, const void* sketchptr2) {
 char* frequent_strings_sketch_to_string(const void* sketchptr, bool print_items) {
   try {
     auto str = static_cast<const frequent_strings_sketch*>(sketchptr)->to_string(print_items);
-    const unsigned len = (unsigned) str.length() + 1;
+    const size_t len = str.length() + 1;
     char* buffer = (char*) palloc(len);
     strncpy(buffer, str.c_str(), len);
     return buffer;

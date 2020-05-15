@@ -86,13 +86,17 @@ unsigned long long kll_float_sketch_get_n(const void* sketchptr) {
   pg_unreachable();
 }
 
-void kll_float_sketch_to_string(const void* sketchptr, char* buffer, unsigned length) {
+char* kll_float_sketch_to_string(const void* sketchptr) {
   try {
     auto str = static_cast<const kll_float_sketch*>(sketchptr)->to_string();
-    snprintf(buffer, length, "%s", str.c_str());
+    const size_t len = str.length() + 1;
+    char* buffer = (char*) palloc(len);
+    strncpy(buffer, str.c_str(), len);
+    return buffer;
   } catch (std::exception& e) {
     pg_error(e.what());
   }
+  pg_unreachable();
 }
 
 ptr_with_size kll_float_sketch_serialize(const void* sketchptr, unsigned header_size) {
