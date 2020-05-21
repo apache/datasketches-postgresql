@@ -16,9 +16,13 @@
     specific language governing permissions and limitations
     under the License.
 -->
+# PostgreSQL Adaptor for C++ DataSketches
 
-Extension for PostgreSQL to support approximate algorithms based on the Datasketches core library datasketches-cpp.
-See [Datasketches documentation](https://datasketches.github.io/) for details.
+Please visit the main [DataSketches website](https://datasketches.apache.org) for more information. 
+
+If you are interested in making contributions to this site please see our [Community](https://datasketches.apache.org/docs/Community/) page for how to contact us.
+
+---
 
 This module currently supports the following sketches:
 
@@ -28,7 +32,7 @@ This module currently supports the following sketches:
 - KLL float quantiles sketch - for estimating distributions: quantile, rank, PMF (histogram), CDF
 - Frequent strings sketch - capture the heaviest items (strings) by count or by some other weight
 
-<h1>How to build and install</h1>
+## How to build and install
 
 This code is intended to be distributed as a PostgreSQL extension on [PGXN site](https://pgxn.org/)
 
@@ -42,12 +46,12 @@ This code depends on [datasketches-cpp version 1.0.0-incubating](https://github.
 
 There are two slightly different ways to build this extension: from a PGXN distribution or from two separate packages: datasketches-postgresql and datasketches-cpp (either from GitHub or from [Apache archive](http://archive.apache.org/dist/incubator/datasketches/))
 
-<h2>PGXN extension</h2>
+### PGXN extension
 
    - Download the datasketches extension from [PGXN](https://pgxn.org/dist/datasketches/)
    - Unzip the package (the core library datasketches-cpp is included)
 
-<h2>GitHub or Apache archive</h2>
+### GitHub or Apache archive
 
    - Clone or download from GitHub or download from Apache archive both the datasketches-postgresql code and the core library datasketches-cpp (version mentioned above)
    - Place the core library as a subdirectory (or a link to it) inside of the datasketches-postgresql like so:
@@ -55,7 +59,7 @@ There are two slightly different ways to build this extension: from a PGXN distr
       - datasketches-postgresql
           - datasketches-cpp -> ../datasketches-cpp
 
-<h2>Building and installing</h2>
+### Building and installing
 
    - make
    - sudo make install
@@ -64,7 +68,7 @@ On MacOSX Mojave, if you see a warning like this:<br>
 clang: warning: no such sysroot directory: ‘/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk’ [-Wmissing-sysroot]<br>
 and the compilation fails because of not being able to find system include files, this is a known OSX problem. There are known solutions on the Internet.
 
-<h2>Verifying installation with a test database</h2>
+### Verifying installation with a test database
 
    - Make sure that PostgreSQL is running. For instance, using Homebrew on MacOSX, start the service:
      - brew services start postgresql
@@ -99,9 +103,9 @@ You should see the following result:
 	 
 	(1 row)
 
-<h1>Examples</h1>
+## Examples
 
-<h2>Distinct counting with CPC sketch</h2>
+### Distinct counting with CPC sketch
 
 Suppose 100 million random integer values uniformly distributed in the range from 1 to 100M have been generated and inserted into a table
 
@@ -145,7 +149,7 @@ Non-aggregate union:
 	-------------------------
 	        2.00016277723359
 
-<h2>Distinct counting with Theta sketch</h2>
+### Distinct counting with Theta sketch
 
 See above for the exact distinct count of 100 million random integers
 
@@ -199,7 +203,7 @@ Non-aggregate set operations:
 	                         1
 	(2 rows)
 
-<h2>Distinct counting with HLL sketch</h2>
+### Distinct counting with HLL sketch
 
 See above for the exact distinct count of 100 million random integers
 
@@ -233,7 +237,7 @@ Non-aggregate union:
 	-------------------------
 	        2.00000000496705
 
-<h2>Estimating quanitles, ranks and histograms with KLL sketch</h2>
+### Estimating quanitles, ranks and histograms with KLL sketch
 
 Table "normal" has 1 million values from the normal (Gaussian) distribution with mean=0 and stddev=1.
 We can build a sketch, which represents the distribution:
@@ -290,7 +294,7 @@ Let's create two more sketches to show merging kll_float_sketch:
 	-------------------------------
 	                    0.00332207
 
-<h2>Frequent strings</h2>
+### Frequent strings
 
 Consider a numeric Zipfian distribution with parameter alpha=1.1 (high skew)
 and range of 2<sup>13</sup>, so that the number 1 has the highest frequency,
@@ -371,3 +375,7 @@ Merging frequent_strings_sketch:
 	 (10,3649596,3289743,3649596)
 	 (11,3294912,2935059,3294912)
 	(11 rows)
+
+----
+
+Disclaimer: Apache DataSketches is an effort undergoing incubation at The Apache Software Foundation (ASF), sponsored by the Apache Incubator. Incubation is required of all newly accepted projects until a further review indicates that the infrastructure, communications, and decision making process have stabilized in a manner consistent with other successful ASF projects. While incubation status is not necessarily a reflection of the completeness or stability of the code, it does indicate that the project has yet to be fully endorsed by the ASF.
