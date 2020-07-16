@@ -1,0 +1,12 @@
+services:
+  - docker
+
+install:
+  - docker build --pull -t datasketch-postgres:latest .
+  - docker run --name some-postgres -e POSTGRES_PASSWORD=mysecretpassword -d datasketch-postgres:latest
+
+script:
+  - sleep 3
+  - docker logs some-postgres
+  - docker ps | grep -q some-postgres
+  - docker exec some-postgres psql -U postgres -c 'select theta_sketch_get_estimate(theta_sketch_build(1))'
