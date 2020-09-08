@@ -103,6 +103,38 @@ You should see the following result:
 	 
 	(1 row)
 
+### Docker
+
+Build Docker image:
+
+	$ docker build . -t datasketch-postgres:latest
+
+Build Docker image with specific version
+
+	$ docker build --pull --build-arg BASE_IMAGE_VERSION=10 -t datasketch-postgres:10 .
+
+Run container:
+  
+	$ docker run --name some-postgres -e POSTGRES_PASSWORD=mysecretpassword -d datasketch-postgres:latest
+
+Test DataSketches in PostgreSQL:
+
+	$ docker exec -it some-postgres psql -U postgres
+	postgres=# SELECT cpc_sketch_get_estimate(cpc_sketch_union(respondents_sketch)) AS num_respondents, flavor
+	  FROM (
+	    SELECT
+	      cpc_sketch_build(respondent) AS respondents_sketch,
+	      flavor,
+	      country
+	    FROM (
+	      SELECT * FROM (
+	        VALUES (1, 'Vanilla', 'CH'),
+	               (1, 'Chocolate', 'CH'),
+	               (2, 'Chocolate', 'US'),
+	               (2, 'Strawberry', 'US')) AS t(respondent, flavor, country)) as foo
+	    GROUP BY flavor, country) as bar
+	  GROUP BY flavor;
+
 ## Examples
 
 ### Distinct counting with CPC sketch

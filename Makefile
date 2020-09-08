@@ -43,6 +43,15 @@ PG_CONFIG = pg_config
 PGXS := $(shell $(PG_CONFIG) --pgxs)
 include $(PGXS)
 
+# fix LLVM JIT compilation error
+ifeq ($(with_llvm), yes)
+	COMPILE.cxx.bc = $(CLANG) -xc++ -Wno-ignored-attributes $(BITCODE_CXXFLAGS) $(CPPFLAGS) -emit-llvm -c
+endif
+
+%.bc : %.cpp
+	$(COMPILE.cxx.bc) -o $@ $<
+	if [ "$(with_llvm)" = "yes" ]; then $(LLVM_BINPATH)/opt -module-summary -f $@ -o $@; fi
+
 # generate combined sql
 $(SQL_INSTALL): $(sort $(SQL_MODULES))
 	cat $^ > $@
