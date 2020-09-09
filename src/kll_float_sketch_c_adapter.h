@@ -24,6 +24,10 @@
 extern "C" {
 #endif
 
+#include "ptr_with_size.h"
+
+static const unsigned DEFAULT_K = 200;
+
 void* kll_float_sketch_new(unsigned k);
 void kll_float_sketch_delete(void* sketchptr);
 
@@ -33,11 +37,6 @@ double kll_float_sketch_get_rank(const void* sketchptr, float value);
 float kll_float_sketch_get_quantile(const void* sketchptr, double rank);
 unsigned long long kll_float_sketch_get_n(const void* sketchptr);
 char* kll_float_sketch_to_string(const void* sketchptr);
-
-struct ptr_with_size {
-  void* ptr;
-  unsigned long long size;
-};
 
 struct ptr_with_size kll_float_sketch_serialize(const void* sketchptr, unsigned header_size);
 void* kll_float_sketch_deserialize(const char* buffer, unsigned length);

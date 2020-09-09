@@ -55,7 +55,6 @@ Datum pg_kll_float_sketch_get_cdf(PG_FUNCTION_ARGS);
 Datum pg_kll_float_sketch_get_quantiles(PG_FUNCTION_ARGS);
 Datum pg_kll_float_sketch_get_histogram(PG_FUNCTION_ARGS);
 
-static const unsigned DEFAULT_K = 200;
 static const unsigned DEFAULT_NUM_BINS = 10;
 
 Datum pg_kll_float_sketch_add_item(PG_FUNCTION_ARGS) {

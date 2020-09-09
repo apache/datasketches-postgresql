@@ -169,3 +169,11 @@ CREATE OR REPLACE FUNCTION aod_sketch_a_not_b(aod_sketch, aod_sketch) RETURNS ao
 CREATE OR REPLACE FUNCTION aod_sketch_a_not_b(aod_sketch, aod_sketch, int) RETURNS aod_sketch
     AS '$libdir/datasketches', 'pg_aod_sketch_a_not_b'
     LANGUAGE C STRICT IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION aod_sketch_to_kll_float_sketch(aod_sketch, int) RETURNS kll_float_sketch
+    AS '$libdir/datasketches', 'pg_aod_sketch_to_kll_float_sketch'
+    LANGUAGE C STRICT IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION aod_sketch_to_kll_float_sketch(aod_sketch, int, int) RETURNS kll_float_sketch
+    AS '$libdir/datasketches', 'pg_aod_sketch_to_kll_float_sketch'
+    LANGUAGE C STRICT IMMUTABLE;

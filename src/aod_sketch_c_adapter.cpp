@@ -20,6 +20,7 @@
 #include "aod_sketch_c_adapter.h"
 #include "allocator.h"
 #include "postgres_h_substitute.h"
+#include "kll_float_sketch_c_adapter.h"
 
 #include <array_of_doubles_sketch.hpp>
 #include <array_of_doubles_union.hpp>
@@ -264,6 +265,19 @@ void* aod_a_not_b(const void* sketchptr1, const void* sketchptr2) {
       *static_cast<const compact_aod_sketch_pg*>(sketchptr1),
       *static_cast<const compact_aod_sketch_pg*>(sketchptr2)
     ));
+  } catch (std::exception& e) {
+    pg_error(e.what());
+  }
+  pg_unreachable();
+}
+
+void* aod_sketch_to_kll_float_sketch(const void* sketchptr, unsigned column_index, unsigned k) {
+  try {
+    auto kllptr = kll_float_sketch_new(k);
+    for (const auto& entry: *static_cast<const compact_aod_sketch_pg*>(sketchptr)) {
+      kll_float_sketch_update(kllptr, entry.second[column_index]);
+    }
+    return kllptr;
   } catch (std::exception& e) {
     pg_error(e.what());
   }

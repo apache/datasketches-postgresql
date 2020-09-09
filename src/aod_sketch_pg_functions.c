@@ -26,6 +26,7 @@
 
 #include "aod_sketch_c_adapter.h"
 #include "base64.h"
+#include "kll_float_sketch_c_adapter.h"
 
 /* PG_FUNCTION_INFO_V1 macro to pass functions to postgres */
 PG_FUNCTION_INFO_V1(pg_aod_sketch_add_item);
@@ -41,6 +42,7 @@ PG_FUNCTION_INFO_V1(pg_aod_intersection_get_result);
 PG_FUNCTION_INFO_V1(pg_aod_sketch_union);
 PG_FUNCTION_INFO_V1(pg_aod_sketch_intersection);
 PG_FUNCTION_INFO_V1(pg_aod_sketch_a_not_b);
+PG_FUNCTION_INFO_V1(pg_aod_sketch_to_kll_float_sketch);
 
 /* function declarations */
 Datum pg_aod_sketch_recv(PG_FUNCTION_ARGS);
@@ -58,6 +60,7 @@ Datum pg_aod_intersection_get_result(PG_FUNCTION_ARGS);
 Datum pg_aod_sketch_union(PG_FUNCTION_ARGS);
 Datum pg_aod_sketch_intersection(PG_FUNCTION_ARGS);
 Datum pg_aod_sketch_a_not_b(PG_FUNCTION_ARGS);
+Datum pg_aod_sketch_to_kll_float_sketch(PG_FUNCTION_ARGS);
 
 Datum pg_aod_sketch_add_item(PG_FUNCTION_ARGS) {
   void* sketchptr;
@@ -461,6 +464,27 @@ Datum pg_aod_sketch_a_not_b(PG_FUNCTION_ARGS) {
   compact_aod_sketch_delete(sketchptr2);
   bytes_out = aod_sketch_serialize(sketchptr, VARHDRSZ);
   compact_aod_sketch_delete(sketchptr);
+  SET_VARSIZE(bytes_out.ptr, bytes_out.size);
+  PG_RETURN_BYTEA_P(bytes_out.ptr);
+}
+
+Datum pg_aod_sketch_to_kll_float_sketch(PG_FUNCTION_ARGS) {
+  const bytea* bytes_in;
+  void* aodptr;
+  int column_index;
+  int k;
+  void* kllptr;
+  struct ptr_with_size bytes_out;
+
+  bytes_in = PG_GETARG_BYTEA_P(0);
+  aodptr = aod_sketch_deserialize(VARDATA(bytes_in), VARSIZE(bytes_in) - VARHDRSZ);
+  column_index = PG_GETARG_INT32(1);
+  k = PG_GETARG_INT32(2);
+  if (k == 0) k = DEFAULT_K;
+  kllptr = aod_sketch_to_kll_float_sketch(aodptr, column_index, k);
+  bytes_out = kll_float_sketch_serialize(kllptr, VARHDRSZ);
+  kll_float_sketch_delete(kllptr);
+  compact_aod_sketch_delete(aodptr);
   SET_VARSIZE(bytes_out.ptr, bytes_out.size);
   PG_RETURN_BYTEA_P(bytes_out.ptr);
 }
