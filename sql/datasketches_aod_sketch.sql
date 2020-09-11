@@ -177,3 +177,7 @@ CREATE OR REPLACE FUNCTION aod_sketch_to_kll_float_sketch(aod_sketch, int) RETUR
 CREATE OR REPLACE FUNCTION aod_sketch_to_kll_float_sketch(aod_sketch, int, int) RETURNS kll_float_sketch
     AS '$libdir/datasketches', 'pg_aod_sketch_to_kll_float_sketch'
     LANGUAGE C STRICT IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION aod_sketch_students_t_test(aod_sketch, aod_sketch) RETURNS double precision[]
+    AS '$libdir/datasketches', 'pg_aod_sketch_students_t_test'
+    LANGUAGE C STRICT IMMUTABLE;

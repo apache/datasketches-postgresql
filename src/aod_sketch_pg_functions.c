@@ -43,6 +43,7 @@ PG_FUNCTION_INFO_V1(pg_aod_sketch_union);
 PG_FUNCTION_INFO_V1(pg_aod_sketch_intersection);
 PG_FUNCTION_INFO_V1(pg_aod_sketch_a_not_b);
 PG_FUNCTION_INFO_V1(pg_aod_sketch_to_kll_float_sketch);
+PG_FUNCTION_INFO_V1(pg_aod_sketch_students_t_test);
 
 /* function declarations */
 Datum pg_aod_sketch_recv(PG_FUNCTION_ARGS);
@@ -61,6 +62,7 @@ Datum pg_aod_sketch_union(PG_FUNCTION_ARGS);
 Datum pg_aod_sketch_intersection(PG_FUNCTION_ARGS);
 Datum pg_aod_sketch_a_not_b(PG_FUNCTION_ARGS);
 Datum pg_aod_sketch_to_kll_float_sketch(PG_FUNCTION_ARGS);
+Datum pg_aod_sketch_students_t_test(PG_FUNCTION_ARGS);
 
 Datum pg_aod_sketch_add_item(PG_FUNCTION_ARGS) {
   void* sketchptr;
@@ -487,4 +489,37 @@ Datum pg_aod_sketch_to_kll_float_sketch(PG_FUNCTION_ARGS) {
   compact_aod_sketch_delete(aodptr);
   SET_VARSIZE(bytes_out.ptr, bytes_out.size);
   PG_RETURN_BYTEA_P(bytes_out.ptr);
+}
+
+Datum pg_aod_sketch_students_t_test(PG_FUNCTION_ARGS) {
+  const bytea* bytes_in1;
+  const bytea* bytes_in2;
+  void* sketchptr1;
+  void* sketchptr2;
+
+  // output array of p-values
+  Datum* p_values;
+  ArrayType* arr_out;
+  int16 elmlen_out;
+  bool elmbyval_out;
+  char elmalign_out;
+  unsigned arr_len_out;
+
+  if (PG_ARGISNULL(0) || PG_ARGISNULL(1)) {
+    elog(ERROR, "aod_a_not_b expects two valid aod sketches");
+  }
+
+  bytes_in1 = PG_GETARG_BYTEA_P(0);
+  sketchptr1 = aod_sketch_deserialize(VARDATA(bytes_in1), VARSIZE(bytes_in1) - VARHDRSZ);
+  bytes_in2 = PG_GETARG_BYTEA_P(1);
+  sketchptr2 = aod_sketch_deserialize(VARDATA(bytes_in2), VARSIZE(bytes_in2) - VARHDRSZ);
+  p_values = (Datum*) aod_sketch_students_t_test(sketchptr1, sketchptr2, &arr_len_out);
+  compact_aod_sketch_delete(sketchptr1);
+  compact_aod_sketch_delete(sketchptr2);
+
+  // construct output array of p-values
+  get_typlenbyvalalign(FLOAT8OID, &elmlen_out, &elmbyval_out, &elmalign_out);
+  arr_out = construct_array(p_values, arr_len_out, FLOAT8OID, elmlen_out, elmbyval_out, elmalign_out);
+
+  PG_RETURN_ARRAYTYPE_P(arr_out);
 }

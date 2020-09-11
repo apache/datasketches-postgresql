@@ -38,10 +38,13 @@ OBJS = src/global_hooks.o src/base64.o src/common.o \
   src/hll_sketch_pg_functions.o src/hll_sketch_c_adapter.o \
   src/aod_sketch_pg_functions.o src/aod_sketch_c_adapter.o
 
-# assume a copy or link datasketches-cpp in the current dir
+# assume a dir or link named "datasketches-cpp" in the current dir
 CORE = datasketches-cpp
 
-PG_CPPFLAGS = -fPIC -I/usr/local/include -I$(CORE)/kll/include -I$(CORE)/common/include -I$(CORE)/cpc/include -I$(CORE)/theta/include -I$(CORE)/fi/include -I$(CORE)/hll/include -I$(CORE)/tuple/include
+# assume a dir or link named "boost" in the current dir
+BOOST = boost
+
+PG_CPPFLAGS = -fPIC -I/usr/local/include -I$(CORE)/kll/include -I$(CORE)/common/include -I$(CORE)/cpc/include -I$(CORE)/theta/include -I$(CORE)/fi/include -I$(CORE)/hll/include -I$(CORE)/tuple/include -I$(BOOST)
 PG_CXXFLAGS = -std=c++11
 SHLIB_LINK = -lstdc++ -L/usr/local/lib
 

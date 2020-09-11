@@ -27,6 +27,12 @@
 #include <array_of_doubles_intersection.hpp>
 #include <array_of_doubles_a_not_b.hpp>
 
+#include <boost/accumulators/accumulators.hpp>
+#include <boost/accumulators/statistics/stats.hpp>
+#include <boost/accumulators/statistics/mean.hpp>
+#include <boost/accumulators/statistics/variance.hpp>
+#include <boost/math/distributions/students_t.hpp>
+
 using vector_double = std::vector<double, palloc_allocator<double>>;
 
 using update_aod_sketch_pg = datasketches::update_array_of_doubles_sketch_alloc<palloc_allocator<double>>;
@@ -278,6 +284,58 @@ void* aod_sketch_to_kll_float_sketch(const void* sketchptr, unsigned column_inde
       kll_float_sketch_update(kllptr, entry.second[column_index]);
     }
     return kllptr;
+  } catch (std::exception& e) {
+    pg_error(e.what());
+  }
+  pg_unreachable();
+}
+
+double t_test_unequal_sd(double m1, double v1, uint64_t n1, double m2, double v2, uint64_t n2) {
+  double degrees_of_freedom = v1 / n1 + v2 / n2;
+  degrees_of_freedom *= degrees_of_freedom;
+  double t1 = v1 / n1;
+  t1 *= t1;
+  t1 /= (n1 - 1);
+  double t2 = v2 / n2;
+  t2 *= t2;
+  t2 /= (n2 - 1);
+  degrees_of_freedom /= (t1 + t2);
+  double t_stat = (m1 - m2) / sqrt(v1 / n1 + v2 / n2);
+  using boost::math::students_t;
+  students_t distribution(degrees_of_freedom);
+  return 2 * cdf(complement(distribution, fabs(t_stat))); // double to match 2-sided test in Java (commons-math3)
+}
+
+Datum* aod_sketch_students_t_test(const void* sketchptr1, const void* sketchptr2, unsigned* arr_len_out) {
+  try {
+    const auto& sketch1 = *static_cast<const compact_aod_sketch_pg*>(sketchptr1);
+    const auto& sketch2 = *static_cast<const compact_aod_sketch_pg*>(sketchptr2);
+    if (sketch1.get_num_values() != sketch2.get_num_values()) pg_error("aod_sketch_students_t_test: number of values mismatch");
+    unsigned num_values = sketch1.get_num_values();
+    Datum* p_values = (Datum*) palloc(sizeof(Datum) * num_values);
+    *arr_len_out = num_values;
+
+    using namespace boost::accumulators;
+    using Accum = accumulator_set<double, stats<tag::mean, tag::variance>>;
+
+    std::vector<Accum, palloc_allocator<Accum>> stats1(num_values);
+    for (const auto& entry: sketch1) {
+      for (unsigned i = 0; i < num_values; ++i) stats1[i](entry.second[i]);
+    }
+
+    std::vector<Accum, palloc_allocator<Accum>> stats2(num_values);
+    for (const auto& entry: sketch2) {
+      for (unsigned i = 0; i < num_values; ++i) stats2[i](entry.second[i]);
+    }
+
+    for (unsigned i = 0; i < num_values; ++i) {
+      p_values[i] = pg_float8_get_datum(t_test_unequal_sd(
+        mean(stats1[i]), variance(stats1[i]), sketch1.get_num_retained(),
+        mean(stats2[i]), variance(stats2[i]), sketch2.get_num_retained()
+      ));
+    }
+
+    return p_values;
   } catch (std::exception& e) {
     pg_error(e.what());
   }
