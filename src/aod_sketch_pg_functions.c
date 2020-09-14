@@ -44,6 +44,8 @@ PG_FUNCTION_INFO_V1(pg_aod_sketch_intersection);
 PG_FUNCTION_INFO_V1(pg_aod_sketch_a_not_b);
 PG_FUNCTION_INFO_V1(pg_aod_sketch_to_kll_float_sketch);
 PG_FUNCTION_INFO_V1(pg_aod_sketch_students_t_test);
+PG_FUNCTION_INFO_V1(pg_aod_sketch_to_means);
+PG_FUNCTION_INFO_V1(pg_aod_sketch_to_variances);
 
 /* function declarations */
 Datum pg_aod_sketch_recv(PG_FUNCTION_ARGS);
@@ -63,6 +65,8 @@ Datum pg_aod_sketch_intersection(PG_FUNCTION_ARGS);
 Datum pg_aod_sketch_a_not_b(PG_FUNCTION_ARGS);
 Datum pg_aod_sketch_to_kll_float_sketch(PG_FUNCTION_ARGS);
 Datum pg_aod_sketch_students_t_test(PG_FUNCTION_ARGS);
+Datum pg_aod_sketch_to_means(PG_FUNCTION_ARGS);
+Datum pg_aod_sketch_to_variances(PG_FUNCTION_ARGS);
 
 Datum pg_aod_sketch_add_item(PG_FUNCTION_ARGS) {
   void* sketchptr;
@@ -520,6 +524,64 @@ Datum pg_aod_sketch_students_t_test(PG_FUNCTION_ARGS) {
   // construct output array of p-values
   get_typlenbyvalalign(FLOAT8OID, &elmlen_out, &elmbyval_out, &elmalign_out);
   arr_out = construct_array(p_values, arr_len_out, FLOAT8OID, elmlen_out, elmbyval_out, elmalign_out);
+
+  PG_RETURN_ARRAYTYPE_P(arr_out);
+}
+
+Datum pg_aod_sketch_to_means(PG_FUNCTION_ARGS) {
+  const bytea* bytes_in;
+  void* sketchptr;
+
+  // output array
+  Datum* means;
+  ArrayType* arr_out;
+  int16 elmlen_out;
+  bool elmbyval_out;
+  char elmalign_out;
+  unsigned arr_len_out;
+
+  if (PG_ARGISNULL(0)) {
+    elog(ERROR, "aod_sketch_to_means expects a valid aod sketch");
+  }
+
+  bytes_in = PG_GETARG_BYTEA_P(0);
+  sketchptr = aod_sketch_deserialize(VARDATA(bytes_in), VARSIZE(bytes_in) - VARHDRSZ);
+
+  means = (Datum*) aod_sketch_to_means(sketchptr, &arr_len_out);
+  compact_aod_sketch_delete(sketchptr);
+
+  // construct output array
+  get_typlenbyvalalign(FLOAT8OID, &elmlen_out, &elmbyval_out, &elmalign_out);
+  arr_out = construct_array(means, arr_len_out, FLOAT8OID, elmlen_out, elmbyval_out, elmalign_out);
+
+  PG_RETURN_ARRAYTYPE_P(arr_out);
+}
+
+Datum pg_aod_sketch_to_variances(PG_FUNCTION_ARGS) {
+  const bytea* bytes_in;
+  void* sketchptr;
+
+  // output array
+  Datum* variances;
+  ArrayType* arr_out;
+  int16 elmlen_out;
+  bool elmbyval_out;
+  char elmalign_out;
+  unsigned arr_len_out;
+
+  if (PG_ARGISNULL(0)) {
+    elog(ERROR, "aod_sketch_to_variances expects a valid aod sketch");
+  }
+
+  bytes_in = PG_GETARG_BYTEA_P(0);
+  sketchptr = aod_sketch_deserialize(VARDATA(bytes_in), VARSIZE(bytes_in) - VARHDRSZ);
+
+  variances = (Datum*) aod_sketch_to_variances(sketchptr, &arr_len_out);
+  compact_aod_sketch_delete(sketchptr);
+
+  // construct output array
+  get_typlenbyvalalign(FLOAT8OID, &elmlen_out, &elmbyval_out, &elmalign_out);
+  arr_out = construct_array(variances, arr_len_out, FLOAT8OID, elmlen_out, elmbyval_out, elmalign_out);
 
   PG_RETURN_ARRAYTYPE_P(arr_out);
 }

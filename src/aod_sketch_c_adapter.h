@@ -58,7 +58,9 @@ void* aod_a_not_b(const void* sketchptr1, const void* sketchptr2);
 
 void* aod_sketch_to_kll_float_sketch(const void* sketchptr, unsigned column_index, unsigned k);
 
-void** aod_sketch_students_t_test(const void* sketch1ptr, const void* sketch2ptr, unsigned* arr_len_out);
+void** aod_sketch_students_t_test(const void* sketchptr1, const void* sketchptr2, unsigned* arr_len_out);
+void** aod_sketch_to_means(const void* sketchptr, unsigned* arr_len_out);
+void** aod_sketch_to_variances(const void* sketchptr, unsigned* arr_len_out);
 
 #ifdef __cplusplus
 }

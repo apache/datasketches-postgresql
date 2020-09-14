@@ -341,3 +341,55 @@ Datum* aod_sketch_students_t_test(const void* sketchptr1, const void* sketchptr2
   }
   pg_unreachable();
 }
+
+Datum* aod_sketch_to_means(const void* sketchptr, unsigned* arr_len_out) {
+  try {
+    const auto& sketch = *static_cast<const compact_aod_sketch_pg*>(sketchptr);
+    unsigned num_values = sketch.get_num_values();
+    Datum* means = (Datum*) palloc(sizeof(Datum) * num_values);
+    *arr_len_out = num_values;
+
+    using namespace boost::accumulators;
+    using Accum = accumulator_set<double, stats<tag::mean>>;
+
+    std::vector<Accum, palloc_allocator<Accum>> stats(num_values);
+    for (const auto& entry: sketch) {
+      for (unsigned i = 0; i < num_values; ++i) stats[i](entry.second[i]);
+    }
+
+    for (unsigned i = 0; i < num_values; ++i) {
+      means[i] = pg_float8_get_datum(mean(stats[i]));
+    }
+
+    return means;
+  } catch (std::exception& e) {
+    pg_error(e.what());
+  }
+  pg_unreachable();
+}
+
+Datum* aod_sketch_to_variances(const void* sketchptr, unsigned* arr_len_out) {
+  try {
+    const auto& sketch = *static_cast<const compact_aod_sketch_pg*>(sketchptr);
+    unsigned num_values = sketch.get_num_values();
+    Datum* variances = (Datum*) palloc(sizeof(Datum) * num_values);
+    *arr_len_out = num_values;
+
+    using namespace boost::accumulators;
+    using Accum = accumulator_set<double, stats<tag::variance>>;
+
+    std::vector<Accum, palloc_allocator<Accum>> stats(num_values);
+    for (const auto& entry: sketch) {
+      for (unsigned i = 0; i < num_values; ++i) stats[i](entry.second[i]);
+    }
+
+    for (unsigned i = 0; i < num_values; ++i) {
+      variances[i] = pg_float8_get_datum(variance(stats[i]));
+    }
+
+    return variances;
+  } catch (std::exception& e) {
+    pg_error(e.what());
+  }
+  pg_unreachable();
+}
