@@ -53,7 +53,7 @@ PGXS := $(shell $(PG_CONFIG) --pgxs)
 include $(PGXS)
 
 # generate combined sql
-$(SQL_INSTALL): $(sort $(SQL_MODULES))
+$(SQL_INSTALL): $(SQL_MODULES)
 	cat $^ > $@
 
 install: $(SQL_INSTALL)
