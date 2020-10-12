@@ -33,8 +33,6 @@
 #include <boost/accumulators/statistics/variance.hpp>
 #include <boost/math/distributions/students_t.hpp>
 
-using vector_double = std::vector<double, palloc_allocator<double>>;
-
 using update_aod_sketch_pg = datasketches::update_array_of_doubles_sketch_alloc<palloc_allocator<double>>;
 using compact_aod_sketch_pg = datasketches::compact_array_of_doubles_sketch_alloc<palloc_allocator<double>>;
 using aod_union_pg = datasketches::array_of_doubles_union_alloc<palloc_allocator<double>>;
@@ -42,7 +40,7 @@ using aod_union_pg = datasketches::array_of_doubles_union_alloc<palloc_allocator
 using aod_intersection_pg = datasketches::array_of_doubles_intersection<datasketches::array_of_doubles_union_policy_alloc<palloc_allocator<double>>, palloc_allocator<double>>;
 using aod_a_not_b_pg = datasketches::array_of_doubles_a_not_b_alloc<palloc_allocator<double>>;
 
-std::ostream& operator<<(std::ostream& os, const vector_double& v) {
+std::ostream& operator<<(std::ostream& os, const datasketches::aod<palloc_allocator<double>>& v) {
   os << "(";
   for (size_t i = 0; i < v.size(); ++i) {
     if (i != 0) os << ", ";
