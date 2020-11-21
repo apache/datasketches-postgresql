@@ -28,7 +28,7 @@ ENV APACHE_DIST_URLS \
   https://www.apache.org/dyn/closer.cgi?action=download&filename= \
   https://www-us.apache.org/dist/ \
   https://www.apache.org/dist/ \
-  https://archive.apache.org/dist
+  https://archive.apache.org/dist/
 
 ARG DATASKETCHES_CPP_VERSION
 ARG DATASKETCHES_CPP_HASH
