@@ -19,7 +19,12 @@ EXTENSION = datasketches
 EXTVERSION = $(shell grep default_version $(EXTENSION).control | sed -e "s/default_version[[:space:]]*=[[:space:]]*'\([^']*\)'/\1/")
 MODULE_big = datasketches
 
-SQL_MODULES = sql/datasketches_cpc_sketch.sql sql/datasketches_kll_float_sketch.sql sql/datasketches_theta_sketch.sql sql/datasketches_frequent_strings_sketch.sql sql/datasketches_hll_sketch.sql
+SQL_MODULES = sql/datasketches_cpc_sketch.sql \
+  sql/datasketches_kll_float_sketch.sql \
+  sql/datasketches_theta_sketch.sql \
+  sql/datasketches_frequent_strings_sketch.sql \
+  sql/datasketches_hll_sketch.sql \
+  sql/datasketches_aod_sketch.sql
 SQL_INSTALL = sql/$(EXTENSION)--$(EXTVERSION).sql
 DATA = $(SQL_INSTALL)
 
@@ -30,12 +35,16 @@ OBJS = src/global_hooks.o src/base64.o src/common.o \
   src/cpc_sketch_pg_functions.o src/cpc_sketch_c_adapter.o \
   src/theta_sketch_pg_functions.o src/theta_sketch_c_adapter.o \
   src/frequent_strings_sketch_pg_functions.o src/frequent_strings_sketch_c_adapter.o \
-  src/hll_sketch_pg_functions.o src/hll_sketch_c_adapter.o
+  src/hll_sketch_pg_functions.o src/hll_sketch_c_adapter.o \
+  src/aod_sketch_pg_functions.o src/aod_sketch_c_adapter.o
 
-# assume a copy or link datasketches-cpp in the current dir
+# assume a dir or link named "datasketches-cpp" in the current dir
 CORE = datasketches-cpp
 
-PG_CPPFLAGS = -fPIC -I/usr/local/include -I$(CORE)/kll/include -I$(CORE)/common/include -I$(CORE)/cpc/include -I$(CORE)/theta/include -I$(CORE)/fi/include -I$(CORE)/hll/include
+# assume a dir or link named "boost" in the current dir
+BOOST = boost
+
+PG_CPPFLAGS = -fPIC -I/usr/local/include -I$(CORE)/kll/include -I$(CORE)/common/include -I$(CORE)/cpc/include -I$(CORE)/theta/include -I$(CORE)/fi/include -I$(CORE)/hll/include -I$(CORE)/tuple/include -I$(BOOST)
 PG_CXXFLAGS = -std=c++11
 SHLIB_LINK = -lstdc++ -L/usr/local/lib
 
@@ -53,7 +62,7 @@ endif
 	if [ "$(with_llvm)" = "yes" ]; then $(LLVM_BINPATH)/opt -module-summary -f $@ -o $@; fi
 
 # generate combined sql
-$(SQL_INSTALL): $(sort $(SQL_MODULES))
+$(SQL_INSTALL): $(SQL_MODULES)
 	cat $^ > $@
 
 install: $(SQL_INSTALL)

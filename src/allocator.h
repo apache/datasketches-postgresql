@@ -42,11 +42,9 @@ public:
   template <class U>
   struct rebind { typedef palloc_allocator<U> other; };
 
-  palloc_allocator() {}
-  palloc_allocator(const palloc_allocator&) {}
+  palloc_allocator() = default;
   template <class U>
   palloc_allocator(const palloc_allocator<U>&) {}
-  ~palloc_allocator() {}
 
   pointer address(reference x) const { return &x; }
   const_pointer address(const_reference x) const {
@@ -70,9 +68,6 @@ public:
     new(p) value_type(std::forward<Args>(args)...);
   }
   void destroy(pointer p) { p->~value_type(); }
-
-private:
-  void operator=(const palloc_allocator&);
 };
 
 template<> class palloc_allocator<void> {

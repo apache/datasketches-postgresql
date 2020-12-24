@@ -24,17 +24,14 @@
 extern "C" {
 #endif
 
+#include "ptr_with_size.h"
+
 void* frequent_strings_sketch_new(unsigned lg_k);
 void frequent_strings_sketch_delete(void* sketchptr);
 
 void frequent_strings_sketch_update(void* sketchptr, const char* str, unsigned length, unsigned long long weight);
 void frequent_strings_sketch_merge(void* sketchptr1, const void* sketchptr2);
 char* frequent_strings_sketch_to_string(const void* sketchptr, bool print_items);
-
-struct ptr_with_size {
-  void* ptr;
-  unsigned long long size;
-};
 
 struct ptr_with_size frequent_strings_sketch_serialize(const void* sketchptr, unsigned header_size);
 void* frequent_strings_sketch_deserialize(const char* buffer, unsigned length);

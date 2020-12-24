@@ -24,6 +24,8 @@
 extern "C" {
 #endif
 
+#include "ptr_with_size.h"
+
 void* hll_sketch_new(unsigned lg_k);
 void* hll_sketch_new_tgt_type(unsigned lg_k, unsigned tgt_type);
 void hll_sketch_delete(void* sketchptr);
@@ -33,11 +35,6 @@ void hll_sketch_merge(void* sketchptr1, const void* sketchptr2);
 double hll_sketch_get_estimate(const void* sketchptr);
 void** hll_sketch_get_estimate_and_bounds(const void* sketchptr, unsigned num_std_devs);
 char* hll_sketch_to_string(const void* sketchptr);
-
-struct ptr_with_size {
-  void* ptr;
-  unsigned long long size;
-};
 
 struct ptr_with_size hll_sketch_serialize(const void* sketchptr, unsigned header_size);
 void* hll_sketch_deserialize(const char* buffer, unsigned length);
