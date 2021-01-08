@@ -42,9 +42,9 @@ For PostgreSQL installation instructions see [PostgreSQL documentation](https://
 
 This code requires C++11. It was tested with GCC 4.8.5 (standard in RedHat at the time of this writing), GCC 8.2.0, GCC 9.2.0, Apple LLVM version 10.0.1 (clang-1001.0.46.4) and version 11.0.0 (clang-1100.0.33.8).
 
-This code depends on [datasketches-cpp version 1.0.0-incubating](https://github.com/apache/incubator-datasketches-cpp/releases/tag/1.0.0-incubating)
+This code depends on [datasketches-cpp version 2.1.0-incubating](https://github.com/apache/incubator-datasketches-cpp/releases/tag/2.1.0-incubating)
 
-There are two slightly different ways to build this extension: from a PGXN distribution or from two separate packages: datasketches-postgresql and datasketches-cpp (either from GitHub or from [Apache archive](http://archive.apache.org/dist/incubator/datasketches/))
+There are two slightly different ways to build this extension: from a PGXN distribution or from two separate packages: datasketches-postgresql and datasketches-cpp (either from GitHub or from [Apache archive](http://archive.apache.org/dist/datasketches/))
 
 ### PGXN extension
 
@@ -407,7 +407,3 @@ Merging frequent_strings_sketch:
 	 (10,3649596,3289743,3649596)
 	 (11,3294912,2935059,3294912)
 	(11 rows)
-
-----
-
-Disclaimer: Apache DataSketches is an effort undergoing incubation at The Apache Software Foundation (ASF), sponsored by the Apache Incubator. Incubation is required of all newly accepted projects until a further review indicates that the infrastructure, communications, and decision making process have stabilized in a manner consistent with other successful ASF projects. While incubation status is not necessarily a reflection of the completeness or stability of the code, it does indicate that the project has yet to be fully endorsed by the ASF.

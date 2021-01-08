@@ -3,7 +3,7 @@
    "abstract": "approximate algorithms for big data analysis",
    "version": "1.3.0",
    "maintainer": [
-     "Apache DataSketches (incubating) <issues@datasketches.apache.org>",
+     "Apache DataSketches <issues@datasketches.apache.org>",
      "Sketches User List <sketches-user@googlegroups.com>"
    ],
    "license": "postgresql",
@@ -36,11 +36,11 @@
    },
    "resources": {
       "bugtracker": {
-         "web": "https://github.com/apache/incubator-datasketches-postgresql/issues"
+         "web": "https://github.com/apache/datasketches-postgresql/issues"
       },
       "repository": {
-        "url":  "https://github.com/apache/incubator-datasketches-postgresql.git",
-        "web":  "https://github.com/apache/incubator-datasketches-postgresql",
+        "url":  "https://github.com/apache/datasketches-postgresql.git",
+        "web":  "https://github.com/apache/datasketches-postgresql",
         "type": "git"
       }
    },
