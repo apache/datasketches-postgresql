@@ -33,8 +33,8 @@ void req_float_sketch_delete(void* sketchptr);
 
 void req_float_sketch_update(void* sketchptr, float value);
 void req_float_sketch_merge(void* sketchptr1, void* sketchptr2);
-double req_float_sketch_get_rank(const void* sketchptr, float value);
-float req_float_sketch_get_quantile(const void* sketchptr, double rank);
+double req_float_sketch_get_rank(const void* sketchptr, float value, bool inclusive);
+float req_float_sketch_get_quantile(const void* sketchptr, double rank, bool inclusive);
 unsigned long long req_float_sketch_get_n(const void* sketchptr);
 char* req_float_sketch_to_string(const void* sketchptr);
 
@@ -42,8 +42,8 @@ struct ptr_with_size req_float_sketch_serialize(const void* sketchptr, unsigned 
 void* req_float_sketch_deserialize(const char* buffer, unsigned length);
 unsigned req_float_sketch_get_serialized_size_bytes(const void* sketchptr);
 
-void** req_float_sketch_get_pmf_or_cdf(const void* sketchptr, const float* split_points, unsigned num_split_points, bool is_cdf, bool scale);
-void** req_float_sketch_get_quantiles(const void* sketchptr, const double* fractions, unsigned num_fractions);
+void** req_float_sketch_get_pmf_or_cdf(const void* sketchptr, const float* split_points, unsigned num_split_points, bool is_cdf, bool scale, bool inclusive);
+void** req_float_sketch_get_quantiles(const void* sketchptr, const double* fractions, unsigned num_fractions, bool inclusive);
 
 #ifdef __cplusplus
 }

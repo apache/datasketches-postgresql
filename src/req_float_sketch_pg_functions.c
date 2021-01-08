@@ -98,10 +98,12 @@ Datum pg_req_float_sketch_get_rank(PG_FUNCTION_ARGS) {
   void* sketchptr;
   float value;
   double rank;
+  bool inclusive;
   bytes_in = PG_GETARG_BYTEA_P(0);
   sketchptr = req_float_sketch_deserialize(VARDATA(bytes_in), VARSIZE(bytes_in) - VARHDRSZ);
   value = PG_GETARG_FLOAT4(1);
-  rank = req_float_sketch_get_rank(sketchptr, value);
+  inclusive = PG_NARGS() > 2 ? PG_GETARG_BOOL(2) : false;
+  rank = req_float_sketch_get_rank(sketchptr, value, inclusive);
   req_float_sketch_delete(sketchptr);
   PG_RETURN_FLOAT8(rank);
 }
@@ -111,10 +113,12 @@ Datum pg_req_float_sketch_get_quantile(PG_FUNCTION_ARGS) {
   void* sketchptr;
   float value;
   double rank;
+  bool inclusive;
   bytes_in = PG_GETARG_BYTEA_P(0);
   sketchptr = req_float_sketch_deserialize(VARDATA(bytes_in), VARSIZE(bytes_in) - VARHDRSZ);
   rank = PG_GETARG_FLOAT8(1);
-  value = req_float_sketch_get_quantile(sketchptr, rank);
+  inclusive = PG_NARGS() > 2 ? PG_GETARG_BOOL(2) : false;
+  value = req_float_sketch_get_quantile(sketchptr, rank, inclusive);
   req_float_sketch_delete(sketchptr);
   PG_RETURN_FLOAT4(value);
 }
@@ -210,6 +214,7 @@ Datum pg_req_float_sketch_get_pmf(PG_FUNCTION_ARGS) {
   bool* nulls_in;
   int arr_len_in;
   float* split_points;
+  bool inclusive;
 
   // output array of fractions
   Datum* result;
@@ -233,7 +238,10 @@ Datum pg_req_float_sketch_get_pmf(PG_FUNCTION_ARGS) {
   for (i = 0; i < arr_len_in; i++) {
     split_points[i] = DatumGetFloat4(data_in[i]);
   }
-  result = (Datum*) req_float_sketch_get_pmf_or_cdf(sketchptr, split_points, arr_len_in, false, false);
+
+  inclusive = PG_NARGS() > 2 ? PG_GETARG_BOOL(2) : false;
+
+  result = (Datum*) req_float_sketch_get_pmf_or_cdf(sketchptr, split_points, arr_len_in, false, false, inclusive);
   pfree(split_points);
 
   // construct output array of fractions
@@ -260,6 +268,7 @@ Datum pg_req_float_sketch_get_cdf(PG_FUNCTION_ARGS) {
   bool* nulls_in;
   int arr_len_in;
   float* split_points;
+  bool inclusive;
 
   // output array of fractions
   Datum* result;
@@ -283,7 +292,10 @@ Datum pg_req_float_sketch_get_cdf(PG_FUNCTION_ARGS) {
   for (i = 0; i < arr_len_in; i++) {
     split_points[i] = DatumGetFloat4(data_in[i]);
   }
-  result = (Datum*) req_float_sketch_get_pmf_or_cdf(sketchptr, split_points, arr_len_in, true, false);
+
+  inclusive = PG_NARGS() > 2 ? PG_GETARG_BOOL(2) : false;
+
+  result = (Datum*) req_float_sketch_get_pmf_or_cdf(sketchptr, split_points, arr_len_in, true, false, inclusive);
   pfree(split_points);
 
   // construct output array of fractions
@@ -310,6 +322,7 @@ Datum pg_req_float_sketch_get_quantiles(PG_FUNCTION_ARGS) {
   bool* nulls_in;
   int arr_len;
   double* fractions;
+  bool inclusive;
 
   // output array of quantiles
   Datum* quantiles;
@@ -332,7 +345,10 @@ Datum pg_req_float_sketch_get_quantiles(PG_FUNCTION_ARGS) {
   for (i = 0; i < arr_len; i++) {
     fractions[i] = DatumGetFloat8(data_in[i]);
   }
-  quantiles = (Datum*) req_float_sketch_get_quantiles(sketchptr, fractions, arr_len);
+
+  inclusive = PG_NARGS() > 2 ? PG_GETARG_BOOL(2) : false;
+
+  quantiles = (Datum*) req_float_sketch_get_quantiles(sketchptr, fractions, arr_len, inclusive);
   pfree(fractions);
 
   // construct output array of quantiles
@@ -348,6 +364,7 @@ Datum pg_req_float_sketch_get_histogram(PG_FUNCTION_ARGS) {
   const bytea* bytes_in;
   void* sketchptr;
   int num_bins;
+  bool inclusive;
 
   // output array of bins
   Datum* result;
@@ -362,20 +379,21 @@ Datum pg_req_float_sketch_get_histogram(PG_FUNCTION_ARGS) {
   bytes_in = PG_GETARG_BYTEA_P(0);
   sketchptr = req_float_sketch_deserialize(VARDATA(bytes_in), VARSIZE(bytes_in) - VARHDRSZ);
 
-  num_bins = PG_GETARG_INT32(1);
-  if (num_bins == 0) num_bins = DEFAULT_NUM_BINS;
+  num_bins = PG_NARGS() > 1 ? PG_GETARG_INT32(1) : DEFAULT_NUM_BINS;
   if (num_bins < 2) {
     elog(ERROR, "at least two bins expected");
   }
 
+  inclusive = PG_NARGS() > 2 ? PG_GETARG_BOOL(2) : false;
+
   float* split_points = palloc(sizeof(float) * (num_bins - 1));
-  const float min_value = req_float_sketch_get_quantile(sketchptr, 0);
-  const float max_value = req_float_sketch_get_quantile(sketchptr, 1);
+  const float min_value = req_float_sketch_get_quantile(sketchptr, 0, inclusive);
+  const float max_value = req_float_sketch_get_quantile(sketchptr, 1, inclusive);
   const float delta = (max_value - min_value) / num_bins;
   for (i = 0; i < num_bins - 1; i++) {
     split_points[i] = min_value + delta * (i + 1);
   }
-  result = (Datum*) req_float_sketch_get_pmf_or_cdf(sketchptr, split_points, num_bins - 1, false, true);
+  result = (Datum*) req_float_sketch_get_pmf_or_cdf(sketchptr, split_points, num_bins - 1, false, true, inclusive);
   pfree(split_points);
 
   // construct output array

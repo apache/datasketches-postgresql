@@ -50,7 +50,15 @@ CREATE OR REPLACE FUNCTION req_float_sketch_get_rank(req_float_sketch, real) RET
     AS '$libdir/datasketches', 'pg_req_float_sketch_get_rank'
     LANGUAGE C STRICT IMMUTABLE;
 
+CREATE OR REPLACE FUNCTION req_float_sketch_get_rank(req_float_sketch, real, boolean) RETURNS double precision
+    AS '$libdir/datasketches', 'pg_req_float_sketch_get_rank'
+    LANGUAGE C STRICT IMMUTABLE;
+
 CREATE OR REPLACE FUNCTION req_float_sketch_get_quantile(req_float_sketch, double precision) RETURNS real
+    AS '$libdir/datasketches', 'pg_req_float_sketch_get_quantile'
+    LANGUAGE C STRICT IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION req_float_sketch_get_quantile(req_float_sketch, double precision, boolean) RETURNS real
     AS '$libdir/datasketches', 'pg_req_float_sketch_get_quantile'
     LANGUAGE C STRICT IMMUTABLE;
 
@@ -118,11 +126,23 @@ CREATE OR REPLACE FUNCTION req_float_sketch_get_pmf(req_float_sketch, real[]) RE
     AS '$libdir/datasketches', 'pg_req_float_sketch_get_pmf'
     LANGUAGE C STRICT IMMUTABLE;
 
+CREATE OR REPLACE FUNCTION req_float_sketch_get_pmf(req_float_sketch, real[], boolean) RETURNS double precision[]
+    AS '$libdir/datasketches', 'pg_req_float_sketch_get_pmf'
+    LANGUAGE C STRICT IMMUTABLE;
+
 CREATE OR REPLACE FUNCTION req_float_sketch_get_cdf(req_float_sketch, real[]) RETURNS double precision[]
     AS '$libdir/datasketches', 'pg_req_float_sketch_get_cdf'
     LANGUAGE C STRICT IMMUTABLE;
 
+CREATE OR REPLACE FUNCTION req_float_sketch_get_cdf(req_float_sketch, real[], boolean) RETURNS double precision[]
+    AS '$libdir/datasketches', 'pg_req_float_sketch_get_cdf'
+    LANGUAGE C STRICT IMMUTABLE;
+
 CREATE OR REPLACE FUNCTION req_float_sketch_get_quantiles(req_float_sketch, double precision[]) RETURNS real[]
+    AS '$libdir/datasketches', 'pg_req_float_sketch_get_quantiles'
+    LANGUAGE C STRICT IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION req_float_sketch_get_quantiles(req_float_sketch, double precision[], boolean) RETURNS real[]
     AS '$libdir/datasketches', 'pg_req_float_sketch_get_quantiles'
     LANGUAGE C STRICT IMMUTABLE;
 
@@ -131,5 +151,9 @@ CREATE OR REPLACE FUNCTION req_float_sketch_get_histogram(req_float_sketch) RETU
     LANGUAGE C STRICT IMMUTABLE;
 
 CREATE OR REPLACE FUNCTION req_float_sketch_get_histogram(req_float_sketch, int) RETURNS double precision[]
+    AS '$libdir/datasketches', 'pg_req_float_sketch_get_histogram'
+    LANGUAGE C STRICT IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION req_float_sketch_get_histogram(req_float_sketch, int, boolean) RETURNS double precision[]
     AS '$libdir/datasketches', 'pg_req_float_sketch_get_histogram'
     LANGUAGE C STRICT IMMUTABLE;
