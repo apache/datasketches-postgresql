@@ -70,7 +70,7 @@ RUN echo "===> Adding prerequisites..."                      && \
         done;                                                   \
         [ -n "$success" ];                                      \
     }                                                        && \
-    download_bin "datasketches-cpp.zip" "$DS_CPP_HASH" "incubator/datasketches/cpp/$DS_CPP_VER/apache-datasketches-cpp-$DS_CPP_VER-src.zip" && \
+    download_bin "datasketches-cpp.zip" "$DS_CPP_HASH" "datasketches/cpp/$DS_CPP_VER/apache-datasketches-cpp-$DS_CPP_VER-src.zip" && \
     unzip datasketches-cpp.zip                               && \
     mv apache-datasketches-cpp-$DS_CPP_VER-src datasketches-cpp  && \
     make                                                     && \
