@@ -77,8 +77,8 @@ Datum pg_kll_float_sketch_add_item(PG_FUNCTION_ARGS) {
   oldcontext = MemoryContextSwitchTo(aggcontext);
 
   if (PG_ARGISNULL(0)) {
-    k = PG_GETARG_INT32(2);
-    sketchptr = kll_float_sketch_new(k ? k : DEFAULT_K);
+    k = PG_NARGS() > 2 ? PG_GETARG_INT32(2) : DEFAULT_K;
+    sketchptr = kll_float_sketch_new(k);
   } else {
     sketchptr = PG_GETARG_POINTER(0);
   }
@@ -160,8 +160,8 @@ Datum pg_kll_float_sketch_merge(PG_FUNCTION_ARGS) {
   oldcontext = MemoryContextSwitchTo(aggcontext);
 
   if (PG_ARGISNULL(0)) {
-    k = PG_GETARG_INT32(2);
-    unionptr = kll_float_sketch_new(k ? k : DEFAULT_K);
+    k = PG_NARGS() > 2 ? PG_GETARG_INT32(2) : DEFAULT_K;
+    unionptr = kll_float_sketch_new(k);
   } else {
     unionptr = PG_GETARG_POINTER(0);
   }

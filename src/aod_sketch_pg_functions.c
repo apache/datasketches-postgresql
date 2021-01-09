@@ -118,8 +118,8 @@ Datum pg_aod_sketch_add_item(PG_FUNCTION_ARGS) {
   }
 
   if (PG_ARGISNULL(0)) {
-    lg_k = PG_GETARG_INT32(3);
-    p = PG_GETARG_FLOAT4(4);
+    lg_k = PG_NARGS() > 3 ? PG_GETARG_INT32(3) : 0;
+    p = PG_NARGS() > 4 ? PG_GETARG_FLOAT4(4) : 1;
     if (lg_k) {
       sketchptr = p ? aod_sketch_new_lgk_p(arr_len, lg_k, p) : aod_sketch_new_lgk(arr_len, lg_k);
     } else {
@@ -129,7 +129,7 @@ Datum pg_aod_sketch_add_item(PG_FUNCTION_ARGS) {
     sketchptr = PG_GETARG_POINTER(0);
   }
 
-    element_type = get_fn_expr_argtype(fcinfo->flinfo, 1);
+  element_type = get_fn_expr_argtype(fcinfo->flinfo, 1);
   element = PG_GETARG_DATUM(1);
   get_typlenbyvalalign(element_type, &typlen, &typbyval, &typalign);
   if (typlen == -1) {
@@ -222,8 +222,7 @@ Datum pg_aod_sketch_intersection_agg(PG_FUNCTION_ARGS) {
   oldcontext = MemoryContextSwitchTo(aggcontext);
 
   if (PG_ARGISNULL(0)) {
-    num_values = PG_GETARG_INT32(2);
-    if (num_values == 0) num_values = 1;
+    num_values = PG_NARGS() > 2 ? PG_GETARG_INT32(2) : 1;
     interptr = aod_intersection_new(num_values);
   } else {
     interptr = PG_GETARG_POINTER(0);
@@ -261,9 +260,8 @@ Datum pg_aod_sketch_union_agg(PG_FUNCTION_ARGS) {
   oldcontext = MemoryContextSwitchTo(aggcontext);
 
   if (PG_ARGISNULL(0)) {
-    num_values = PG_GETARG_INT32(2);
-    if (num_values == 0) num_values = 1;
-    lg_k = PG_GETARG_INT32(3);
+    num_values = PG_NARGS() > 2 ? PG_GETARG_INT32(2) : 1;
+    lg_k = PG_NARGS() > 3 ? PG_GETARG_INT32(3) : 0;
     unionptr = lg_k ? aod_union_new_lgk(num_values, lg_k) : aod_union_new(num_values);
   } else {
     unionptr = PG_GETARG_POINTER(0);
@@ -485,8 +483,7 @@ Datum pg_aod_sketch_to_kll_float_sketch(PG_FUNCTION_ARGS) {
   bytes_in = PG_GETARG_BYTEA_P(0);
   aodptr = aod_sketch_deserialize(VARDATA(bytes_in), VARSIZE(bytes_in) - VARHDRSZ);
   column_index = PG_GETARG_INT32(1);
-  k = PG_GETARG_INT32(2);
-  if (k == 0) k = DEFAULT_K;
+  k = PG_NARGS() > 2 ? PG_GETARG_INT32(2) : DEFAULT_K;
   kllptr = aod_sketch_to_kll_float_sketch(aodptr, column_index, k);
   bytes_out = kll_float_sketch_serialize(kllptr, VARHDRSZ);
   kll_float_sketch_delete(kllptr);

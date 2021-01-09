@@ -79,11 +79,7 @@ Datum pg_frequent_strings_sketch_add_item(PG_FUNCTION_ARGS) {
   str = PG_GETARG_VARCHAR_P(2);
 
   // optional weight
-  if (PG_NARGS() == 3) {
-    weight = 1;
-  } else {
-    weight = PG_GETARG_INT64(3);
-  }
+  weight = PG_NARGS() > 3 ? PG_GETARG_INT64(3) : 1;
 
   frequent_strings_sketch_update(sketchptr, VARDATA(str), VARSIZE(str) - VARHDRSZ, weight);
 
@@ -150,11 +146,7 @@ Datum pg_frequent_strings_sketch_to_string(PG_FUNCTION_ARGS) {
   bool print_items;
   char* str;
   bytes_in = PG_GETARG_BYTEA_P(0);
-  if (PG_NARGS() > 1) {
-    print_items = PG_GETARG_BOOL(1);
-  } else {
-    print_items = false;
-  }
+  print_items = PG_NARGS() > 1 ? PG_GETARG_BOOL(1) : false;
   sketchptr = frequent_strings_sketch_deserialize(VARDATA(bytes_in), VARSIZE(bytes_in) - VARHDRSZ);
   str = frequent_strings_sketch_to_string(sketchptr, print_items);
   frequent_strings_sketch_delete(sketchptr);
@@ -182,11 +174,7 @@ Datum frequent_strings_sketch_get_result(PG_FUNCTION_ARGS, bool no_false_positiv
     if (PG_ARGISNULL(0)) SRF_RETURN_DONE(funcctx);
     bytes_in = PG_GETARG_BYTEA_P(0);
     sketchptr = frequent_strings_sketch_deserialize(VARDATA(bytes_in), VARSIZE(bytes_in) - VARHDRSZ);
-    if (PG_ARGISNULL(1)) {
-      threshold = 0;
-    } else {
-      threshold = PG_GETARG_INT64(1);
-    }
+    threshold = PG_NARGS() > 1 ? PG_GETARG_INT64(1) : 0;
 
     funcctx->user_fctx = frequent_strings_sketch_get_frequent_items(sketchptr, no_false_positives, threshold);
     funcctx->max_calls = ((struct frequent_strings_sketch_result*) funcctx->user_fctx)->num;

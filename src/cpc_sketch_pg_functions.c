@@ -79,8 +79,8 @@ Datum pg_cpc_sketch_add_item(PG_FUNCTION_ARGS) {
   oldcontext = MemoryContextSwitchTo(aggcontext);
 
   if (PG_ARGISNULL(0)) {
-    lg_k = PG_GETARG_INT32(2);
-    sketchptr = cpc_sketch_new(lg_k ? lg_k : CPC_DEFAULT_LG_K);
+    lg_k = PG_NARGS() > 2 ? PG_GETARG_INT32(2) : CPC_DEFAULT_LG_K;
+    sketchptr = cpc_sketch_new(lg_k);
   } else {
     sketchptr = PG_GETARG_POINTER(0);
   }
@@ -172,8 +172,8 @@ Datum pg_cpc_sketch_union_agg(PG_FUNCTION_ARGS) {
   oldcontext = MemoryContextSwitchTo(aggcontext);
 
   if (PG_ARGISNULL(0)) {
-    lg_k = PG_GETARG_INT32(2);
-    unionptr = cpc_union_new(lg_k ? lg_k : CPC_DEFAULT_LG_K);
+    lg_k = PG_NARGS() > 2 ? PG_GETARG_INT32(2) : CPC_DEFAULT_LG_K;
+    unionptr = cpc_union_new(lg_k);
   } else {
     unionptr = PG_GETARG_POINTER(0);
   }
