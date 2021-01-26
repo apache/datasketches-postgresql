@@ -80,9 +80,8 @@ Datum pg_hll_sketch_add_item(PG_FUNCTION_ARGS) {
   oldcontext = MemoryContextSwitchTo(aggcontext);
 
   if (PG_ARGISNULL(0)) {
-    lg_k = PG_GETARG_INT32(2);
-    if (lg_k == 0) lg_k = HLL_DEFAULT_LG_K;
-    tgt_type = PG_GETARG_INT32(3);
+    lg_k = PG_NARGS() > 2 ? PG_GETARG_INT32(2) : HLL_DEFAULT_LG_K;
+    tgt_type = PG_NARGS() > 3 ? PG_GETARG_INT32(3) : 0;
     if (tgt_type) {
       if ((tgt_type != 4) && (tgt_type != 6) && (tgt_type != 8)) {
         elog(ERROR, "hll_sketch_add_item: unsupported target type, must be 4, 6 or 8");
@@ -187,10 +186,10 @@ Datum pg_hll_sketch_union_agg(PG_FUNCTION_ARGS) {
   oldcontext = MemoryContextSwitchTo(aggcontext);
 
   if (PG_ARGISNULL(0)) {
-    lg_k = PG_GETARG_INT32(2);
+    lg_k = PG_NARGS() > 2 ? PG_GETARG_INT32(2) : HLL_DEFAULT_LG_K;
     stateptr = palloc(sizeof(struct hll_union_state));
-    stateptr->unionptr = hll_union_new(lg_k ? lg_k : HLL_DEFAULT_LG_K);
-    stateptr->tgt_type = PG_GETARG_INT32(3);
+    stateptr->unionptr = hll_union_new(lg_k);
+    stateptr->tgt_type = PG_NARGS() > 3 ? PG_GETARG_INT32(3) : 0;
     if (stateptr->tgt_type) {
       if ((stateptr->tgt_type != 4) && (stateptr->tgt_type != 6) && (stateptr->tgt_type != 8)) {
         elog(ERROR, "hll_sketch_union_agg: unsupported target type, must be 4, 6 or 8");
@@ -300,14 +299,14 @@ Datum pg_hll_sketch_union(PG_FUNCTION_ARGS) {
   unsigned lg_k;
   unsigned tgt_type;
 
-  lg_k = PG_GETARG_INT32(2);
-  tgt_type = PG_GETARG_INT32(3);
+  lg_k = PG_NARGS() > 2 ? PG_GETARG_INT32(2) : HLL_DEFAULT_LG_K;
+  tgt_type = PG_NARGS() > 3 ? PG_GETARG_INT32(3) : 0;
   if (tgt_type) {
     if ((tgt_type != 4) && (tgt_type != 6) && (tgt_type != 8)) {
       elog(ERROR, "hll_sketch_union: unsupported target type, must be 4, 6 or 8");
     }
   }
-  unionptr = hll_union_new(lg_k ? lg_k : HLL_DEFAULT_LG_K);
+  unionptr = hll_union_new(lg_k);
   if (!PG_ARGISNULL(0)) {
     bytes_in1 = PG_GETARG_BYTEA_P(0);
     sketchptr1 = hll_sketch_deserialize(VARDATA(bytes_in1), VARSIZE(bytes_in1) - VARHDRSZ);

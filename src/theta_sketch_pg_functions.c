@@ -86,8 +86,8 @@ Datum pg_theta_sketch_add_item(PG_FUNCTION_ARGS) {
   oldcontext = MemoryContextSwitchTo(aggcontext);
 
   if (PG_ARGISNULL(0)) {
-    lg_k = PG_GETARG_INT32(2);
-    p = PG_GETARG_FLOAT4(3);
+    lg_k = PG_NARGS() > 2 ? PG_GETARG_INT32(2) : 0;
+    p = PG_NARGS() > 3 ? PG_GETARG_FLOAT4(3) : 1;
     if (lg_k) {
       sketchptr = p ? theta_sketch_new_lgk_p(lg_k, p) : theta_sketch_new_lgk(lg_k);
     } else {
@@ -219,7 +219,7 @@ Datum pg_theta_sketch_union_agg(PG_FUNCTION_ARGS) {
   oldcontext = MemoryContextSwitchTo(aggcontext);
 
   if (PG_ARGISNULL(0)) {
-    lg_k = PG_GETARG_INT32(2);
+    lg_k = PG_NARGS() > 2 ? PG_GETARG_INT32(2) : 0;
     unionptr = lg_k ? theta_union_new(lg_k) : theta_union_new_default();
   } else {
     unionptr = PG_GETARG_POINTER(0);
@@ -347,7 +347,7 @@ Datum pg_theta_sketch_union(PG_FUNCTION_ARGS) {
   struct ptr_with_size bytes_out;
   int lg_k;
   
-  lg_k = PG_GETARG_INT32(2);
+  lg_k = PG_NARGS() > 2 ? PG_GETARG_INT32(2) : 0;
   unionptr = lg_k ? theta_union_new(lg_k) : theta_union_new_default();
   if (!PG_ARGISNULL(0)) {
     bytes_in1 = PG_GETARG_BYTEA_P(0);
