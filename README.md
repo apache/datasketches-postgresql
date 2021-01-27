@@ -32,7 +32,7 @@ This module currently supports the following sketches:
 - KLL float quantiles sketch - for estimating distributions: quantile, rank, PMF (histogram), CDF
 - Frequent strings sketch - capture the heaviest items (strings) by count or by some other weight
 
-## How to build and install
+## How to build and install [![Build Status](https://travis-ci.org/apache/incubator-datasketches-postgresql.svg?branch=master)](https://travis-ci.org/apache/incubator-datasketches-postgresql)
 
 This code is intended to be distributed as a PostgreSQL extension on [PGXN site](https://pgxn.org/)
 
@@ -64,8 +64,8 @@ There are two slightly different ways to build this extension: from a PGXN distr
    - make
    - sudo make install
 
-On MacOSX Mojave, if you see a warning like this:<br>
-clang: warning: no such sysroot directory: ‘/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk’ [-Wmissing-sysroot]<br>
+On MacOSX Mojave, if you see a warning like this:
+`clang: warning: no such sysroot directory: ‘/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk’ [-Wmissing-sysroot]`
 and the compilation fails because of not being able to find system include files, this is a known OSX problem. There are known solutions on the Internet.
 
 ### Verifying installation with a test database
