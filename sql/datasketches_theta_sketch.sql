@@ -140,15 +140,15 @@ CREATE AGGREGATE theta_sketch_intersection(theta_sketch) (
 
 CREATE OR REPLACE FUNCTION theta_sketch_union(theta_sketch, theta_sketch) RETURNS theta_sketch
     AS '$libdir/datasketches', 'pg_theta_sketch_union'
-    LANGUAGE C STRICT IMMUTABLE;
+    LANGUAGE C IMMUTABLE;
 
 CREATE OR REPLACE FUNCTION theta_sketch_union(theta_sketch, theta_sketch, int) RETURNS theta_sketch
     AS '$libdir/datasketches', 'pg_theta_sketch_union'
-    LANGUAGE C STRICT IMMUTABLE;
+    LANGUAGE C IMMUTABLE;
 
 CREATE OR REPLACE FUNCTION theta_sketch_intersection(theta_sketch, theta_sketch) RETURNS theta_sketch
     AS '$libdir/datasketches', 'pg_theta_sketch_intersection'
-    LANGUAGE C STRICT IMMUTABLE;
+    LANGUAGE C IMMUTABLE;
 
 CREATE OR REPLACE FUNCTION theta_sketch_a_not_b(theta_sketch, theta_sketch) RETURNS theta_sketch
     AS '$libdir/datasketches', 'pg_theta_sketch_a_not_b'
