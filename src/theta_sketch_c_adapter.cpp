@@ -26,12 +26,12 @@
 #include <theta_intersection.hpp>
 #include <theta_a_not_b.hpp>
 
-typedef datasketches::theta_sketch_alloc<palloc_allocator<void>> theta_sketch_pg;
-typedef datasketches::update_theta_sketch_alloc<palloc_allocator<void>> update_theta_sketch_pg;
-typedef datasketches::compact_theta_sketch_alloc<palloc_allocator<void>> compact_theta_sketch_pg;
-typedef datasketches::theta_union_alloc<palloc_allocator<void>> theta_union_pg;
-typedef datasketches::theta_intersection_alloc<palloc_allocator<void>> theta_intersection_pg;
-typedef datasketches::theta_a_not_b_alloc<palloc_allocator<void>> theta_a_not_b_pg;
+typedef datasketches::theta_sketch_alloc<palloc_allocator<uint64_t>> theta_sketch_pg;
+typedef datasketches::update_theta_sketch_alloc<palloc_allocator<uint64_t>> update_theta_sketch_pg;
+typedef datasketches::compact_theta_sketch_alloc<palloc_allocator<uint64_t>> compact_theta_sketch_pg;
+typedef datasketches::theta_union_alloc<palloc_allocator<uint64_t>> theta_union_pg;
+typedef datasketches::theta_intersection_alloc<palloc_allocator<uint64_t>> theta_intersection_pg;
+typedef datasketches::theta_a_not_b_alloc<palloc_allocator<uint64_t>> theta_a_not_b_pg;
 
 void* theta_sketch_new_default() {
   try {
@@ -127,8 +127,8 @@ char* theta_sketch_to_string(const void* sketchptr) {
 ptr_with_size theta_sketch_serialize(const void* sketchptr, unsigned header_size) {
   try {
     ptr_with_size p;
-    auto bytes = new (palloc(sizeof(theta_sketch_pg::vector_bytes))) theta_sketch_pg::vector_bytes(
-      static_cast<const theta_sketch_pg*>(sketchptr)->serialize(header_size)
+    auto bytes = new (palloc(sizeof(compact_theta_sketch_pg::vector_bytes))) compact_theta_sketch_pg::vector_bytes(
+      static_cast<const compact_theta_sketch_pg*>(sketchptr)->serialize(header_size)
     );
     p.ptr = bytes->data();
     p.size = bytes->size();
@@ -141,8 +141,7 @@ ptr_with_size theta_sketch_serialize(const void* sketchptr, unsigned header_size
 
 void* theta_sketch_deserialize(const char* buffer, unsigned length) {
   try {
-    auto ptr = theta_sketch_pg::deserialize(buffer, length);
-    return ptr.release();
+    return new (palloc(sizeof(compact_theta_sketch_pg))) compact_theta_sketch_pg(compact_theta_sketch_pg::deserialize(buffer, length));
   } catch (std::exception& e) {
     pg_error(e.what());
   }
