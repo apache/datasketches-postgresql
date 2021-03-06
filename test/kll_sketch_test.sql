@@ -25,5 +25,9 @@ select kll_float_sketch_get_quantile(kll_float_sketch_merge(sketch), 0.5) as med
 -- k = 20, rank of value 6
 select kll_float_sketch_get_rank(kll_float_sketch_merge(sketch, 20), 6) as rank from kll_sketch_test;
 
+select kll_float_sketch_get_pmf(kll_float_sketch_merge(sketch, 20), array[2, 5, 7]) as pmf from kll_sketch_test;
+select kll_float_sketch_get_cdf(kll_float_sketch_merge(sketch, 20), array[2, 5, 7]) as cdf from kll_sketch_test;
+select kll_float_sketch_get_histogram(kll_float_sketch_merge(sketch, 20), 5) as histogram from kll_sketch_test;
+
 drop table kll_sketch_test;
 drop extension datasketches;
