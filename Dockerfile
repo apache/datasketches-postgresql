@@ -48,6 +48,7 @@ RUN echo "===> Adding prerequisites..."                      && \
         apt-get install --no-install-recommends --allow-downgrades -y -q \
                 ca-certificates                                 \
                 build-essential wget unzip                      \
+                libboost-all-dev                                \
                 postgresql-server-dev-$PG_MAJOR=$PG_MINOR       \
                 libpq-dev=$PG_MINOR                          && \
     \
