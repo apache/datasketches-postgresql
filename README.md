@@ -42,7 +42,8 @@ For PostgreSQL installation instructions see [PostgreSQL documentation](https://
 
 This code requires C++11. It was tested with GCC 4.8.5 (standard in RedHat at the time of this writing), GCC 8.2.0, GCC 9.2.0, Apple LLVM version 10.0.1 (clang-1001.0.46.4) and version 11.0.0 (clang-1100.0.33.8).
 
-This code depends on [datasketches-cpp version 2.1.0-incubating](https://github.com/apache/incubator-datasketches-cpp/releases/tag/2.1.0-incubating)
+This code depends on [datasketches-cpp](https://github.com/apache/datasketches-cpp/)
+and [Boost](https://www.boost.org/)
 
 There are two slightly different ways to build this extension: from a PGXN distribution or from two separate packages: datasketches-postgresql and datasketches-cpp (either from GitHub or from [Apache archive](http://archive.apache.org/dist/datasketches/))
 
@@ -58,6 +59,12 @@ There are two slightly different ways to build this extension: from a PGXN distr
       - datasketches-cpp
       - datasketches-postgresql
           - datasketches-cpp -> ../datasketches-cpp
+
+### Boost
+
+   - [Download Boost](https://www.boost.org/users/download/)
+   - Unzip and rename or make a link with no version in the name like so:
+      - boost -> boost_1_76_0
 
 ### Building and installing
 
