@@ -32,7 +32,12 @@ if [ -z $2 ]; then
 fi
 
 # version of datasketches-cpp core library to include
-CORETAG=2.1.0-incubating
+CORETAG=3.0.0
+
+# boost version to include
+BOOSTVER=1.76.0
+BOOSTNAME=boost_${BOOSTVER//./_}
+BOOSTURL=https://boostorg.jfrog.io/artifactory/main/release/$BOOSTVER/source/$BOOSTNAME.zip
 
 DST=datasketches-$VER
 
@@ -46,13 +51,21 @@ git archive --format zip --prefix=$DST/ --output $PGARCH $TAG
 cd ../datasketches-cpp
 git archive --format zip --output ../datasketches-postgresql/$COREARCH $CORETAG
 cd ../datasketches-postgresql
+wget $BOOSTURL
 
 unzip $PGARCH
 COREDIR=$DST/datasketches-cpp
 mkdir $COREDIR
 unzip $COREARCH -d $COREDIR
 
+# extra readme files confuse pgxn.org
+rm $COREDIR/README.md
+rm $COREDIR/*/README.md
+
+unzip $BOOSTNAME.zip
+mv boost_${BOOSTVER//./_}/boost $DST
+
 zip -r $DST.zip $DST
 
-rm $PGARCH $COREARCH
-rm -r $DST
+rm $PGARCH $COREARCH $BOOSTNAME.zip
+rm -r $DST $BOOSTNAME
