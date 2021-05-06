@@ -1,37 +1,44 @@
 {
    "name": "datasketches",
    "abstract": "approximate algorithms for big data analysis",
-   "version": "1.3.0",
-   "maintainer": [
-     "Apache DataSketches <issues@datasketches.apache.org>",
-     "Sketches User List <sketches-user@googlegroups.com>"
-   ],
-   "license": "postgresql",
+   "version": "1.4.0",
+   "maintainer": "Apache DataSketches User List <users@datasketches.apache.org>",
+   "license": "apache_2_0",
    "provides": {
       "cpc_sketch": {
          "abstract": "CPC sketch for approximate distinct counting",
          "file": "sql/datasketches_cpc_sketch.sql",
-         "version": "1.3.0"
+         "version": "1.4.0"
       },
       "theta_sketch": {
          "abstract": "Theta sketch for approximate distinct counting with set operations",
          "file": "sql/datasketches_theta_sketch.sql",
-         "version": "1.3.0"
+         "version": "1.4.0"
+      },
+      "aod_sketch": {
+         "abstract": "array-of-doubles tuple sketch for approximate distinct counting with set operations and with array of double values associated with each key",
+         "file": "sql/datasketches_aod_sketch.sql",
+         "version": "1.4.0"
       },
       "hll_sketch": {
          "abstract": "HLL sketch for approximate distinct counting",
          "file": "sql/datasketches_hll_sketch.sql",
-         "version": "1.3.0"
+         "version": "1.4.0"
       },
       "kll_float_sketch": {
          "abstract": "KLL quantiles sketch for approximating distributions of float values (quanitles, ranks, histograms)",
          "file": "sql/datasketches_kll_float_sketch.sql",
-         "version": "1.3.0"
+         "version": "1.4.0"
+      },
+      "req_float_sketch": {
+         "abstract": "REQ quantiles sketch for approximating distributions of float values (quanitles, ranks, histograms) with extra accuracy at high or low ranks",
+         "file": "sql/datasketches_req_float_sketch.sql",
+         "version": "1.4.0"
       },
       "frequent_strings_sketch": {
          "abstract": "frequent items sketch for approximate computation of the most frequent strings",
          "file": "sql/datasketches_frequent_strings_sketch.sql",
-         "version": "1.3.0"
+         "version": "1.4.0"
       }
    },
    "resources": {
