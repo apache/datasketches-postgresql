@@ -129,8 +129,7 @@ Datum pg_cpc_sketch_get_estimate_and_bounds(PG_FUNCTION_ARGS) {
 
   bytes_in = PG_GETARG_BYTEA_P(0);
   sketchptr = cpc_sketch_deserialize(VARDATA(bytes_in), VARSIZE(bytes_in) - VARHDRSZ);
-  num_std_devs = PG_GETARG_INT32(1);
-  if (num_std_devs == 0) num_std_devs = 1; // default
+  num_std_devs = PG_NARGS() > 1 ? PG_GETARG_INT32(1) : 1;
   est_and_bounds = (Datum*) cpc_sketch_get_estimate_and_bounds(sketchptr, num_std_devs);
   cpc_sketch_delete(sketchptr);
 
@@ -272,8 +271,8 @@ Datum pg_cpc_sketch_union(PG_FUNCTION_ARGS) {
   struct ptr_with_size bytes_out;
   int lg_k;
 
-  lg_k = PG_GETARG_INT32(2);
-  unionptr = cpc_union_new(lg_k ? lg_k : CPC_DEFAULT_LG_K);
+  lg_k = PG_NARGS() > 2 ? PG_GETARG_INT32(2) : CPC_DEFAULT_LG_K;
+  unionptr = cpc_union_new(lg_k);
   if (!PG_ARGISNULL(0)) {
     bytes_in1 = PG_GETARG_BYTEA_P(0);
     sketchptr1 = cpc_sketch_deserialize(VARDATA(bytes_in1), VARSIZE(bytes_in1) - VARHDRSZ);

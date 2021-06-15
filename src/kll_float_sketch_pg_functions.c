@@ -358,8 +358,7 @@ Datum pg_kll_float_sketch_get_histogram(PG_FUNCTION_ARGS) {
   bytes_in = PG_GETARG_BYTEA_P(0);
   sketchptr = kll_float_sketch_deserialize(VARDATA(bytes_in), VARSIZE(bytes_in) - VARHDRSZ);
 
-  num_bins = PG_GETARG_INT32(1);
-  if (num_bins == 0) num_bins = DEFAULT_NUM_BINS;
+  num_bins = PG_NARGS() > 1 ? PG_GETARG_INT32(1) : DEFAULT_NUM_BINS;
   if (num_bins < 2) {
     elog(ERROR, "at least two bins expected");
   }
