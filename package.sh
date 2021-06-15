@@ -51,7 +51,7 @@ git archive --format zip --prefix=$DST/ --output $PGARCH $TAG
 cd ../datasketches-cpp
 git archive --format zip --output ../datasketches-postgresql/$COREARCH $CORETAG
 cd ../datasketches-postgresql
-wget $BOOSTURL
+#wget $BOOSTURL
 
 unzip $PGARCH
 COREDIR=$DST/datasketches-cpp
@@ -62,10 +62,10 @@ unzip $COREARCH -d $COREDIR
 rm $COREDIR/README.md
 rm $COREDIR/*/README.md
 
-unzip $BOOSTNAME.zip
-mv boost_${BOOSTVER//./_}/boost $DST
+#unzip $BOOSTNAME.zip
+#mv boost_${BOOSTVER//./_}/boost $DST
 
 zip -r $DST.zip $DST
 
-rm $PGARCH $COREARCH $BOOSTNAME.zip
-rm -r $DST $BOOSTNAME
+rm -f $PGARCH $COREARCH $BOOSTNAME.zip
+rm -rf $DST $BOOSTNAME
