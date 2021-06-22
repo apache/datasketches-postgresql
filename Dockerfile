@@ -88,9 +88,3 @@ RUN echo "===> Adding prerequisites..."                      && \
     rm -rf /datasketches-postgresql /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 ADD /docker-entrypoint-initdb.d /docker-entrypoint-initdb.d
-
-WORKDIR /
-
-ENTRYPOINT ["/docker-entrypoint.sh"]
-EXPOSE 5432
-CMD ["postgres"]
