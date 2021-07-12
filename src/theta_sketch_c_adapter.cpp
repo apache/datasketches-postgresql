@@ -32,6 +32,7 @@ typedef datasketches::compact_theta_sketch_alloc<palloc_allocator<uint64_t>> com
 typedef datasketches::theta_union_alloc<palloc_allocator<uint64_t>> theta_union_pg;
 typedef datasketches::theta_intersection_alloc<palloc_allocator<uint64_t>> theta_intersection_pg;
 typedef datasketches::theta_a_not_b_alloc<palloc_allocator<uint64_t>> theta_a_not_b_pg;
+typedef datasketches::wrapped_compact_theta_sketch_alloc<palloc_allocator<uint64_t>> wrapped_compact_theta_sketch_pg;
 
 void* theta_sketch_new_default() {
   try {
@@ -175,9 +176,9 @@ void theta_union_delete(void* unionptr) {
   }
 }
 
-void theta_union_update(void* unionptr, const void* sketchptr) {
+void theta_union_update(void* unionptr, const void* buffer, unsigned length) {
   try {
-    static_cast<theta_union_pg*>(unionptr)->update(std::move(*static_cast<const theta_sketch_pg*>(sketchptr)));
+    static_cast<theta_union_pg*>(unionptr)->update(wrapped_compact_theta_sketch_pg::wrap(buffer, length));
   } catch (std::exception& e) {
     pg_error(e.what());
   }

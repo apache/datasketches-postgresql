@@ -200,7 +200,6 @@ Datum pg_theta_sketch_intersection_agg(PG_FUNCTION_ARGS) {
 Datum pg_theta_sketch_union_agg(PG_FUNCTION_ARGS) {
   void* unionptr;
   bytea* sketch_bytes;
-  void* sketchptr;
   int lg_k;
 
   MemoryContext oldcontext;
@@ -225,9 +224,7 @@ Datum pg_theta_sketch_union_agg(PG_FUNCTION_ARGS) {
   }
 
   sketch_bytes = PG_GETARG_BYTEA_P(1);
-  sketchptr = theta_sketch_deserialize(VARDATA(sketch_bytes), VARSIZE(sketch_bytes) - VARHDRSZ);
-  theta_union_update(unionptr, sketchptr);
-  theta_sketch_delete(sketchptr);
+  theta_union_update(unionptr, VARDATA(sketch_bytes), VARSIZE(sketch_bytes) - VARHDRSZ);
 
   MemoryContextSwitchTo(oldcontext);
 
@@ -339,8 +336,6 @@ Datum pg_theta_intersection_get_result(PG_FUNCTION_ARGS) {
 Datum pg_theta_sketch_union(PG_FUNCTION_ARGS) {
   const bytea* bytes_in1;
   const bytea* bytes_in2;
-  void* sketchptr1;
-  void* sketchptr2;
   void* unionptr;
   void* sketchptr;
   struct ptr_with_size bytes_out;
@@ -350,15 +345,11 @@ Datum pg_theta_sketch_union(PG_FUNCTION_ARGS) {
   unionptr = lg_k ? theta_union_new(lg_k) : theta_union_new_default();
   if (!PG_ARGISNULL(0)) {
     bytes_in1 = PG_GETARG_BYTEA_P(0);
-    sketchptr1 = theta_sketch_deserialize(VARDATA(bytes_in1), VARSIZE(bytes_in1) - VARHDRSZ);
-    theta_union_update(unionptr, sketchptr1);
-    theta_sketch_delete(sketchptr1);
+    theta_union_update(unionptr, VARDATA(bytes_in1), VARSIZE(bytes_in1) - VARHDRSZ);
   }
   if (!PG_ARGISNULL(1)) {
     bytes_in2 = PG_GETARG_BYTEA_P(1);
-    sketchptr2 = theta_sketch_deserialize(VARDATA(bytes_in2), VARSIZE(bytes_in2) - VARHDRSZ);
-    theta_union_update(unionptr, sketchptr2);
-    theta_sketch_delete(sketchptr2);
+    theta_union_update(unionptr, VARDATA(bytes_in2), VARSIZE(bytes_in2) - VARHDRSZ);
   }
   sketchptr = theta_union_get_result(unionptr);
   theta_union_delete(unionptr);

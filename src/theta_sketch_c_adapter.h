@@ -44,7 +44,7 @@ void* theta_sketch_deserialize(const char* buffer, unsigned length);
 void* theta_union_new_default();
 void* theta_union_new(unsigned lg_k);
 void theta_union_delete(void* unionptr);
-void theta_union_update(void* unionptr, const void* sketchptr);
+void theta_union_update(void* unionptr, const void* buffer, unsigned length);
 void* theta_union_get_result(const void* unionptr);
 
 void* theta_intersection_new_default();
