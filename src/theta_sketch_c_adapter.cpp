@@ -211,9 +211,9 @@ void theta_intersection_delete(void* interptr) {
   }
 }
 
-void theta_intersection_update(void* interptr, const void* sketchptr) {
+void theta_intersection_update(void* interptr, const void* buffer, unsigned length) {
   try {
-    static_cast<theta_intersection_pg*>(interptr)->update(*static_cast<const theta_sketch_pg*>(sketchptr));
+    static_cast<theta_intersection_pg*>(interptr)->update(wrapped_compact_theta_sketch_pg::wrap(buffer, length));
   } catch (std::exception& e) {
     pg_error(e.what());
   }
