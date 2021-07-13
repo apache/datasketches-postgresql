@@ -52,7 +52,7 @@ void theta_intersection_delete(void* interptr);
 void theta_intersection_update(void* interptr, const void* buffer, unsigned length);
 void* theta_intersection_get_result(const void* interptr);
 
-void* theta_a_not_b(const void* sketchptr1, const void* sketchptr2);
+void* theta_a_not_b(const void* buffer1, unsigned length1, const void* buffer2, unsigned length2);
 
 #ifdef __cplusplus
 }

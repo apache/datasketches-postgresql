@@ -228,12 +228,12 @@ void* theta_intersection_get_result(const void* interptr) {
   pg_unreachable();
 }
 
-void* theta_a_not_b(const void* sketchptr1, const void* sketchptr2) {
+void* theta_a_not_b(const void* buffer1, unsigned length1, const void* buffer2, unsigned length2) {
   try {
     theta_a_not_b_pg a_not_b;
     return new (palloc(sizeof(compact_theta_sketch_pg))) compact_theta_sketch_pg(a_not_b.compute(
-      *static_cast<const theta_sketch_pg*>(sketchptr1),
-      *static_cast<const theta_sketch_pg*>(sketchptr2)
+      wrapped_compact_theta_sketch_pg::wrap(buffer1, length1),
+      wrapped_compact_theta_sketch_pg::wrap(buffer2, length2)
     ));
   } catch (std::exception& e) {
     pg_error(e.what());

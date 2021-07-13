@@ -383,8 +383,6 @@ Datum pg_theta_sketch_intersection(PG_FUNCTION_ARGS) {
 Datum pg_theta_sketch_a_not_b(PG_FUNCTION_ARGS) {
   const bytea* bytes_in1;
   const bytea* bytes_in2;
-  void* sketchptr1;
-  void* sketchptr2;
   void* sketchptr;
   struct ptr_with_size bytes_out;
 
@@ -393,12 +391,8 @@ Datum pg_theta_sketch_a_not_b(PG_FUNCTION_ARGS) {
   }
 
   bytes_in1 = PG_GETARG_BYTEA_P(0);
-  sketchptr1 = theta_sketch_deserialize(VARDATA(bytes_in1), VARSIZE(bytes_in1) - VARHDRSZ);
   bytes_in2 = PG_GETARG_BYTEA_P(1);
-  sketchptr2 = theta_sketch_deserialize(VARDATA(bytes_in2), VARSIZE(bytes_in2) - VARHDRSZ);
-  sketchptr = theta_a_not_b(sketchptr1, sketchptr2);
-  theta_sketch_delete(sketchptr1);
-  theta_sketch_delete(sketchptr2);
+  sketchptr = theta_a_not_b(VARDATA(bytes_in1), VARSIZE(bytes_in1) - VARHDRSZ, VARDATA(bytes_in2), VARSIZE(bytes_in2) - VARHDRSZ);
   bytes_out = theta_sketch_serialize(sketchptr, VARHDRSZ);
   theta_sketch_delete(sketchptr);
   SET_VARSIZE(bytes_out.ptr, bytes_out.size);
