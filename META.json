@@ -18,6 +18,11 @@
          "file": "sql/datasketches_theta_sketch.sql",
          "version": "1.5.0"
       },
+      "aod_sketch": {
+         "abstract": "Specialized Tuple sketch with an array of double values associated with each key",
+         "file": "sql/datasketches_aod_sketch.sql",
+         "version": "1.5.0"
+      },
       "hll_sketch": {
          "abstract": "HLL sketch for approximate distinct counting",
          "file": "sql/datasketches_hll_sketch.sql",
@@ -26,6 +31,11 @@
       "kll_float_sketch": {
          "abstract": "KLL quantiles sketch for approximating distributions of float values (quanitles, ranks, histograms)",
          "file": "sql/datasketches_kll_float_sketch.sql",
+         "version": "1.5.0"
+      },
+      "req_float_sketch": {
+         "abstract": "REQ (Relative Error Quantiles) sketch for approximating distributions of float values (quanitles, ranks, histograms)",
+         "file": "sql/datasketches_req_float_sketch.sql",
          "version": "1.5.0"
       },
       "frequent_strings_sketch": {
