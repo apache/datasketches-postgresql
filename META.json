@@ -3,8 +3,8 @@
    "abstract": "approximate algorithms for big data analysis",
    "version": "1.5.0",
    "maintainer": [
-     "Apache DataSketches <issues@datasketches.apache.org>",
-     "Sketches User List <sketches-user@googlegroups.com>"
+     "Apache DataSketches Dev List <dev@datasketches.apache.org>",
+     "Apache DataSketches Users List <users@datasketches.apache.org>"
    ],
    "license": "postgresql",
    "provides": {
