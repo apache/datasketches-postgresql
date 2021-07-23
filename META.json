@@ -1,37 +1,42 @@
 {
    "name": "datasketches",
    "abstract": "approximate algorithms for big data analysis",
-   "version": "1.3.0",
+   "version": "1.6.0-SNAPSHOT",
    "maintainer": [
-     "Apache DataSketches <issues@datasketches.apache.org>",
-     "Sketches User List <sketches-user@googlegroups.com>"
+     "Apache DataSketches Dev List <dev@datasketches.apache.org>",
+     "Apache DataSketches Users List <users@datasketches.apache.org>"
    ],
    "license": "postgresql",
    "provides": {
       "cpc_sketch": {
          "abstract": "CPC sketch for approximate distinct counting",
          "file": "sql/datasketches_cpc_sketch.sql",
-         "version": "1.3.0"
+         "version": "1.6.0-SNAPSHOT"
       },
       "theta_sketch": {
          "abstract": "Theta sketch for approximate distinct counting with set operations",
          "file": "sql/datasketches_theta_sketch.sql",
-         "version": "1.3.0"
+         "version": "1.6.0-SNAPSHOT"
       },
       "hll_sketch": {
          "abstract": "HLL sketch for approximate distinct counting",
          "file": "sql/datasketches_hll_sketch.sql",
-         "version": "1.3.0"
+         "version": "1.6.0-SNAPSHOT"
       },
       "kll_float_sketch": {
          "abstract": "KLL quantiles sketch for approximating distributions of float values (quanitles, ranks, histograms)",
          "file": "sql/datasketches_kll_float_sketch.sql",
-         "version": "1.3.0"
+         "version": "1.6.0-SNAPSHOT"
+      },
+      "req_float_sketch": {
+         "abstract": "REQ (Relative Error Quantiles) sketch for approximating distributions of float values (quanitles, ranks, histograms)",
+         "file": "sql/datasketches_req_float_sketch.sql",
+         "version": "1.6.0-SNAPSHOT"
       },
       "frequent_strings_sketch": {
          "abstract": "frequent items sketch for approximate computation of the most frequent strings",
          "file": "sql/datasketches_frequent_strings_sketch.sql",
-         "version": "1.3.0"
+         "version": "1.6.0-SNAPSHOT"
       }
    },
    "resources": {
