@@ -18,6 +18,11 @@
          "file": "sql/datasketches_theta_sketch.sql",
          "version": "1.6.0-SNAPSHOT"
       },
+      "aod_sketch": {
+         "abstract": "Specialized Tuple sketch with an array of double values associated with each key",
+         "file": "sql/datasketches_aod_sketch.sql",
+         "version": "1.6.0-SNAPSHOT"
+      },
       "hll_sketch": {
          "abstract": "HLL sketch for approximate distinct counting",
          "file": "sql/datasketches_hll_sketch.sql",
