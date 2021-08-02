@@ -81,14 +81,13 @@ and the compilation fails because of not being able to find system include files
      - brew services start postgresql
    - Create a test database if it does not exist yet (on the command line):
       - createdb test
-   - Run the client (console) using the test database:
+   - Run the client (console) using the test database, create the extension and try some of the datasketches functions:
       - psql test
-   - Create datasketches extension in the test database:
-      - create extension datasketches;
-   - Try some of the datasketches functions:
-      - select cpc\_sketch\_to\_string(cpc\_sketch\_build(1));
+      - test=# create extension datasketches;
+      - test=# select cpc\_sketch\_to\_string(cpc\_sketch\_build(1));
+      - test=# \q
 
-You should see the following result:
+The select statement above should produce the following result:
 
 	       cpc_sketch_to_string        
 	-----------------------------------
@@ -110,7 +109,7 @@ You should see the following result:
 	 
 	(1 row)
 
-### Docker
+## Docker
 
 Build Docker image:
 
