@@ -53,7 +53,7 @@ void kll_float_sketch_update(void* sketchptr, float value) {
 
 void kll_float_sketch_merge(void* sketchptr1, const void* sketchptr2) {
   try {
-    static_cast<kll_float_sketch*>(sketchptr1)->merge(std::move(*static_cast<const kll_float_sketch*>(sketchptr2)));
+    static_cast<kll_float_sketch*>(sketchptr1)->merge(*static_cast<const kll_float_sketch*>(sketchptr2));
   } catch (std::exception& e) {
     pg_error(e.what());
   }

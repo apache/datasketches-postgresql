@@ -107,7 +107,7 @@ void frequent_strings_sketch_update(void* sketchptr, const char* str, unsigned l
 
 void frequent_strings_sketch_merge(void* sketchptr1, const void* sketchptr2) {
   try {
-    static_cast<frequent_strings_sketch*>(sketchptr1)->merge(std::move(*static_cast<const frequent_strings_sketch*>(sketchptr2)));
+    static_cast<frequent_strings_sketch*>(sketchptr1)->merge(*static_cast<const frequent_strings_sketch*>(sketchptr2));
   } catch (std::exception& e) {
     pg_error(e.what());
   }

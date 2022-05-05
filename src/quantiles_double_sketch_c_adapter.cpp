@@ -53,7 +53,7 @@ void quantiles_double_sketch_update(void* sketchptr, double value) {
 
 void quantiles_double_sketch_merge(void* sketchptr1, const void* sketchptr2) {
   try {
-    static_cast<quantiles_double_sketch*>(sketchptr1)->merge(std::move(*static_cast<const quantiles_double_sketch*>(sketchptr2)));
+    static_cast<quantiles_double_sketch*>(sketchptr1)->merge(*static_cast<const quantiles_double_sketch*>(sketchptr2));
   } catch (std::exception& e) {
     pg_error(e.what());
   }
