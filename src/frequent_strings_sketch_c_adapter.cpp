@@ -43,11 +43,11 @@ static inline void pg_check_memory_size(size_t requested_index, size_t capacity)
 }
 
 struct serde_string {
-  size_t size_of_item(const string& item) {
+  size_t size_of_item(const string& item) const {
     return sizeof(uint32_t) + item.size();
   }
 
-  size_t serialize(void* ptr, size_t capacity, const string* items, unsigned num) {
+  size_t serialize(void* ptr, size_t capacity, const string* items, unsigned num) const {
     size_t size = sizeof(uint32_t) * num;
     for (unsigned i = 0; i < num; i++) {
       const uint32_t length = items[i].size();
@@ -60,7 +60,7 @@ struct serde_string {
     return size;
   }
 
-  size_t deserialize(const void* ptr, size_t capacity, string* items, unsigned num) {
+  size_t deserialize(const void* ptr, size_t capacity, string* items, unsigned num) const {
     size_t bytes_read = 0;
     for (unsigned i = 0; i < num; i++) {
       uint32_t length;
