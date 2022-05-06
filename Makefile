@@ -25,7 +25,8 @@ SQL_MODULES = sql/datasketches_cpc_sketch.sql \
   sql/datasketches_frequent_strings_sketch.sql \
   sql/datasketches_hll_sketch.sql \
   sql/datasketches_aod_sketch.sql \
-  sql/datasketches_req_float_sketch.sql
+  sql/datasketches_req_float_sketch.sql \
+  sql/datasketches_quantiles_double_sketch.sql
 SQL_INSTALL = sql/$(EXTENSION)--$(EXTVERSION).sql
 DATA = $(SQL_INSTALL)
 
