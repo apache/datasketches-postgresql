@@ -227,7 +227,7 @@ Datum pg_quantiles_double_sketch_get_pmf(PG_FUNCTION_ARGS) {
 
   split_points = palloc(sizeof(double) * arr_len_in);
   for (i = 0; i < arr_len_in; i++) {
-    split_points[i] = DatumGetFloat4(data_in[i]);
+    split_points[i] = DatumGetFloat8(data_in[i]);
   }
   result = (Datum*) quantiles_double_sketch_get_pmf_or_cdf(sketchptr, split_points, arr_len_in, false, false);
   pfree(split_points);
@@ -277,7 +277,7 @@ Datum pg_quantiles_double_sketch_get_cdf(PG_FUNCTION_ARGS) {
 
   split_points = palloc(sizeof(double) * arr_len_in);
   for (i = 0; i < arr_len_in; i++) {
-    split_points[i] = DatumGetFloat4(data_in[i]);
+    split_points[i] = DatumGetFloat8(data_in[i]);
   }
   result = (Datum*) quantiles_double_sketch_get_pmf_or_cdf(sketchptr, split_points, arr_len_in, true, false);
   pfree(split_points);
