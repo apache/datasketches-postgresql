@@ -24,44 +24,43 @@
 #include <utils/array.h>
 #include <catalog/pg_type.h>
 
-#include "req_float_sketch_c_adapter.h"
+#include "quantiles_double_sketch_c_adapter.h"
 #include "base64.h"
 
 /* PG_FUNCTION_INFO_V1 macro to pass functions to postgres */
-PG_FUNCTION_INFO_V1(pg_req_float_sketch_add_item);
-PG_FUNCTION_INFO_V1(pg_req_float_sketch_get_rank);
-PG_FUNCTION_INFO_V1(pg_req_float_sketch_get_quantile);
-PG_FUNCTION_INFO_V1(pg_req_float_sketch_get_n);
-PG_FUNCTION_INFO_V1(pg_req_float_sketch_to_string);
-PG_FUNCTION_INFO_V1(pg_req_float_sketch_merge);
-PG_FUNCTION_INFO_V1(pg_req_float_sketch_from_internal);
-PG_FUNCTION_INFO_V1(pg_req_float_sketch_get_pmf);
-PG_FUNCTION_INFO_V1(pg_req_float_sketch_get_cdf);
-PG_FUNCTION_INFO_V1(pg_req_float_sketch_get_quantiles);
-PG_FUNCTION_INFO_V1(pg_req_float_sketch_get_histogram);
+PG_FUNCTION_INFO_V1(pg_quantiles_double_sketch_add_item);
+PG_FUNCTION_INFO_V1(pg_quantiles_double_sketch_get_rank);
+PG_FUNCTION_INFO_V1(pg_quantiles_double_sketch_get_quantile);
+PG_FUNCTION_INFO_V1(pg_quantiles_double_sketch_get_n);
+PG_FUNCTION_INFO_V1(pg_quantiles_double_sketch_to_string);
+PG_FUNCTION_INFO_V1(pg_quantiles_double_sketch_merge);
+PG_FUNCTION_INFO_V1(pg_quantiles_double_sketch_from_internal);
+PG_FUNCTION_INFO_V1(pg_quantiles_double_sketch_get_pmf);
+PG_FUNCTION_INFO_V1(pg_quantiles_double_sketch_get_cdf);
+PG_FUNCTION_INFO_V1(pg_quantiles_double_sketch_get_quantiles);
+PG_FUNCTION_INFO_V1(pg_quantiles_double_sketch_get_histogram);
 
 /* function declarations */
-Datum pg_req_float_sketch_recv(PG_FUNCTION_ARGS);
-Datum pg_req_float_sketch_send(PG_FUNCTION_ARGS);
-Datum pg_req_float_sketch_add_item(PG_FUNCTION_ARGS);
-Datum pg_req_float_sketch_get_rank(PG_FUNCTION_ARGS);
-Datum pg_req_float_sketch_get_quantile(PG_FUNCTION_ARGS);
-Datum pg_req_float_sketch_get_n(PG_FUNCTION_ARGS);
-Datum pg_req_float_sketch_to_string(PG_FUNCTION_ARGS);
-Datum pg_req_float_sketch_merge(PG_FUNCTION_ARGS);
-Datum pg_req_float_sketch_from_internal(PG_FUNCTION_ARGS);
-Datum pg_req_float_sketch_get_pmf(PG_FUNCTION_ARGS);
-Datum pg_req_float_sketch_get_cdf(PG_FUNCTION_ARGS);
-Datum pg_req_float_sketch_get_quantiles(PG_FUNCTION_ARGS);
-Datum pg_req_float_sketch_get_histogram(PG_FUNCTION_ARGS);
+Datum pg_quantiles_double_sketch_recv(PG_FUNCTION_ARGS);
+Datum pg_quantiles_double_sketch_send(PG_FUNCTION_ARGS);
+Datum pg_quantiles_double_sketch_add_item(PG_FUNCTION_ARGS);
+Datum pg_quantiles_double_sketch_get_rank(PG_FUNCTION_ARGS);
+Datum pg_quantiles_double_sketch_get_quantile(PG_FUNCTION_ARGS);
+Datum pg_quantiles_double_sketch_get_n(PG_FUNCTION_ARGS);
+Datum pg_quantiles_double_sketch_to_string(PG_FUNCTION_ARGS);
+Datum pg_quantiles_double_sketch_merge(PG_FUNCTION_ARGS);
+Datum pg_quantiles_double_sketch_from_internal(PG_FUNCTION_ARGS);
+Datum pg_quantiles_double_sketch_get_pmf(PG_FUNCTION_ARGS);
+Datum pg_quantiles_double_sketch_get_cdf(PG_FUNCTION_ARGS);
+Datum pg_quantiles_double_sketch_get_quantiles(PG_FUNCTION_ARGS);
+Datum pg_quantiles_double_sketch_get_histogram(PG_FUNCTION_ARGS);
 
 static const unsigned DEFAULT_NUM_BINS = 10;
 
-Datum pg_req_float_sketch_add_item(PG_FUNCTION_ARGS) {
+Datum pg_quantiles_double_sketch_add_item(PG_FUNCTION_ARGS) {
   void* sketchptr;
-  float value;
+  double value;
   int k;
-  bool hra;
 
   MemoryContext oldcontext;
   MemoryContext aggcontext;
@@ -73,84 +72,78 @@ Datum pg_req_float_sketch_add_item(PG_FUNCTION_ARGS) {
   }
 
   if (!AggCheckCallContext(fcinfo, &aggcontext)) {
-    elog(ERROR, "req_float_sketch_add_item called in non-aggregate context");
+    elog(ERROR, "quantiles_double_sketch_add_item called in non-aggregate context");
   }
   oldcontext = MemoryContextSwitchTo(aggcontext);
 
   if (PG_ARGISNULL(0)) {
     k = PG_NARGS() > 2 ? PG_GETARG_INT32(2) : DEFAULT_K;
-    hra = PG_NARGS() > 3 ? PG_GETARG_BOOL(3) : true;
-    sketchptr = req_float_sketch_new(k, hra);
+    sketchptr = quantiles_double_sketch_new(k);
   } else {
     sketchptr = PG_GETARG_POINTER(0);
   }
 
-  value = PG_GETARG_FLOAT4(1);
-  req_float_sketch_update(sketchptr, value);
+  value = PG_GETARG_FLOAT8(1);
+  quantiles_double_sketch_update(sketchptr, value);
 
   MemoryContextSwitchTo(oldcontext);
 
   PG_RETURN_POINTER(sketchptr);
 }
 
-Datum pg_req_float_sketch_get_rank(PG_FUNCTION_ARGS) {
+Datum pg_quantiles_double_sketch_get_rank(PG_FUNCTION_ARGS) {
   const bytea* bytes_in;
   void* sketchptr;
-  float value;
+  double value;
   double rank;
-  bool inclusive;
   bytes_in = PG_GETARG_BYTEA_P(0);
-  sketchptr = req_float_sketch_deserialize(VARDATA(bytes_in), VARSIZE(bytes_in) - VARHDRSZ);
-  value = PG_GETARG_FLOAT4(1);
-  inclusive = PG_NARGS() > 2 ? PG_GETARG_BOOL(2) : false;
-  rank = req_float_sketch_get_rank(sketchptr, value, inclusive);
-  req_float_sketch_delete(sketchptr);
+  sketchptr = quantiles_double_sketch_deserialize(VARDATA(bytes_in), VARSIZE(bytes_in) - VARHDRSZ);
+  value = PG_GETARG_FLOAT8(1);
+  rank = quantiles_double_sketch_get_rank(sketchptr, value);
+  quantiles_double_sketch_delete(sketchptr);
   PG_RETURN_FLOAT8(rank);
 }
 
-Datum pg_req_float_sketch_get_quantile(PG_FUNCTION_ARGS) {
+Datum pg_quantiles_double_sketch_get_quantile(PG_FUNCTION_ARGS) {
   const bytea* bytes_in;
   void* sketchptr;
-  float value;
+  double value;
   double rank;
-  bool inclusive;
   bytes_in = PG_GETARG_BYTEA_P(0);
-  sketchptr = req_float_sketch_deserialize(VARDATA(bytes_in), VARSIZE(bytes_in) - VARHDRSZ);
+  sketchptr = quantiles_double_sketch_deserialize(VARDATA(bytes_in), VARSIZE(bytes_in) - VARHDRSZ);
   rank = PG_GETARG_FLOAT8(1);
-  inclusive = PG_NARGS() > 2 ? PG_GETARG_BOOL(2) : false;
-  value = req_float_sketch_get_quantile(sketchptr, rank, inclusive);
-  req_float_sketch_delete(sketchptr);
-  PG_RETURN_FLOAT4(value);
+  value = quantiles_double_sketch_get_quantile(sketchptr, rank);
+  quantiles_double_sketch_delete(sketchptr);
+  PG_RETURN_FLOAT8(value);
 }
 
-Datum pg_req_float_sketch_get_n(PG_FUNCTION_ARGS) {
+Datum pg_quantiles_double_sketch_get_n(PG_FUNCTION_ARGS) {
   const bytea* bytes_in;
   void* sketchptr;
   uint64 n;
   bytes_in = PG_GETARG_BYTEA_P(0);
-  sketchptr = req_float_sketch_deserialize(VARDATA(bytes_in), VARSIZE(bytes_in) - VARHDRSZ);
-  n = req_float_sketch_get_n(sketchptr);
-  req_float_sketch_delete(sketchptr);
+  sketchptr = quantiles_double_sketch_deserialize(VARDATA(bytes_in), VARSIZE(bytes_in) - VARHDRSZ);
+  n = quantiles_double_sketch_get_n(sketchptr);
+  quantiles_double_sketch_delete(sketchptr);
   PG_RETURN_INT64(n);
 }
 
-Datum pg_req_float_sketch_to_string(PG_FUNCTION_ARGS) {
+Datum pg_quantiles_double_sketch_to_string(PG_FUNCTION_ARGS) {
   const bytea* bytes_in;
   void* sketchptr;
   char* str;
   bytes_in = PG_GETARG_BYTEA_P(0);
-  sketchptr = req_float_sketch_deserialize(VARDATA(bytes_in), VARSIZE(bytes_in) - VARHDRSZ);
-  str = req_float_sketch_to_string(sketchptr);
-  req_float_sketch_delete(sketchptr);
+  sketchptr = quantiles_double_sketch_deserialize(VARDATA(bytes_in), VARSIZE(bytes_in) - VARHDRSZ);
+  str = quantiles_double_sketch_to_string(sketchptr);
+  quantiles_double_sketch_delete(sketchptr);
   PG_RETURN_TEXT_P(cstring_to_text(str));
 }
 
-Datum pg_req_float_sketch_merge(PG_FUNCTION_ARGS) {
+Datum pg_quantiles_double_sketch_merge(PG_FUNCTION_ARGS) {
   void* unionptr;
   bytea* sketch_bytes;
   void* sketchptr;
   int k;
-  bool hra;
 
   MemoryContext oldcontext;
   MemoryContext aggcontext;
@@ -162,45 +155,44 @@ Datum pg_req_float_sketch_merge(PG_FUNCTION_ARGS) {
   }
 
   if (!AggCheckCallContext(fcinfo, &aggcontext)) {
-    elog(ERROR, "req_float_sketch_merge called in non-aggregate context");
+    elog(ERROR, "quantiles_double_sketch_merge called in non-aggregate context");
   }
   oldcontext = MemoryContextSwitchTo(aggcontext);
 
   if (PG_ARGISNULL(0)) {
     k = PG_NARGS() > 2 ? PG_GETARG_INT32(2) : DEFAULT_K;
-    hra = PG_NARGS() > 3 ? PG_GETARG_BOOL(3) : true;
-    unionptr = req_float_sketch_new(k ? k : DEFAULT_K, hra);
+    unionptr = quantiles_double_sketch_new(k);
   } else {
     unionptr = PG_GETARG_POINTER(0);
   }
 
   sketch_bytes = PG_GETARG_BYTEA_P(1);
-  sketchptr = req_float_sketch_deserialize(VARDATA(sketch_bytes), VARSIZE(sketch_bytes) - VARHDRSZ);
-  req_float_sketch_merge(unionptr, sketchptr);
-  req_float_sketch_delete(sketchptr);
+  sketchptr = quantiles_double_sketch_deserialize(VARDATA(sketch_bytes), VARSIZE(sketch_bytes) - VARHDRSZ);
+  quantiles_double_sketch_merge(unionptr, sketchptr);
+  quantiles_double_sketch_delete(sketchptr);
 
   MemoryContextSwitchTo(oldcontext);
 
   PG_RETURN_POINTER(unionptr);
 }
 
-Datum pg_req_float_sketch_from_internal(PG_FUNCTION_ARGS) {
+Datum pg_quantiles_double_sketch_from_internal(PG_FUNCTION_ARGS) {
   void* sketchptr;
   struct ptr_with_size bytes_out;
   MemoryContext aggcontext;
 
   if (PG_ARGISNULL(0)) PG_RETURN_NULL();
   if (!AggCheckCallContext(fcinfo, &aggcontext)) {
-    elog(ERROR, "req_float_sketch_from_internal called in non-aggregate context");
+    elog(ERROR, "quantiles_double_sketch_from_internal called in non-aggregate context");
   }
   sketchptr = PG_GETARG_POINTER(0);
-  bytes_out = req_float_sketch_serialize(sketchptr, VARHDRSZ);
-  req_float_sketch_delete(sketchptr);
+  bytes_out = quantiles_double_sketch_serialize(sketchptr, VARHDRSZ);
+  quantiles_double_sketch_delete(sketchptr);
   SET_VARSIZE(bytes_out.ptr, bytes_out.size);
   PG_RETURN_BYTEA_P(bytes_out.ptr);
 }
 
-Datum pg_req_float_sketch_get_pmf(PG_FUNCTION_ARGS) {
+Datum pg_quantiles_double_sketch_get_pmf(PG_FUNCTION_ARGS) {
   const bytea* bytes_in;
   void* sketchptr;
 
@@ -213,8 +205,7 @@ Datum pg_req_float_sketch_get_pmf(PG_FUNCTION_ARGS) {
   Datum* data_in;
   bool* nulls_in;
   int arr_len_in;
-  float* split_points;
-  bool inclusive;
+  double* split_points;
 
   // output array of fractions
   Datum* result;
@@ -227,21 +218,18 @@ Datum pg_req_float_sketch_get_pmf(PG_FUNCTION_ARGS) {
   int i;
 
   bytes_in = PG_GETARG_BYTEA_P(0);
-  sketchptr = req_float_sketch_deserialize(VARDATA(bytes_in), VARSIZE(bytes_in) - VARHDRSZ);
+  sketchptr = quantiles_double_sketch_deserialize(VARDATA(bytes_in), VARSIZE(bytes_in) - VARHDRSZ);
 
   arr_in = PG_GETARG_ARRAYTYPE_P(1);
   elmtype_in = ARR_ELEMTYPE(arr_in);
   get_typlenbyvalalign(elmtype_in, &elmlen_in, &elmbyval_in, &elmalign_in);
   deconstruct_array(arr_in, elmtype_in, elmlen_in, elmbyval_in, elmalign_in, &data_in, &nulls_in, &arr_len_in);
 
-  split_points = palloc(sizeof(float) * arr_len_in);
+  split_points = palloc(sizeof(double) * arr_len_in);
   for (i = 0; i < arr_len_in; i++) {
-    split_points[i] = DatumGetFloat4(data_in[i]);
+    split_points[i] = DatumGetFloat8(data_in[i]);
   }
-
-  inclusive = PG_NARGS() > 2 ? PG_GETARG_BOOL(2) : false;
-
-  result = (Datum*) req_float_sketch_get_pmf_or_cdf(sketchptr, split_points, arr_len_in, false, false, inclusive);
+  result = (Datum*) quantiles_double_sketch_get_pmf_or_cdf(sketchptr, split_points, arr_len_in, false, false);
   pfree(split_points);
 
   // construct output array of fractions
@@ -249,12 +237,12 @@ Datum pg_req_float_sketch_get_pmf(PG_FUNCTION_ARGS) {
   get_typlenbyvalalign(FLOAT8OID, &elmlen_out, &elmbyval_out, &elmalign_out);
   arr_out = construct_array(result, arr_len_out, FLOAT8OID, elmlen_out, elmbyval_out, elmalign_out);
 
-  req_float_sketch_delete(sketchptr);
+  quantiles_double_sketch_delete(sketchptr);
 
   PG_RETURN_ARRAYTYPE_P(arr_out);
 }
 
-Datum pg_req_float_sketch_get_cdf(PG_FUNCTION_ARGS) {
+Datum pg_quantiles_double_sketch_get_cdf(PG_FUNCTION_ARGS) {
   const bytea* bytes_in;
   void* sketchptr;
 
@@ -267,8 +255,7 @@ Datum pg_req_float_sketch_get_cdf(PG_FUNCTION_ARGS) {
   Datum* data_in;
   bool* nulls_in;
   int arr_len_in;
-  float* split_points;
-  bool inclusive;
+  double* split_points;
 
   // output array of fractions
   Datum* result;
@@ -281,21 +268,18 @@ Datum pg_req_float_sketch_get_cdf(PG_FUNCTION_ARGS) {
   int i;
 
   bytes_in = PG_GETARG_BYTEA_P(0);
-  sketchptr = req_float_sketch_deserialize(VARDATA(bytes_in), VARSIZE(bytes_in) - VARHDRSZ);
+  sketchptr = quantiles_double_sketch_deserialize(VARDATA(bytes_in), VARSIZE(bytes_in) - VARHDRSZ);
 
   arr_in = PG_GETARG_ARRAYTYPE_P(1);
   elmtype_in = ARR_ELEMTYPE(arr_in);
   get_typlenbyvalalign(elmtype_in, &elmlen_in, &elmbyval_in, &elmalign_in);
   deconstruct_array(arr_in, elmtype_in, elmlen_in, elmbyval_in, elmalign_in, &data_in, &nulls_in, &arr_len_in);
 
-  split_points = palloc(sizeof(float) * arr_len_in);
+  split_points = palloc(sizeof(double) * arr_len_in);
   for (i = 0; i < arr_len_in; i++) {
-    split_points[i] = DatumGetFloat4(data_in[i]);
+    split_points[i] = DatumGetFloat8(data_in[i]);
   }
-
-  inclusive = PG_NARGS() > 2 ? PG_GETARG_BOOL(2) : false;
-
-  result = (Datum*) req_float_sketch_get_pmf_or_cdf(sketchptr, split_points, arr_len_in, true, false, inclusive);
+  result = (Datum*) quantiles_double_sketch_get_pmf_or_cdf(sketchptr, split_points, arr_len_in, true, false);
   pfree(split_points);
 
   // construct output array of fractions
@@ -303,12 +287,12 @@ Datum pg_req_float_sketch_get_cdf(PG_FUNCTION_ARGS) {
   get_typlenbyvalalign(FLOAT8OID, &elmlen_out, &elmbyval_out, &elmalign_out);
   arr_out = construct_array(result, arr_len_out, FLOAT8OID, elmlen_out, elmbyval_out, elmalign_out);
 
-  req_float_sketch_delete(sketchptr);
+  quantiles_double_sketch_delete(sketchptr);
 
   PG_RETURN_ARRAYTYPE_P(arr_out);
 }
 
-Datum pg_req_float_sketch_get_quantiles(PG_FUNCTION_ARGS) {
+Datum pg_quantiles_double_sketch_get_quantiles(PG_FUNCTION_ARGS) {
   const bytea* bytes_in;
   void* sketchptr;
 
@@ -322,7 +306,6 @@ Datum pg_req_float_sketch_get_quantiles(PG_FUNCTION_ARGS) {
   bool* nulls_in;
   int arr_len;
   double* fractions;
-  bool inclusive;
 
   // output array of quantiles
   Datum* quantiles;
@@ -334,7 +317,7 @@ Datum pg_req_float_sketch_get_quantiles(PG_FUNCTION_ARGS) {
   int i;
 
   bytes_in = PG_GETARG_BYTEA_P(0);
-  sketchptr = req_float_sketch_deserialize(VARDATA(bytes_in), VARSIZE(bytes_in) - VARHDRSZ);
+  sketchptr = quantiles_double_sketch_deserialize(VARDATA(bytes_in), VARSIZE(bytes_in) - VARHDRSZ);
 
   arr_in = PG_GETARG_ARRAYTYPE_P(1);
   elmtype_in = ARR_ELEMTYPE(arr_in);
@@ -345,26 +328,22 @@ Datum pg_req_float_sketch_get_quantiles(PG_FUNCTION_ARGS) {
   for (i = 0; i < arr_len; i++) {
     fractions[i] = DatumGetFloat8(data_in[i]);
   }
-
-  inclusive = PG_NARGS() > 2 ? PG_GETARG_BOOL(2) : false;
-
-  quantiles = (Datum*) req_float_sketch_get_quantiles(sketchptr, fractions, arr_len, inclusive);
+  quantiles = (Datum*) quantiles_double_sketch_get_quantiles(sketchptr, fractions, arr_len);
   pfree(fractions);
 
   // construct output array of quantiles
-  get_typlenbyvalalign(FLOAT4OID, &elmlen_out, &elmbyval_out, &elmalign_out);
-  arr_out = construct_array(quantiles, arr_len, FLOAT4OID, elmlen_out, elmbyval_out, elmalign_out);
+  get_typlenbyvalalign(FLOAT8OID, &elmlen_out, &elmbyval_out, &elmalign_out);
+  arr_out = construct_array(quantiles, arr_len, FLOAT8OID, elmlen_out, elmbyval_out, elmalign_out);
 
-  req_float_sketch_delete(sketchptr);
+  quantiles_double_sketch_delete(sketchptr);
 
   PG_RETURN_ARRAYTYPE_P(arr_out);
 }
 
-Datum pg_req_float_sketch_get_histogram(PG_FUNCTION_ARGS) {
+Datum pg_quantiles_double_sketch_get_histogram(PG_FUNCTION_ARGS) {
   const bytea* bytes_in;
   void* sketchptr;
   int num_bins;
-  bool inclusive;
 
   // output array of bins
   Datum* result;
@@ -377,23 +356,21 @@ Datum pg_req_float_sketch_get_histogram(PG_FUNCTION_ARGS) {
   int i;
 
   bytes_in = PG_GETARG_BYTEA_P(0);
-  sketchptr = req_float_sketch_deserialize(VARDATA(bytes_in), VARSIZE(bytes_in) - VARHDRSZ);
+  sketchptr = quantiles_double_sketch_deserialize(VARDATA(bytes_in), VARSIZE(bytes_in) - VARHDRSZ);
 
   num_bins = PG_NARGS() > 1 ? PG_GETARG_INT32(1) : DEFAULT_NUM_BINS;
   if (num_bins < 2) {
     elog(ERROR, "at least two bins expected");
   }
 
-  inclusive = PG_NARGS() > 2 ? PG_GETARG_BOOL(2) : false;
-
-  float* split_points = palloc(sizeof(float) * (num_bins - 1));
-  const float min_value = req_float_sketch_get_quantile(sketchptr, 0, inclusive);
-  const float max_value = req_float_sketch_get_quantile(sketchptr, 1, inclusive);
-  const float delta = (max_value - min_value) / num_bins;
+  double* split_points = palloc(sizeof(double) * (num_bins - 1));
+  const double min_value = quantiles_double_sketch_get_quantile(sketchptr, 0);
+  const double max_value = quantiles_double_sketch_get_quantile(sketchptr, 1);
+  const double delta = (max_value - min_value) / num_bins;
   for (i = 0; i < num_bins - 1; i++) {
     split_points[i] = min_value + delta * (i + 1);
   }
-  result = (Datum*) req_float_sketch_get_pmf_or_cdf(sketchptr, split_points, num_bins - 1, false, true, inclusive);
+  result = (Datum*) quantiles_double_sketch_get_pmf_or_cdf(sketchptr, split_points, num_bins - 1, false, true);
   pfree(split_points);
 
   // construct output array
@@ -401,7 +378,7 @@ Datum pg_req_float_sketch_get_histogram(PG_FUNCTION_ARGS) {
   get_typlenbyvalalign(FLOAT8OID, &elmlen_out, &elmbyval_out, &elmalign_out);
   arr_out = construct_array(result, arr_len_out, FLOAT8OID, elmlen_out, elmbyval_out, elmalign_out);
 
-  req_float_sketch_delete(sketchptr);
+  quantiles_double_sketch_delete(sketchptr);
 
   PG_RETURN_ARRAYTYPE_P(arr_out);
 }

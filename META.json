@@ -42,6 +42,11 @@
          "abstract": "frequent items sketch for approximate computation of the most frequent strings",
          "file": "sql/datasketches_frequent_strings_sketch.sql",
          "version": "1.6.0-SNAPSHOT"
+      },
+      "quantiles_double_sketch": {
+         "abstract": "Quantiles sketch for approximating distributions of double values (quanitles, ranks, histograms)",
+         "file": "sql/datasketches_quantiles_double_sketch.sql",
+         "version": "1.6.0-SNAPSHOT"
       }
    },
    "resources": {
