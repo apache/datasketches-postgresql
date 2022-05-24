@@ -245,7 +245,7 @@ Datum pg_req_float_sketch_get_pmf(PG_FUNCTION_ARGS) {
   pfree(split_points);
 
   // construct output array of fractions
-  arr_len_out = arr_len_in + 1; // N split points devide the number line into N+1 intervals
+  arr_len_out = arr_len_in + 1; // N split points divide the number line into N+1 intervals
   get_typlenbyvalalign(FLOAT8OID, &elmlen_out, &elmbyval_out, &elmalign_out);
   arr_out = construct_array(result, arr_len_out, FLOAT8OID, elmlen_out, elmbyval_out, elmalign_out);
 
@@ -299,7 +299,7 @@ Datum pg_req_float_sketch_get_cdf(PG_FUNCTION_ARGS) {
   pfree(split_points);
 
   // construct output array of fractions
-  arr_len_out = arr_len_in + 1; // N split points devide the number line into N+1 intervals
+  arr_len_out = arr_len_in + 1; // N split points divide the number line into N+1 intervals
   get_typlenbyvalalign(FLOAT8OID, &elmlen_out, &elmbyval_out, &elmalign_out);
   arr_out = construct_array(result, arr_len_out, FLOAT8OID, elmlen_out, elmbyval_out, elmalign_out);
 
