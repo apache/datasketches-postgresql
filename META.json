@@ -33,6 +33,11 @@
          "file": "sql/datasketches_kll_float_sketch.sql",
          "version": "1.6.0-SNAPSHOT"
       },
+      "kll_double_sketch": {
+         "abstract": "KLL quantiles sketch for approximating distributions of double values (quanitles, ranks, histograms)",
+         "file": "sql/datasketches_kll_double_sketch.sql",
+         "version": "1.6.0-SNAPSHOT"
+      },
       "req_float_sketch": {
          "abstract": "REQ (Relative Error Quantiles) sketch for approximating distributions of float values (quanitles, ranks, histograms)",
          "file": "sql/datasketches_req_float_sketch.sql",
@@ -44,7 +49,7 @@
          "version": "1.6.0-SNAPSHOT"
       },
       "quantiles_double_sketch": {
-         "abstract": "Quantiles sketch for approximating distributions of double values (quanitles, ranks, histograms)",
+         "abstract": "Quantiles sketch for approximating distributions of double values (quanitles, ranks, histograms), superseded by KLL sketch, included to support legacy sketch data from other platforms",
          "file": "sql/datasketches_quantiles_double_sketch.sql",
          "version": "1.6.0-SNAPSHOT"
       }

@@ -17,78 +17,78 @@
  * under the License.
  */
 
-#include "kll_float_sketch_c_adapter.h"
+#include "kll_double_sketch_c_adapter.h"
 #include "allocator.h"
 #include "postgres_h_substitute.h"
 
 #include <kll_sketch.hpp>
 
-using kll_float_sketch = datasketches::kll_sketch<float, std::less<float>, datasketches::serde<float>, palloc_allocator<float>>;
+using kll_double_sketch = datasketches::kll_sketch<double, std::less<double>, datasketches::serde<double>, palloc_allocator<double>>;
 
-void* kll_float_sketch_new(unsigned k) {
+void* kll_double_sketch_new(unsigned k) {
   try {
-    return new (palloc(sizeof(kll_float_sketch))) kll_float_sketch(k);
+    return new (palloc(sizeof(kll_double_sketch))) kll_double_sketch(k);
   } catch (std::exception& e) {
     pg_error(e.what());
   }
   pg_unreachable();
 }
 
-void kll_float_sketch_delete(void* sketchptr) {
+void kll_double_sketch_delete(void* sketchptr) {
   try {
-    static_cast<kll_float_sketch*>(sketchptr)->~kll_float_sketch();
+    static_cast<kll_double_sketch*>(sketchptr)->~kll_double_sketch();
     pfree(sketchptr);
   } catch (std::exception& e) {
     pg_error(e.what());
   }
 }
 
-void kll_float_sketch_update(void* sketchptr, float value) {
+void kll_double_sketch_update(void* sketchptr, double value) {
   try {
-    static_cast<kll_float_sketch*>(sketchptr)->update(value);
+    static_cast<kll_double_sketch*>(sketchptr)->update(value);
   } catch (std::exception& e) {
     pg_error(e.what());
   }
 }
 
-void kll_float_sketch_merge(void* sketchptr1, const void* sketchptr2) {
+void kll_double_sketch_merge(void* sketchptr1, const void* sketchptr2) {
   try {
-    static_cast<kll_float_sketch*>(sketchptr1)->merge(*static_cast<const kll_float_sketch*>(sketchptr2));
+    static_cast<kll_double_sketch*>(sketchptr1)->merge(*static_cast<const kll_double_sketch*>(sketchptr2));
   } catch (std::exception& e) {
     pg_error(e.what());
   }
 }
 
-double kll_float_sketch_get_rank(const void* sketchptr, float value) {
+double kll_double_sketch_get_rank(const void* sketchptr, double value) {
   try {
-    return static_cast<const kll_float_sketch*>(sketchptr)->get_rank(value);
-  } catch (std::exception& e) {
-    pg_error(e.what());
-  }
-  pg_unreachable();
-}
-
-float kll_float_sketch_get_quantile(const void* sketchptr, double rank) {
-  try {
-    return static_cast<const kll_float_sketch*>(sketchptr)->get_quantile(rank);
+    return static_cast<const kll_double_sketch*>(sketchptr)->get_rank(value);
   } catch (std::exception& e) {
     pg_error(e.what());
   }
   pg_unreachable();
 }
 
-unsigned long long kll_float_sketch_get_n(const void* sketchptr) {
+double kll_double_sketch_get_quantile(const void* sketchptr, double rank) {
   try {
-    return static_cast<const kll_float_sketch*>(sketchptr)->get_n();
+    return static_cast<const kll_double_sketch*>(sketchptr)->get_quantile(rank);
   } catch (std::exception& e) {
     pg_error(e.what());
   }
   pg_unreachable();
 }
 
-char* kll_float_sketch_to_string(const void* sketchptr) {
+unsigned long long kll_double_sketch_get_n(const void* sketchptr) {
   try {
-    auto str = static_cast<const kll_float_sketch*>(sketchptr)->to_string();
+    return static_cast<const kll_double_sketch*>(sketchptr)->get_n();
+  } catch (std::exception& e) {
+    pg_error(e.what());
+  }
+  pg_unreachable();
+}
+
+char* kll_double_sketch_to_string(const void* sketchptr) {
+  try {
+    auto str = static_cast<const kll_double_sketch*>(sketchptr)->to_string();
     const size_t len = str.length() + 1;
     char* buffer = (char*) palloc(len);
     strncpy(buffer, str.c_str(), len);
@@ -99,11 +99,11 @@ char* kll_float_sketch_to_string(const void* sketchptr) {
   pg_unreachable();
 }
 
-ptr_with_size kll_float_sketch_serialize(const void* sketchptr, unsigned header_size) {
+ptr_with_size kll_double_sketch_serialize(const void* sketchptr, unsigned header_size) {
   try {
     ptr_with_size p;
-    auto bytes = new (palloc(sizeof(kll_float_sketch::vector_bytes))) kll_float_sketch::vector_bytes(
-      static_cast<const kll_float_sketch*>(sketchptr)->serialize(header_size)
+    auto bytes = new (palloc(sizeof(kll_double_sketch::vector_bytes))) kll_double_sketch::vector_bytes(
+      static_cast<const kll_double_sketch*>(sketchptr)->serialize(header_size)
     );
     p.ptr = bytes->data();
     p.size = bytes->size();
@@ -114,31 +114,31 @@ ptr_with_size kll_float_sketch_serialize(const void* sketchptr, unsigned header_
   pg_unreachable();
 }
 
-void* kll_float_sketch_deserialize(const char* buffer, unsigned length) {
+void* kll_double_sketch_deserialize(const char* buffer, unsigned length) {
   try {
-    return new (palloc(sizeof(kll_float_sketch))) kll_float_sketch(kll_float_sketch::deserialize(buffer, length));
+    return new (palloc(sizeof(kll_double_sketch))) kll_double_sketch(kll_double_sketch::deserialize(buffer, length));
   } catch (std::exception& e) {
     pg_error(e.what());
   }
   pg_unreachable();
 }
 
-unsigned kll_float_sketch_get_serialized_size_bytes(const void* sketchptr) {
+unsigned kll_double_sketch_get_serialized_size_bytes(const void* sketchptr) {
   try {
-    return static_cast<const kll_float_sketch*>(sketchptr)->get_serialized_size_bytes();
+    return static_cast<const kll_double_sketch*>(sketchptr)->get_serialized_size_bytes();
   } catch (std::exception& e) {
     pg_error(e.what());
   }
   pg_unreachable();
 }
 
-Datum* kll_float_sketch_get_pmf_or_cdf(const void* sketchptr, const float* split_points, unsigned num_split_points, bool is_cdf, bool scale) {
+Datum* kll_double_sketch_get_pmf_or_cdf(const void* sketchptr, const double* split_points, unsigned num_split_points, bool is_cdf, bool scale) {
   try {
     auto array = is_cdf ?
-      static_cast<const kll_float_sketch*>(sketchptr)->get_CDF(split_points, num_split_points) :
-      static_cast<const kll_float_sketch*>(sketchptr)->get_PMF(split_points, num_split_points);
+      static_cast<const kll_double_sketch*>(sketchptr)->get_CDF(split_points, num_split_points) :
+      static_cast<const kll_double_sketch*>(sketchptr)->get_PMF(split_points, num_split_points);
     Datum* pmf = (Datum*) palloc(sizeof(Datum) * (num_split_points + 1));
-    const uint64_t n = static_cast<const kll_float_sketch*>(sketchptr)->get_n();
+    const uint64_t n = static_cast<const kll_double_sketch*>(sketchptr)->get_n();
     for (unsigned i = 0; i < num_split_points + 1; i++) {
       if (scale) {
         pmf[i] = pg_float8_get_datum(array[i] * n);
@@ -153,12 +153,12 @@ Datum* kll_float_sketch_get_pmf_or_cdf(const void* sketchptr, const float* split
   pg_unreachable();
 }
 
-Datum* kll_float_sketch_get_quantiles(const void* sketchptr, const double* fractions, unsigned num_fractions) {
+Datum* kll_double_sketch_get_quantiles(const void* sketchptr, const double* fractions, unsigned num_fractions) {
   try {
-    auto array = static_cast<const kll_float_sketch*>(sketchptr)->get_quantiles(fractions, num_fractions);
+    auto array = static_cast<const kll_double_sketch*>(sketchptr)->get_quantiles(fractions, num_fractions);
     Datum* quantiles = (Datum*) palloc(sizeof(Datum) * num_fractions);
     for (unsigned i = 0; i < num_fractions; i++) {
-      quantiles[i] = pg_float4_get_datum(array[i]);
+      quantiles[i] = pg_float8_get_datum(array[i]);
     }
     return quantiles;
   } catch (std::exception& e) {

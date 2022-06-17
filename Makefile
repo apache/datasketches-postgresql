@@ -21,6 +21,7 @@ MODULE_big = datasketches
 
 SQL_MODULES = sql/datasketches_cpc_sketch.sql \
   sql/datasketches_kll_float_sketch.sql \
+  sql/datasketches_kll_double_sketch.sql \
   sql/datasketches_theta_sketch.sql \
   sql/datasketches_frequent_strings_sketch.sql \
   sql/datasketches_hll_sketch.sql \
@@ -34,6 +35,7 @@ EXTRA_CLEAN = $(SQL_INSTALL)
 
 OBJS = src/global_hooks.o src/base64.o src/common.o \
   src/kll_float_sketch_pg_functions.o src/kll_float_sketch_c_adapter.o \
+  src/kll_double_sketch_pg_functions.o src/kll_double_sketch_c_adapter.o \
   src/cpc_sketch_pg_functions.o src/cpc_sketch_c_adapter.o \
   src/theta_sketch_pg_functions.o src/theta_sketch_c_adapter.o \
   src/frequent_strings_sketch_pg_functions.o src/frequent_strings_sketch_c_adapter.o \
