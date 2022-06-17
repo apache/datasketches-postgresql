@@ -353,6 +353,10 @@ Datum pg_kll_float_sketch_get_histogram(PG_FUNCTION_ARGS) {
   char elmalign_out;
   int arr_len_out;
 
+  float* split_points;
+  float min_value;
+  float max_value;
+  float delta;
   int i;
 
   bytes_in = PG_GETARG_BYTEA_P(0);
@@ -363,10 +367,10 @@ Datum pg_kll_float_sketch_get_histogram(PG_FUNCTION_ARGS) {
     elog(ERROR, "at least two bins expected");
   }
 
-  float* split_points = palloc(sizeof(float) * (num_bins - 1));
-  const float min_value = kll_float_sketch_get_quantile(sketchptr, 0);
-  const float max_value = kll_float_sketch_get_quantile(sketchptr, 1);
-  const float delta = (max_value - min_value) / num_bins;
+  split_points = palloc(sizeof(float) * (num_bins - 1));
+  min_value = kll_float_sketch_get_quantile(sketchptr, 0);
+  max_value = kll_float_sketch_get_quantile(sketchptr, 1);
+  delta = (max_value - min_value) / num_bins;
   for (i = 0; i < num_bins - 1; i++) {
     split_points[i] = min_value + delta * (i + 1);
   }
