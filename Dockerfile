@@ -50,7 +50,7 @@ RUN echo "===> Adding prerequisites..."                      && \
                 build-essential wget unzip                      \
                 libboost-all-dev                                \
                 postgresql-server-dev-$PG_MAJOR                 \
-                libpq-dev=$PG_MINOR                          && \
+                libpq-dev                                    && \
     \
     \                
     echo "===> Building datasketches..."                     && \
