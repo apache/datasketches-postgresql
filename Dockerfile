@@ -49,7 +49,7 @@ RUN echo "===> Adding prerequisites..."                      && \
                 ca-certificates                                 \
                 build-essential wget unzip                      \
                 libboost-all-dev                                \
-                postgresql-server-dev-$PG_MAJOR=$PG_MINOR       \
+                postgresql-server-dev-$PG_MAJOR                 \
                 libpq-dev=$PG_MINOR                          && \
     \
     \                
