@@ -69,7 +69,7 @@ struct serde_string {
       ptr = static_cast<const char*>(ptr) + sizeof(uint32_t);
       bytes_read += sizeof(length);
       pg_check_memory_size(bytes_read + length, capacity);
-      new (&items[i]) std::string(static_cast<const char*>(ptr), length);
+      new (&items[i]) string(static_cast<const char*>(ptr), length);
       ptr = static_cast<const char*>(ptr) + length;
       bytes_read += length;
     }
