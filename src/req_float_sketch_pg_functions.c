@@ -366,6 +366,11 @@ Datum pg_req_float_sketch_get_histogram(PG_FUNCTION_ARGS) {
   int num_bins;
   bool inclusive;
 
+  float* split_points;
+  float min_value;
+  float max_value;
+  float delta;
+
   // output array of bins
   Datum* result;
   ArrayType* arr_out;
@@ -386,10 +391,10 @@ Datum pg_req_float_sketch_get_histogram(PG_FUNCTION_ARGS) {
 
   inclusive = PG_NARGS() > 2 ? PG_GETARG_BOOL(2) : false;
 
-  float* split_points = palloc(sizeof(float) * (num_bins - 1));
-  const float min_value = req_float_sketch_get_quantile(sketchptr, 0, inclusive);
-  const float max_value = req_float_sketch_get_quantile(sketchptr, 1, inclusive);
-  const float delta = (max_value - min_value) / num_bins;
+  split_points = palloc(sizeof(float) * (num_bins - 1));
+  min_value = req_float_sketch_get_quantile(sketchptr, 0, inclusive);
+  max_value = req_float_sketch_get_quantile(sketchptr, 1, inclusive);
+  delta = (max_value - min_value) / num_bins;
   for (i = 0; i < num_bins - 1; i++) {
     split_points[i] = min_value + delta * (i + 1);
   }

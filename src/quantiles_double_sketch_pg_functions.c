@@ -345,6 +345,11 @@ Datum pg_quantiles_double_sketch_get_histogram(PG_FUNCTION_ARGS) {
   void* sketchptr;
   int num_bins;
 
+  double* split_points;
+  double min_value;
+  double max_value;
+  double delta;
+
   // output array of bins
   Datum* result;
   ArrayType* arr_out;
@@ -363,10 +368,10 @@ Datum pg_quantiles_double_sketch_get_histogram(PG_FUNCTION_ARGS) {
     elog(ERROR, "at least two bins expected");
   }
 
-  double* split_points = palloc(sizeof(double) * (num_bins - 1));
-  const double min_value = quantiles_double_sketch_get_quantile(sketchptr, 0);
-  const double max_value = quantiles_double_sketch_get_quantile(sketchptr, 1);
-  const double delta = (max_value - min_value) / num_bins;
+  split_points = palloc(sizeof(double) * (num_bins - 1));
+  min_value = quantiles_double_sketch_get_quantile(sketchptr, 0);
+  max_value = quantiles_double_sketch_get_quantile(sketchptr, 1);
+  delta = (max_value - min_value) / num_bins;
   for (i = 0; i < num_bins - 1; i++) {
     split_points[i] = min_value + delta * (i + 1);
   }
