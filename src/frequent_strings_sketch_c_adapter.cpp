@@ -77,7 +77,7 @@ struct serde_string {
   }
 };
 
-typedef datasketches::frequent_items_sketch<string, uint64_t, hash_string, std::equal_to<string>, serde_string, palloc_allocator<string>> frequent_strings_sketch;
+using frequent_strings_sketch = datasketches::frequent_items_sketch<string, uint64_t, hash_string, std::equal_to<string>, palloc_allocator<string>>;
 
 void* frequent_strings_sketch_new(unsigned lg_k) {
   try {
@@ -130,7 +130,7 @@ ptr_with_size frequent_strings_sketch_serialize(const void* sketchptr, unsigned 
   try {
     ptr_with_size p;
     auto bytes = new (palloc(sizeof(frequent_strings_sketch::vector_bytes))) frequent_strings_sketch::vector_bytes(
-      static_cast<const frequent_strings_sketch*>(sketchptr)->serialize(header_size)
+      static_cast<const frequent_strings_sketch*>(sketchptr)->serialize(header_size, serde_string())
     );
     p.ptr = bytes->data();
     p.size = bytes->size();
@@ -144,7 +144,7 @@ ptr_with_size frequent_strings_sketch_serialize(const void* sketchptr, unsigned 
 void* frequent_strings_sketch_deserialize(const char* buffer, unsigned length) {
   try {
     frequent_strings_sketch* sketchptr = new (palloc(sizeof(frequent_strings_sketch)))
-      frequent_strings_sketch(frequent_strings_sketch::deserialize(buffer, length));
+      frequent_strings_sketch(frequent_strings_sketch::deserialize(buffer, length, serde_string()));
     return sketchptr;
   } catch (std::exception& e) {
     pg_error(e.what());
@@ -154,7 +154,7 @@ void* frequent_strings_sketch_deserialize(const char* buffer, unsigned length) {
 
 unsigned frequent_strings_sketch_get_serialized_size_bytes(const void* sketchptr) {
   try {
-    return static_cast<const frequent_strings_sketch*>(sketchptr)->get_serialized_size_bytes();
+    return static_cast<const frequent_strings_sketch*>(sketchptr)->get_serialized_size_bytes(serde_string());
   } catch (std::exception& e) {
     pg_error(e.what());
   }

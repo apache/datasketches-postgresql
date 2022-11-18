@@ -23,7 +23,7 @@
 
 #include <req_sketch.hpp>
 
-using req_float_sketch = datasketches::req_sketch<float, std::less<float>, datasketches::serde<float>, palloc_allocator<float>>;
+using req_float_sketch = datasketches::req_sketch<float, std::less<float>, palloc_allocator<float>>;
 
 void* req_float_sketch_new(unsigned k, bool hra) {
   try {
@@ -61,11 +61,7 @@ void req_float_sketch_merge(void* sketchptr1, void* sketchptr2) {
 
 double req_float_sketch_get_rank(const void* sketchptr, float value, bool inclusive) {
   try {
-    if (inclusive) {
-      return static_cast<const req_float_sketch*>(sketchptr)->get_rank<true>(value);
-    } else {
-      return static_cast<const req_float_sketch*>(sketchptr)->get_rank<false>(value);
-    }
+    return static_cast<const req_float_sketch*>(sketchptr)->get_rank(value, inclusive);
   } catch (std::exception& e) {
     pg_error(e.what());
   }
@@ -74,11 +70,7 @@ double req_float_sketch_get_rank(const void* sketchptr, float value, bool inclus
 
 float req_float_sketch_get_quantile(const void* sketchptr, double rank, bool inclusive) {
   try {
-    if (inclusive) {
-      return static_cast<const req_float_sketch*>(sketchptr)->get_quantile<true>(rank);
-    } else {
-      return static_cast<const req_float_sketch*>(sketchptr)->get_quantile<false>(rank);
-    }
+    return static_cast<const req_float_sketch*>(sketchptr)->get_quantile(rank, inclusive);
   } catch (std::exception& e) {
     pg_error(e.what());
   }
@@ -143,14 +135,8 @@ unsigned req_float_sketch_get_serialized_size_bytes(const void* sketchptr) {
 Datum* req_float_sketch_get_pmf_or_cdf(const void* sketchptr, const float* split_points, unsigned num_split_points, bool is_cdf, bool scale, bool inclusive) {
   try {
     auto array = is_cdf ?
-      (inclusive ?
-        static_cast<const req_float_sketch*>(sketchptr)->get_CDF<true>(split_points, num_split_points) :
-        static_cast<const req_float_sketch*>(sketchptr)->get_CDF<false>(split_points, num_split_points)
-      ) :
-      (inclusive ?
-        static_cast<const req_float_sketch*>(sketchptr)->get_PMF<true>(split_points, num_split_points) :
-        static_cast<const req_float_sketch*>(sketchptr)->get_PMF<false>(split_points, num_split_points)
-      );
+      static_cast<const req_float_sketch*>(sketchptr)->get_CDF(split_points, num_split_points, inclusive) :
+      static_cast<const req_float_sketch*>(sketchptr)->get_PMF(split_points, num_split_points, inclusive);
     Datum* pmf = (Datum*) palloc(sizeof(Datum) * (num_split_points + 1));
     const uint64_t n = static_cast<const req_float_sketch*>(sketchptr)->get_n();
     for (unsigned i = 0; i < num_split_points + 1; i++) {
@@ -169,9 +155,7 @@ Datum* req_float_sketch_get_pmf_or_cdf(const void* sketchptr, const float* split
 
 Datum* req_float_sketch_get_quantiles(const void* sketchptr, const double* fractions, unsigned num_fractions, bool inclusive) {
   try {
-    auto array = inclusive ?
-      static_cast<const req_float_sketch*>(sketchptr)->get_quantiles<true>(fractions, num_fractions) :
-      static_cast<const req_float_sketch*>(sketchptr)->get_quantiles<false>(fractions, num_fractions);
+    auto array = static_cast<const req_float_sketch*>(sketchptr)->get_quantiles(fractions, num_fractions, inclusive);
     Datum* quantiles = (Datum*) palloc(sizeof(Datum) * num_fractions);
     for (unsigned i = 0; i < num_fractions; i++) {
       quantiles[i] = pg_float4_get_datum(array[i]);

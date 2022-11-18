@@ -23,7 +23,7 @@
 
 #include <kll_sketch.hpp>
 
-using kll_float_sketch = datasketches::kll_sketch<float, std::less<float>, datasketches::serde<float>, palloc_allocator<float>>;
+using kll_float_sketch = datasketches::kll_sketch<float, std::less<float>, palloc_allocator<float>>;
 
 void* kll_float_sketch_new(unsigned k) {
   try {
