@@ -23,7 +23,7 @@
 
 #include <kll_sketch.hpp>
 
-using kll_double_sketch = datasketches::kll_sketch<double, std::less<double>, datasketches::serde<double>, palloc_allocator<double>>;
+using kll_double_sketch = datasketches::kll_sketch<double, std::less<double>, palloc_allocator<double>>;
 
 void* kll_double_sketch_new(unsigned k) {
   try {
