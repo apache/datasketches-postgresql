@@ -34,8 +34,6 @@ PG_FUNCTION_INFO_V1(pg_theta_sketch_union_agg);
 PG_FUNCTION_INFO_V1(pg_theta_sketch_intersection_agg);
 PG_FUNCTION_INFO_V1(pg_theta_sketch_from_internal);
 PG_FUNCTION_INFO_V1(pg_theta_sketch_get_estimate_from_internal);
-//PG_FUNCTION_INFO_V1(pg_theta_union_get_result);
-//PG_FUNCTION_INFO_V1(pg_theta_intersection_get_result);
 PG_FUNCTION_INFO_V1(pg_theta_sketch_combine);
 PG_FUNCTION_INFO_V1(pg_theta_sketch_serialize_state);
 PG_FUNCTION_INFO_V1(pg_theta_sketch_deserialize_state);
@@ -52,8 +50,6 @@ Datum pg_theta_sketch_union_agg(PG_FUNCTION_ARGS);
 Datum pg_theta_sketch_intersection_agg(PG_FUNCTION_ARGS);
 Datum pg_theta_sketch_from_internal(PG_FUNCTION_ARGS);
 Datum pg_theta_sketch_get_estimate_from_internal(PG_FUNCTION_ARGS);
-//Datum pg_theta_union_get_result(PG_FUNCTION_ARGS);
-//Datum pg_theta_intersection_get_result(PG_FUNCTION_ARGS);
 Datum pg_theta_sketch_combine(PG_FUNCTION_ARGS);
 Datum pg_theta_sketch_serialize_state(PG_FUNCTION_ARGS);
 Datum pg_theta_sketch_deserialize_state(PG_FUNCTION_ARGS);
@@ -246,58 +242,6 @@ Datum pg_theta_sketch_get_estimate_from_internal(PG_FUNCTION_ARGS) {
 
   PG_RETURN_FLOAT8(estimate);
 }
-
-//Datum pg_theta_union_get_result(PG_FUNCTION_ARGS) {
-//  struct agg_state* stateptr;
-//  struct ptr_with_size bytes_out;
-//
-//  MemoryContext oldcontext;
-//  MemoryContext aggcontext;
-//
-//  if (PG_ARGISNULL(0)) PG_RETURN_NULL();
-//
-//  if (!AggCheckCallContext(fcinfo, &aggcontext)) {
-//    elog(ERROR, "theta_union_get_result called in non-aggregate context");
-//  }
-//  oldcontext = MemoryContextSwitchTo(aggcontext);
-//
-//  stateptr = (struct agg_state*) PG_GETARG_POINTER(0);
-//  if (stateptr->type == PHASE1) stateptr->ptr = theta_union_get_result(stateptr->ptr);
-//  bytes_out = theta_sketch_serialize(stateptr->ptr, VARHDRSZ);
-//  theta_sketch_delete(stateptr->ptr);
-//  pfree(stateptr);
-//  SET_VARSIZE(bytes_out.ptr, bytes_out.size);
-//
-//  MemoryContextSwitchTo(oldcontext);
-//
-//  PG_RETURN_BYTEA_P(bytes_out.ptr);
-//}
-//
-//Datum pg_theta_intersection_get_result(PG_FUNCTION_ARGS) {
-//  struct agg_state* stateptr;
-//  struct ptr_with_size bytes_out;
-//
-//  MemoryContext oldcontext;
-//  MemoryContext aggcontext;
-//
-//  if (PG_ARGISNULL(0)) PG_RETURN_NULL();
-//
-//  if (!AggCheckCallContext(fcinfo, &aggcontext)) {
-//    elog(ERROR, "theta_intersection_get_result called in non-aggregate context");
-//  }
-//  oldcontext = MemoryContextSwitchTo(aggcontext);
-//
-//  stateptr = (struct agg_state*) PG_GETARG_POINTER(0);
-//  if (stateptr->type == PHASE1) stateptr->ptr = theta_intersection_get_result(stateptr->ptr);
-//  bytes_out = theta_sketch_serialize(stateptr->ptr, VARHDRSZ);
-//  theta_sketch_delete(stateptr->ptr);
-//  pfree(stateptr);
-//  SET_VARSIZE(bytes_out.ptr, bytes_out.size);
-//
-//  MemoryContextSwitchTo(oldcontext);
-//
-//  PG_RETURN_BYTEA_P(bytes_out.ptr);
-//}
 
 Datum pg_theta_sketch_combine(PG_FUNCTION_ARGS) {
   struct agg_state* stateptr1;
