@@ -176,7 +176,15 @@ void theta_union_delete(void* unionptr) {
   }
 }
 
-void theta_union_update(void* unionptr, const void* buffer, unsigned length) {
+void theta_union_update_with_sketch(void* unionptr, const void* sketchptr) {
+  try {
+    static_cast<theta_union_pg*>(unionptr)->update(*static_cast<const theta_sketch_pg*>(sketchptr));
+  } catch (std::exception& e) {
+    pg_error(e.what());
+  }
+}
+
+void theta_union_update_with_bytes(void* unionptr, const void* buffer, unsigned length) {
   try {
     static_cast<theta_union_pg*>(unionptr)->update(wrapped_compact_theta_sketch_pg::wrap(buffer, length));
   } catch (std::exception& e) {
@@ -184,9 +192,12 @@ void theta_union_update(void* unionptr, const void* buffer, unsigned length) {
   }
 }
 
-void* theta_union_get_result(const void* unionptr) {
+void* theta_union_get_result(void* unionptr) {
   try {
-    return new (palloc(sizeof(compact_theta_sketch_pg))) compact_theta_sketch_pg(static_cast<const theta_union_pg*>(unionptr)->get_result());
+    auto sketchptr = new (palloc(sizeof(compact_theta_sketch_pg))) compact_theta_sketch_pg(static_cast<const theta_union_pg*>(unionptr)->get_result());
+    static_cast<const theta_union_pg*>(unionptr)->~theta_union_pg();
+    pfree(unionptr);
+    return sketchptr;
   } catch (std::exception& e) {
     pg_error(e.what());
   }
@@ -211,7 +222,15 @@ void theta_intersection_delete(void* interptr) {
   }
 }
 
-void theta_intersection_update(void* interptr, const void* buffer, unsigned length) {
+void theta_intersection_update_with_sketch(void* interptr, const void* sketchptr) {
+  try {
+    static_cast<theta_intersection_pg*>(interptr)->update(*static_cast<const theta_sketch_pg*>(sketchptr));
+  } catch (std::exception& e) {
+    pg_error(e.what());
+  }
+}
+
+void theta_intersection_update_with_bytes(void* interptr, const void* buffer, unsigned length) {
   try {
     static_cast<theta_intersection_pg*>(interptr)->update(wrapped_compact_theta_sketch_pg::wrap(buffer, length));
   } catch (std::exception& e) {
@@ -219,9 +238,12 @@ void theta_intersection_update(void* interptr, const void* buffer, unsigned leng
   }
 }
 
-void* theta_intersection_get_result(const void* interptr) {
+void* theta_intersection_get_result(void* interptr) {
   try {
-    return new (palloc(sizeof(compact_theta_sketch_pg))) compact_theta_sketch_pg(static_cast<const theta_intersection_pg*>(interptr)->get_result());
+    auto sketchptr = new (palloc(sizeof(compact_theta_sketch_pg))) compact_theta_sketch_pg(static_cast<const theta_intersection_pg*>(interptr)->get_result());
+    static_cast<const theta_intersection_pg*>(interptr)->~theta_intersection_pg();
+    pfree(interptr);
+    return sketchptr;
   } catch (std::exception& e) {
     pg_error(e.what());
   }
