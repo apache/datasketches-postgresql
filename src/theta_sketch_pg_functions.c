@@ -329,9 +329,8 @@ Datum pg_theta_sketch_serialize_state(PG_FUNCTION_ARGS) {
   } else if (stateptr->type == INTERSECTION) {
     stateptr->ptr = theta_intersection_get_result(stateptr->ptr);
   }
-  bytes_out = theta_sketch_serialize(stateptr->ptr, VARHDRSZ + 2);
-  ((char*)bytes_out.ptr)[VARHDRSZ] = IMMUTABLE_SKETCH;
-  ((char*)bytes_out.ptr)[VARHDRSZ + 1] = stateptr->lg_k;
+  bytes_out = theta_sketch_serialize(stateptr->ptr, VARHDRSZ + 1);
+  ((char*)bytes_out.ptr)[VARHDRSZ] = stateptr->lg_k;
   theta_sketch_delete(stateptr->ptr);
   pfree(stateptr);
   SET_VARSIZE(bytes_out.ptr, bytes_out.size);
@@ -357,9 +356,8 @@ Datum pg_theta_sketch_deserialize_state(PG_FUNCTION_ARGS) {
 
   bytes_in = PG_GETARG_BYTEA_P(0);
   stateptr = palloc(sizeof(struct agg_state));
-  stateptr->type = *VARDATA(bytes_in);
-  stateptr->lg_k = *(VARDATA(bytes_in) + 1);
-  stateptr->ptr = theta_sketch_deserialize(VARDATA(bytes_in) + 2, VARSIZE(bytes_in) - VARHDRSZ - 2);
+  stateptr->lg_k = *VARDATA(bytes_in);
+  stateptr->ptr = theta_sketch_deserialize(VARDATA(bytes_in) + 1, VARSIZE(bytes_in) - VARHDRSZ - 1);
 
   MemoryContextSwitchTo(oldcontext);
 
