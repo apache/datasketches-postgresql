@@ -26,13 +26,13 @@
 #include <theta_intersection.hpp>
 #include <theta_a_not_b.hpp>
 
-typedef datasketches::theta_sketch_alloc<palloc_allocator<uint64_t>> theta_sketch_pg;
-typedef datasketches::update_theta_sketch_alloc<palloc_allocator<uint64_t>> update_theta_sketch_pg;
-typedef datasketches::compact_theta_sketch_alloc<palloc_allocator<uint64_t>> compact_theta_sketch_pg;
-typedef datasketches::theta_union_alloc<palloc_allocator<uint64_t>> theta_union_pg;
-typedef datasketches::theta_intersection_alloc<palloc_allocator<uint64_t>> theta_intersection_pg;
-typedef datasketches::theta_a_not_b_alloc<palloc_allocator<uint64_t>> theta_a_not_b_pg;
-typedef datasketches::wrapped_compact_theta_sketch_alloc<palloc_allocator<uint64_t>> wrapped_compact_theta_sketch_pg;
+using theta_sketch_pg = datasketches::theta_sketch_alloc<palloc_allocator<uint64_t>>;
+using update_theta_sketch_pg = datasketches::update_theta_sketch_alloc<palloc_allocator<uint64_t>>;
+using compact_theta_sketch_pg = datasketches::compact_theta_sketch_alloc<palloc_allocator<uint64_t>>;
+using theta_union_pg = datasketches::theta_union_alloc<palloc_allocator<uint64_t>>;
+using theta_intersection_pg = datasketches::theta_intersection_alloc<palloc_allocator<uint64_t>>;
+using theta_a_not_b_pg = datasketches::theta_a_not_b_alloc<palloc_allocator<uint64_t>>;
+using wrapped_compact_theta_sketch_pg = datasketches::wrapped_compact_theta_sketch_alloc<palloc_allocator<uint64_t>>;
 
 void* theta_sketch_new_default() {
   try {

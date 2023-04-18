@@ -23,8 +23,8 @@
 
 #include <hll.hpp>
 
-typedef datasketches::hll_sketch_alloc<palloc_allocator<char>> hll_sketch_pg;
-typedef datasketches::hll_union_alloc<palloc_allocator<char>> hll_union_pg;
+using hll_sketch_pg = datasketches::hll_sketch_alloc<palloc_allocator<char>>;
+using hll_union_pg = datasketches::hll_union_alloc<palloc_allocator<char>>;
 
 void* hll_sketch_new(unsigned lg_k) {
   try {
