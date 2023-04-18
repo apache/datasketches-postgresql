@@ -66,14 +66,6 @@ CREATE OR REPLACE FUNCTION theta_sketch_intersection_agg(internal, theta_sketch)
     AS '$libdir/datasketches', 'pg_theta_sketch_intersection_agg'
     LANGUAGE C IMMUTABLE PARALLEL SAFE;
 
--- CREATE OR REPLACE FUNCTION theta_union_get_result(internal) RETURNS theta_sketch
---    AS '$libdir/datasketches', 'pg_theta_union_get_result'
---    LANGUAGE C STRICT IMMUTABLE;
-
--- CREATE OR REPLACE FUNCTION theta_intersection_get_result(internal) RETURNS theta_sketch
---    AS '$libdir/datasketches', 'pg_theta_intersection_get_result'
---    LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
-
 CREATE OR REPLACE FUNCTION theta_sketch_combine(internal, internal) RETURNS internal
     AS '$libdir/datasketches', 'pg_theta_sketch_combine'
     LANGUAGE C IMMUTABLE PARALLEL SAFE;
