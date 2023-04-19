@@ -24,8 +24,8 @@
 #include <cpc_sketch.hpp>
 #include <cpc_union.hpp>
 
-typedef datasketches::cpc_sketch_alloc<palloc_allocator<char>> cpc_sketch_pg;
-typedef datasketches::cpc_union_alloc<palloc_allocator<char>> cpc_union_pg;
+using cpc_sketch_pg = datasketches::cpc_sketch_alloc<palloc_allocator<char>>;
+using cpc_union_pg = datasketches::cpc_union_alloc<palloc_allocator<char>>;
 
 void cpc_init() {
   datasketches::cpc_init<palloc_allocator<char>>();
@@ -147,7 +147,10 @@ void cpc_union_update(void* unionptr, const void* sketchptr) {
 
 void* cpc_union_get_result(void* unionptr) {
   try {
-    return new (palloc(sizeof(cpc_sketch_pg))) cpc_sketch_pg(static_cast<cpc_union_pg*>(unionptr)->get_result());
+    auto sketchptr = new (palloc(sizeof(cpc_sketch_pg))) cpc_sketch_pg(static_cast<cpc_union_pg*>(unionptr)->get_result());
+    static_cast<cpc_union_pg*>(unionptr)->~cpc_union_pg();
+    pfree(unionptr);
+    return sketchptr;
   } catch (std::exception& e) {
     pg_error(e.what());
   }
