@@ -223,6 +223,7 @@ Datum pg_hll_sketch_get_estimate_from_internal(PG_FUNCTION_ARGS) {
 
   PG_RETURN_FLOAT8(estimate);
 }
+
 Datum pg_hll_sketch_combine(PG_FUNCTION_ARGS) {
   struct hll_agg_state* stateptr1;
   struct hll_agg_state* stateptr2;
@@ -234,7 +235,7 @@ Datum pg_hll_sketch_combine(PG_FUNCTION_ARGS) {
   if (PG_ARGISNULL(0) && PG_ARGISNULL(1)) PG_RETURN_NULL();
 
   if (!AggCheckCallContext(fcinfo, &aggcontext)) {
-    elog(ERROR, "hll_sketch_from_internal called in non-aggregate context");
+    elog(ERROR, "hll_sketch_combine called in non-aggregate context");
   }
   oldcontext = MemoryContextSwitchTo(aggcontext);
 
@@ -281,7 +282,6 @@ Datum pg_hll_sketch_combine(PG_FUNCTION_ARGS) {
 
   PG_RETURN_POINTER(stateptr);
 }
-
 
 Datum pg_hll_sketch_serialize_state(PG_FUNCTION_ARGS) {
   struct hll_agg_state* stateptr;
@@ -333,6 +333,7 @@ Datum pg_hll_sketch_deserialize_state(PG_FUNCTION_ARGS) {
 
   bytes_in = PG_GETARG_BYTEA_P(0);
   stateptr = palloc(sizeof(struct hll_agg_state));
+  stateptr->type = SKETCH;
   stateptr->lg_k = *VARDATA(bytes_in);
   stateptr->tgt_type = *(VARDATA(bytes_in) + 1);
   stateptr->ptr = hll_sketch_deserialize(VARDATA(bytes_in) + 2, VARSIZE(bytes_in) - VARHDRSZ - 2);
@@ -424,7 +425,6 @@ Datum pg_hll_sketch_union(PG_FUNCTION_ARGS) {
   } else {
     sketchptr = hll_union_get_result(unionptr);
   }
-  hll_union_delete(unionptr);
   bytes_out = hll_sketch_serialize(sketchptr, VARHDRSZ);
   hll_sketch_delete(sketchptr);
   SET_VARSIZE(bytes_out.ptr, bytes_out.size);

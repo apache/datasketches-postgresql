@@ -132,7 +132,7 @@ Datum pg_theta_sketch_union_agg(PG_FUNCTION_ARGS) {
   }
 
   if (!AggCheckCallContext(fcinfo, &aggcontext)) {
-    elog(ERROR, "theta_sketch_union called in non-aggregate context");
+    elog(ERROR, "theta_sketch_union_agg called in non-aggregate context");
   }
   oldcontext = MemoryContextSwitchTo(aggcontext);
 
@@ -167,7 +167,7 @@ Datum pg_theta_sketch_intersection_agg(PG_FUNCTION_ARGS) {
   }
 
   if (!AggCheckCallContext(fcinfo, &aggcontext)) {
-    elog(ERROR, "theta_sketch_intersection called in non-aggregate context");
+    elog(ERROR, "theta_sketch_intersection_agg called in non-aggregate context");
   }
   oldcontext = MemoryContextSwitchTo(aggcontext);
 
@@ -356,6 +356,7 @@ Datum pg_theta_sketch_deserialize_state(PG_FUNCTION_ARGS) {
 
   bytes_in = PG_GETARG_BYTEA_P(0);
   stateptr = palloc(sizeof(struct agg_state));
+  stateptr->type = IMMUTABLE_SKETCH;
   stateptr->lg_k = *VARDATA(bytes_in);
   stateptr->ptr = theta_sketch_deserialize(VARDATA(bytes_in) + 1, VARSIZE(bytes_in) - VARHDRSZ - 1);
 
