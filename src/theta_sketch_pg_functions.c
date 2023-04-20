@@ -186,7 +186,7 @@ Datum pg_theta_sketch_intersection_agg(PG_FUNCTION_ARGS) {
 
   MemoryContextSwitchTo(oldcontext);
 
-  PG_RETURN_POINTER(stateptr->ptr);
+  PG_RETURN_POINTER(stateptr);
 }
 
 Datum pg_theta_sketch_from_internal(PG_FUNCTION_ARGS) {
