@@ -312,7 +312,6 @@ Datum pg_aod_sketch_union_combine(PG_FUNCTION_ARGS) {
     pfree(stateptr2);
   }
   stateptr->ptr = aod_union_get_result(stateptr->ptr);
-  stateptr->type = IMMUTABLE_SKETCH;
 
   MemoryContextSwitchTo(oldcontext);
 
@@ -359,7 +358,6 @@ Datum pg_aod_sketch_intersection_combine(PG_FUNCTION_ARGS) {
     pfree(stateptr2);
   }
   stateptr->ptr = aod_intersection_get_result(stateptr->ptr);
-  stateptr->type = IMMUTABLE_SKETCH;
 
   MemoryContextSwitchTo(oldcontext);
 
