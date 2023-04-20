@@ -47,12 +47,12 @@ void* aod_union_new(unsigned num_values);
 void* aod_union_new_lgk(unsigned num_values, unsigned lg_k);
 void aod_union_delete(void* unionptr);
 void aod_union_update(void* unionptr, const void* sketchptr);
-void* aod_union_get_result(const void* unionptr);
+void* aod_union_get_result(void* unionptr);
 
 void* aod_intersection_new(unsigned num_values);
 void aod_intersection_delete(void* interptr);
 void aod_intersection_update(void* interptr, const void* sketchptr);
-void* aod_intersection_get_result(const void* interptr);
+void* aod_intersection_get_result(void* interptr);
 
 void* aod_a_not_b(const void* sketchptr1, const void* sketchptr2);
 

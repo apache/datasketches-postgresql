@@ -28,17 +28,27 @@
 #include "base64.h"
 #include "kll_float_sketch_c_adapter.h"
 
+enum aod_agg_state_type { MUTABLE_SKETCH, IMMUTABLE_SKETCH, UNION, INTERSECTION };
+
+struct aod_agg_state {
+  enum aod_agg_state_type type;
+  unsigned lg_k;
+  unsigned num_values;
+  void* ptr;
+};
+
 /* PG_FUNCTION_INFO_V1 macro to pass functions to postgres */
-PG_FUNCTION_INFO_V1(pg_aod_sketch_add_item);
-PG_FUNCTION_INFO_V1(pg_aod_sketch_get_estimate);
-PG_FUNCTION_INFO_V1(pg_aod_sketch_get_estimate_and_bounds);
-PG_FUNCTION_INFO_V1(pg_aod_sketch_to_string);
+PG_FUNCTION_INFO_V1(pg_aod_sketch_build_agg);
 PG_FUNCTION_INFO_V1(pg_aod_sketch_union_agg);
 PG_FUNCTION_INFO_V1(pg_aod_sketch_intersection_agg);
 PG_FUNCTION_INFO_V1(pg_aod_sketch_from_internal);
-PG_FUNCTION_INFO_V1(pg_aod_sketch_get_estimate_from_internal);
-PG_FUNCTION_INFO_V1(pg_aod_union_get_result);
-PG_FUNCTION_INFO_V1(pg_aod_intersection_get_result);
+PG_FUNCTION_INFO_V1(pg_aod_sketch_union_combine);
+PG_FUNCTION_INFO_V1(pg_aod_sketch_intersection_combine);
+PG_FUNCTION_INFO_V1(pg_aod_sketch_serialize_state);
+PG_FUNCTION_INFO_V1(pg_aod_sketch_deserialize_state);
+PG_FUNCTION_INFO_V1(pg_aod_sketch_get_estimate);
+PG_FUNCTION_INFO_V1(pg_aod_sketch_get_estimate_and_bounds);
+PG_FUNCTION_INFO_V1(pg_aod_sketch_to_string);
 PG_FUNCTION_INFO_V1(pg_aod_sketch_union);
 PG_FUNCTION_INFO_V1(pg_aod_sketch_intersection);
 PG_FUNCTION_INFO_V1(pg_aod_sketch_a_not_b);
@@ -48,18 +58,17 @@ PG_FUNCTION_INFO_V1(pg_aod_sketch_to_means);
 PG_FUNCTION_INFO_V1(pg_aod_sketch_to_variances);
 
 /* function declarations */
-Datum pg_aod_sketch_recv(PG_FUNCTION_ARGS);
-Datum pg_aod_sketch_send(PG_FUNCTION_ARGS);
-Datum pg_aod_sketch_add_item(PG_FUNCTION_ARGS);
-Datum pg_aod_sketch_get_estimate(PG_FUNCTION_ARGS);
-Datum pg_aod_sketch_get_estimate_and_bounds(PG_FUNCTION_ARGS);
-Datum pg_aod_sketch_to_string(PG_FUNCTION_ARGS);
+Datum pg_aod_sketch_build_agg(PG_FUNCTION_ARGS);
 Datum pg_aod_sketch_union_agg(PG_FUNCTION_ARGS);
 Datum pg_aod_sketch_intersection_agg(PG_FUNCTION_ARGS);
 Datum pg_aod_sketch_from_internal(PG_FUNCTION_ARGS);
-Datum pg_aod_sketch_get_estimate_from_internal(PG_FUNCTION_ARGS);
-Datum pg_aod_union_get_result(PG_FUNCTION_ARGS);
-Datum pg_aod_intersection_get_result(PG_FUNCTION_ARGS);
+Datum pg_aod_sketch_union_combine(PG_FUNCTION_ARGS);
+Datum pg_aod_sketch_intersection_combine(PG_FUNCTION_ARGS);
+Datum pg_aod_sketch_serialize_state(PG_FUNCTION_ARGS);
+Datum pg_aod_sketch_deserialize_state(PG_FUNCTION_ARGS);
+Datum pg_aod_sketch_get_estimate(PG_FUNCTION_ARGS);
+Datum pg_aod_sketch_get_estimate_and_bounds(PG_FUNCTION_ARGS);
+Datum pg_aod_sketch_to_string(PG_FUNCTION_ARGS);
 Datum pg_aod_sketch_union(PG_FUNCTION_ARGS);
 Datum pg_aod_sketch_intersection(PG_FUNCTION_ARGS);
 Datum pg_aod_sketch_a_not_b(PG_FUNCTION_ARGS);
@@ -68,9 +77,8 @@ Datum pg_aod_sketch_students_t_test(PG_FUNCTION_ARGS);
 Datum pg_aod_sketch_to_means(PG_FUNCTION_ARGS);
 Datum pg_aod_sketch_to_variances(PG_FUNCTION_ARGS);
 
-Datum pg_aod_sketch_add_item(PG_FUNCTION_ARGS) {
-  void* sketchptr;
-  int lg_k;
+Datum pg_aod_sketch_build_agg(PG_FUNCTION_ARGS) {
+  struct aod_agg_state* stateptr;
   float p;
 
   // anyelement
@@ -102,7 +110,7 @@ Datum pg_aod_sketch_add_item(PG_FUNCTION_ARGS) {
   }
 
   if (!AggCheckCallContext(fcinfo, &aggcontext)) {
-    elog(ERROR, "aod_sketch_add_item called in non-aggregate context");
+    elog(ERROR, "aod_sketch_build_agg called in non-aggregate context");
   }
   oldcontext = MemoryContextSwitchTo(aggcontext);
 
@@ -118,15 +126,18 @@ Datum pg_aod_sketch_add_item(PG_FUNCTION_ARGS) {
   }
 
   if (PG_ARGISNULL(0)) {
-    lg_k = PG_NARGS() > 3 ? PG_GETARG_INT32(3) : 0;
+    stateptr = palloc(sizeof(struct aod_agg_state));
+    stateptr->type = MUTABLE_SKETCH;
+    stateptr->lg_k = PG_NARGS() > 3 ? PG_GETARG_INT32(3) : 0;
+    stateptr->num_values = arr_len;
     p = PG_NARGS() > 4 ? PG_GETARG_FLOAT4(4) : 1;
-    if (lg_k) {
-      sketchptr = p ? aod_sketch_new_lgk_p(arr_len, lg_k, p) : aod_sketch_new_lgk(arr_len, lg_k);
+    if (stateptr->lg_k) {
+      stateptr->ptr = p ? aod_sketch_new_lgk_p(arr_len, stateptr->lg_k, p) : aod_sketch_new_lgk(arr_len, stateptr->lg_k);
     } else {
-      sketchptr = aod_sketch_new(arr_len);
+      stateptr->ptr = aod_sketch_new(arr_len);
     }
   } else {
-    sketchptr = PG_GETARG_POINTER(0);
+    stateptr = (struct aod_agg_state*) PG_GETARG_POINTER(0);
   }
 
   element_type = get_fn_expr_argtype(fcinfo->flinfo, 1);
@@ -134,18 +145,285 @@ Datum pg_aod_sketch_add_item(PG_FUNCTION_ARGS) {
   get_typlenbyvalalign(element_type, &typlen, &typbyval, &typalign);
   if (typlen == -1) {
     // varlena
-    aod_sketch_update(sketchptr, VARDATA_ANY(element), VARSIZE_ANY_EXHDR(element), values);
+    aod_sketch_update(stateptr->ptr, VARDATA_ANY(element), VARSIZE_ANY_EXHDR(element), values);
   } else if (typbyval) {
     // fixed-length passed by value
-    aod_sketch_update(sketchptr, &element, typlen, values);
+    aod_sketch_update(stateptr->ptr, &element, typlen, values);
   } else {
     // fixed-length passed by reference
-    aod_sketch_update(sketchptr, (void*)element, typlen, values);
+    aod_sketch_update(stateptr->ptr, (void*)element, typlen, values);
   }
   pfree(values);
   MemoryContextSwitchTo(oldcontext);
 
-  PG_RETURN_POINTER(sketchptr);
+  PG_RETURN_POINTER(stateptr);
+}
+
+Datum pg_aod_sketch_union_agg(PG_FUNCTION_ARGS) {
+  struct aod_agg_state* stateptr;
+  bytea* sketch_bytes;
+  void* sketchptr;
+
+  MemoryContext oldcontext;
+  MemoryContext aggcontext;
+
+  if (PG_ARGISNULL(0) && PG_ARGISNULL(1)) {
+    PG_RETURN_NULL();
+  } else if (PG_ARGISNULL(1)) {
+    PG_RETURN_POINTER(PG_GETARG_POINTER(0)); // no update value. return unmodified state
+  }
+
+  if (!AggCheckCallContext(fcinfo, &aggcontext)) {
+    elog(ERROR, "aod_sketch_union_agg called in non-aggregate context");
+  }
+  oldcontext = MemoryContextSwitchTo(aggcontext);
+
+  if (PG_ARGISNULL(0)) {
+    stateptr = palloc(sizeof(struct aod_agg_state));
+    stateptr->type = UNION;
+    stateptr->num_values = PG_NARGS() > 2 ? PG_GETARG_INT32(2) : 1;
+    stateptr->lg_k = PG_NARGS() > 3 ? PG_GETARG_INT32(3) : 0;
+    stateptr->ptr = stateptr->lg_k ? aod_union_new_lgk(stateptr->num_values, stateptr->lg_k) : aod_union_new(stateptr->num_values);
+  } else {
+    stateptr = (struct aod_agg_state*) PG_GETARG_POINTER(0);
+  }
+
+  sketch_bytes = PG_GETARG_BYTEA_P(1);
+  sketchptr = aod_sketch_deserialize(VARDATA(sketch_bytes), VARSIZE(sketch_bytes) - VARHDRSZ);
+  aod_union_update(stateptr->ptr, sketchptr);
+  compact_aod_sketch_delete(sketchptr);
+
+  MemoryContextSwitchTo(oldcontext);
+
+  PG_RETURN_POINTER(stateptr);
+}
+
+Datum pg_aod_sketch_intersection_agg(PG_FUNCTION_ARGS) {
+  struct aod_agg_state* stateptr;
+  bytea* sketch_bytes;
+  void* sketchptr;
+
+  MemoryContext oldcontext;
+  MemoryContext aggcontext;
+
+  if (PG_ARGISNULL(0) && PG_ARGISNULL(1)) {
+    PG_RETURN_NULL();
+  } else if (PG_ARGISNULL(1)) {
+    PG_RETURN_POINTER(PG_GETARG_POINTER(0)); // no update value. return unmodified state
+  }
+
+  if (!AggCheckCallContext(fcinfo, &aggcontext)) {
+    elog(ERROR, "aod_sketch_intersection_agg called in non-aggregate context");
+  }
+  oldcontext = MemoryContextSwitchTo(aggcontext);
+
+  if (PG_ARGISNULL(0)) {
+    stateptr = palloc(sizeof(struct aod_agg_state));
+    stateptr->type = INTERSECTION;
+    stateptr->num_values = PG_NARGS() > 2 ? PG_GETARG_INT32(2) : 1;
+    stateptr->ptr = aod_intersection_new(stateptr->num_values);
+  } else {
+    stateptr = (struct aod_agg_state*) PG_GETARG_POINTER(0);
+  }
+
+  sketch_bytes = PG_GETARG_BYTEA_P(1);
+  sketchptr = aod_sketch_deserialize(VARDATA(sketch_bytes), VARSIZE(sketch_bytes) - VARHDRSZ);
+  aod_intersection_update(stateptr->ptr, sketchptr);
+  compact_aod_sketch_delete(sketchptr);
+
+  MemoryContextSwitchTo(oldcontext);
+
+  PG_RETURN_POINTER(stateptr);
+}
+
+Datum pg_aod_sketch_from_internal(PG_FUNCTION_ARGS) {
+  struct aod_agg_state* stateptr;
+  struct ptr_with_size bytes_out;
+
+  MemoryContext oldcontext;
+  MemoryContext aggcontext;
+
+  if (PG_ARGISNULL(0)) PG_RETURN_NULL();
+
+  if (!AggCheckCallContext(fcinfo, &aggcontext)) {
+    elog(ERROR, "aod_sketch_from_internal called in non-aggregate context");
+  }
+  oldcontext = MemoryContextSwitchTo(aggcontext);
+
+  stateptr = (struct aod_agg_state*) PG_GETARG_POINTER(0);
+  if (stateptr->type == MUTABLE_SKETCH) {
+    stateptr->ptr = aod_sketch_compact(stateptr->ptr);
+  } else if (stateptr->type == UNION) {
+    stateptr->ptr = aod_union_get_result(stateptr->ptr);
+  } else if (stateptr->type == INTERSECTION) {
+    stateptr->ptr = aod_intersection_get_result(stateptr->ptr);
+  }
+  bytes_out = aod_sketch_serialize(stateptr->ptr, VARHDRSZ);
+  compact_aod_sketch_delete(stateptr->ptr);
+  pfree(stateptr);
+  SET_VARSIZE(bytes_out.ptr, bytes_out.size);
+
+  MemoryContextSwitchTo(oldcontext);
+
+  PG_RETURN_BYTEA_P(bytes_out.ptr);
+}
+
+Datum pg_aod_sketch_union_combine(PG_FUNCTION_ARGS) {
+  struct aod_agg_state* stateptr1;
+  struct aod_agg_state* stateptr2;
+  struct aod_agg_state* stateptr;
+
+  MemoryContext oldcontext;
+  MemoryContext aggcontext;
+
+  if (PG_ARGISNULL(0) && PG_ARGISNULL(1)) PG_RETURN_NULL();
+
+  if (!AggCheckCallContext(fcinfo, &aggcontext)) {
+    elog(ERROR, "aod_sketch_union_combine called in non-aggregate context");
+  }
+  oldcontext = MemoryContextSwitchTo(aggcontext);
+
+  stateptr1 = (struct aod_agg_state*) PG_GETARG_POINTER(0);
+  stateptr2 = (struct aod_agg_state*) PG_GETARG_POINTER(1);
+
+  stateptr = palloc(sizeof(struct aod_agg_state));
+  stateptr->type = IMMUTABLE_SKETCH;
+  stateptr->lg_k = stateptr1 ? stateptr1->lg_k : stateptr2->lg_k;
+  stateptr->num_values = stateptr1 ? stateptr1->num_values : stateptr2->num_values;
+  stateptr->ptr = stateptr->lg_k ? aod_union_new_lgk(stateptr->num_values, stateptr->lg_k) : aod_union_new(stateptr->num_values);
+  if (stateptr1) {
+    if (stateptr1->type == UNION) {
+      stateptr1->ptr = aod_union_get_result(stateptr1->ptr);
+    } else if (stateptr1->type == MUTABLE_SKETCH) {
+      stateptr1->ptr = aod_sketch_compact(stateptr1->ptr);
+    }
+    aod_union_update(stateptr->ptr, stateptr1->ptr);
+    compact_aod_sketch_delete(stateptr1->ptr);
+    pfree(stateptr1);
+  }
+  if (stateptr2) {
+    if (stateptr2->type == UNION) {
+      stateptr2->ptr = aod_union_get_result(stateptr2->ptr);
+    } else if (stateptr2->type == MUTABLE_SKETCH) {
+      stateptr2->ptr = aod_sketch_compact(stateptr2->ptr);
+    }
+    aod_union_update(stateptr->ptr, stateptr2->ptr);
+    compact_aod_sketch_delete(stateptr2->ptr);
+    pfree(stateptr2);
+  }
+  stateptr->ptr = aod_union_get_result(stateptr->ptr);
+  stateptr->type = IMMUTABLE_SKETCH;
+
+  MemoryContextSwitchTo(oldcontext);
+
+  PG_RETURN_POINTER(stateptr);
+}
+
+Datum pg_aod_sketch_intersection_combine(PG_FUNCTION_ARGS) {
+  struct aod_agg_state* stateptr1;
+  struct aod_agg_state* stateptr2;
+  struct aod_agg_state* stateptr;
+
+  MemoryContext oldcontext;
+  MemoryContext aggcontext;
+
+  if (PG_ARGISNULL(0) && PG_ARGISNULL(1)) PG_RETURN_NULL();
+
+  if (!AggCheckCallContext(fcinfo, &aggcontext)) {
+    elog(ERROR, "aod_sketch_combine called in non-aggregate context");
+  }
+  oldcontext = MemoryContextSwitchTo(aggcontext);
+
+  stateptr1 = (struct aod_agg_state*) PG_GETARG_POINTER(0);
+  stateptr2 = (struct aod_agg_state*) PG_GETARG_POINTER(1);
+
+  stateptr = palloc(sizeof(struct aod_agg_state));
+  stateptr->type = IMMUTABLE_SKETCH;
+  stateptr->lg_k = stateptr1 ? stateptr1->lg_k : stateptr2->lg_k;
+  stateptr->num_values = stateptr1 ? stateptr1->num_values : stateptr2->num_values;
+  stateptr->ptr = aod_intersection_new(stateptr->num_values);
+  if (stateptr1) {
+    if (stateptr1->type == INTERSECTION) {
+      stateptr1->ptr = aod_intersection_get_result(stateptr1->ptr);
+    }
+    aod_intersection_update(stateptr->ptr, stateptr1->ptr);
+    compact_aod_sketch_delete(stateptr1->ptr);
+    pfree(stateptr1);
+  }
+  if (stateptr2) {
+    if (stateptr2->type == INTERSECTION) {
+      stateptr2->ptr = aod_intersection_get_result(stateptr2->ptr);
+    }
+    aod_intersection_update(stateptr->ptr, stateptr2->ptr);
+    compact_aod_sketch_delete(stateptr2->ptr);
+    pfree(stateptr2);
+  }
+  stateptr->ptr = aod_intersection_get_result(stateptr->ptr);
+  stateptr->type = IMMUTABLE_SKETCH;
+
+  MemoryContextSwitchTo(oldcontext);
+
+  PG_RETURN_POINTER(stateptr);
+}
+
+Datum pg_aod_sketch_serialize_state(PG_FUNCTION_ARGS) {
+  struct aod_agg_state* stateptr;
+  struct ptr_with_size bytes_out;
+
+  MemoryContext oldcontext;
+  MemoryContext aggcontext;
+
+  if (PG_ARGISNULL(0)) PG_RETURN_NULL();
+
+  if (!AggCheckCallContext(fcinfo, &aggcontext)) {
+    elog(ERROR, "aod_sketch_serialize_state called in non-aggregate context");
+  }
+  oldcontext = MemoryContextSwitchTo(aggcontext);
+
+  stateptr = (struct aod_agg_state*) PG_GETARG_POINTER(0);
+  if (stateptr->type == MUTABLE_SKETCH) {
+    stateptr->ptr = aod_sketch_compact(stateptr->ptr);
+  } else if (stateptr->type == UNION) {
+    stateptr->ptr = aod_union_get_result(stateptr->ptr);
+  } else if (stateptr->type == INTERSECTION) {
+    stateptr->ptr = aod_intersection_get_result(stateptr->ptr);
+  }
+  bytes_out = aod_sketch_serialize(stateptr->ptr, VARHDRSZ + 2);
+  ((char*)bytes_out.ptr)[VARHDRSZ] = stateptr->lg_k;
+  ((char*)bytes_out.ptr)[VARHDRSZ + 1] = stateptr->num_values;
+  compact_aod_sketch_delete(stateptr->ptr);
+  pfree(stateptr);
+  SET_VARSIZE(bytes_out.ptr, bytes_out.size);
+
+  MemoryContextSwitchTo(oldcontext);
+
+  PG_RETURN_BYTEA_P(bytes_out.ptr);
+}
+
+Datum pg_aod_sketch_deserialize_state(PG_FUNCTION_ARGS) {
+  const bytea* bytes_in;
+  struct aod_agg_state* stateptr;
+
+  MemoryContext oldcontext;
+  MemoryContext aggcontext;
+
+  if (PG_ARGISNULL(0)) PG_RETURN_NULL();
+
+  if (!AggCheckCallContext(fcinfo, &aggcontext)) {
+    elog(ERROR, "aod_sketch_deserialize_state called in non-aggregate context");
+  }
+  oldcontext = MemoryContextSwitchTo(aggcontext);
+
+  bytes_in = PG_GETARG_BYTEA_P(0);
+  stateptr = palloc(sizeof(struct aod_agg_state));
+  stateptr->type = IMMUTABLE_SKETCH;
+  stateptr->lg_k = *VARDATA(bytes_in);
+  stateptr->num_values = *(VARDATA(bytes_in) + 1);
+  stateptr->ptr = aod_sketch_deserialize(VARDATA(bytes_in) + 2, VARSIZE(bytes_in) - VARHDRSZ - 2);
+
+  MemoryContextSwitchTo(oldcontext);
+
+  PG_RETURN_POINTER(stateptr);
 }
 
 Datum pg_aod_sketch_get_estimate(PG_FUNCTION_ARGS) {
@@ -194,184 +472,6 @@ Datum pg_aod_sketch_to_string(PG_FUNCTION_ARGS) {
   str = aod_sketch_to_string(sketchptr, print_entries);
   compact_aod_sketch_delete(sketchptr);
   PG_RETURN_TEXT_P(cstring_to_text(str));
-}
-
-Datum pg_aod_sketch_intersection_agg(PG_FUNCTION_ARGS) {
-  void* interptr;
-  bytea* sketch_bytes;
-  void* sketchptr;
-  int num_values;
-
-  MemoryContext oldcontext;
-  MemoryContext aggcontext;
-
-  if (PG_ARGISNULL(0) && PG_ARGISNULL(1)) {
-    PG_RETURN_NULL();
-  } else if (PG_ARGISNULL(1)) {
-    PG_RETURN_POINTER(PG_GETARG_POINTER(0)); // no update value. return unmodified state
-  }
-
-  if (!AggCheckCallContext(fcinfo, &aggcontext)) {
-    elog(ERROR, "aod_sketch_intersect called in non-aggregate context");
-  }
-  oldcontext = MemoryContextSwitchTo(aggcontext);
-
-  if (PG_ARGISNULL(0)) {
-    num_values = PG_NARGS() > 2 ? PG_GETARG_INT32(2) : 1;
-    interptr = aod_intersection_new(num_values);
-  } else {
-    interptr = PG_GETARG_POINTER(0);
-  }
-
-  sketch_bytes = PG_GETARG_BYTEA_P(1);
-  sketchptr = aod_sketch_deserialize(VARDATA(sketch_bytes), VARSIZE(sketch_bytes) - VARHDRSZ);
-  aod_intersection_update(interptr, sketchptr);
-  compact_aod_sketch_delete(sketchptr);
-
-  MemoryContextSwitchTo(oldcontext);
-
-  PG_RETURN_POINTER(interptr);
-}
-
-Datum pg_aod_sketch_union_agg(PG_FUNCTION_ARGS) {
-  void* unionptr;
-  bytea* sketch_bytes;
-  void* sketchptr;
-  int num_values;
-  int lg_k;
-
-  MemoryContext oldcontext;
-  MemoryContext aggcontext;
-
-  if (PG_ARGISNULL(0) && PG_ARGISNULL(1)) {
-    PG_RETURN_NULL();
-  } else if (PG_ARGISNULL(1)) {
-    PG_RETURN_POINTER(PG_GETARG_POINTER(0)); // no update value. return unmodified state
-  }
-
-  if (!AggCheckCallContext(fcinfo, &aggcontext)) {
-    elog(ERROR, "aod_sketch_merge called in non-aggregate context");
-  }
-  oldcontext = MemoryContextSwitchTo(aggcontext);
-
-  if (PG_ARGISNULL(0)) {
-    num_values = PG_NARGS() > 2 ? PG_GETARG_INT32(2) : 1;
-    lg_k = PG_NARGS() > 3 ? PG_GETARG_INT32(3) : 0;
-    unionptr = lg_k ? aod_union_new_lgk(num_values, lg_k) : aod_union_new(num_values);
-  } else {
-    unionptr = PG_GETARG_POINTER(0);
-  }
-
-  sketch_bytes = PG_GETARG_BYTEA_P(1);
-  sketchptr = aod_sketch_deserialize(VARDATA(sketch_bytes), VARSIZE(sketch_bytes) - VARHDRSZ);
-  aod_union_update(unionptr, sketchptr);
-  compact_aod_sketch_delete(sketchptr);
-
-  MemoryContextSwitchTo(oldcontext);
-
-  PG_RETURN_POINTER(unionptr);
-}
-
-Datum pg_aod_sketch_from_internal(PG_FUNCTION_ARGS) {
-  void* sketchptr;
-  struct ptr_with_size bytes_out;
-
-  MemoryContext oldcontext;
-  MemoryContext aggcontext;
-
-  if (PG_ARGISNULL(0)) PG_RETURN_NULL();
-
-  if (!AggCheckCallContext(fcinfo, &aggcontext)) {
-    elog(ERROR, "aod_sketch_from_internal called in non-aggregate context");
-  }
-  oldcontext = MemoryContextSwitchTo(aggcontext);
-
-  sketchptr = PG_GETARG_POINTER(0);
-  sketchptr = aod_sketch_compact(sketchptr);
-  bytes_out = aod_sketch_serialize(sketchptr, VARHDRSZ);
-  compact_aod_sketch_delete(sketchptr);
-  SET_VARSIZE(bytes_out.ptr, bytes_out.size);
-
-  MemoryContextSwitchTo(oldcontext);
-
-  PG_RETURN_BYTEA_P(bytes_out.ptr);
-}
-
-Datum pg_aod_sketch_get_estimate_from_internal(PG_FUNCTION_ARGS) {
-  void* sketchptr;
-  double estimate;
-
-  MemoryContext oldcontext;
-  MemoryContext aggcontext;
-
-  if (PG_ARGISNULL(0)) PG_RETURN_NULL();
-
-  if (!AggCheckCallContext(fcinfo, &aggcontext)) {
-    elog(ERROR, "aod_sketch_from_internal called in non-aggregate context");
-  }
-  oldcontext = MemoryContextSwitchTo(aggcontext);
-
-  sketchptr = PG_GETARG_POINTER(0);
-  estimate = update_aod_sketch_get_estimate(sketchptr);
-  update_aod_sketch_delete(sketchptr);
-
-  MemoryContextSwitchTo(oldcontext);
-
-  PG_RETURN_FLOAT8(estimate);
-}
-
-Datum pg_aod_union_get_result(PG_FUNCTION_ARGS) {
-  void* unionptr;
-  void* sketchptr;
-  struct ptr_with_size bytes_out;
-
-  MemoryContext oldcontext;
-  MemoryContext aggcontext;
-
-  if (PG_ARGISNULL(0)) PG_RETURN_NULL();
-
-  if (!AggCheckCallContext(fcinfo, &aggcontext)) {
-    elog(ERROR, "aod_union_get_result called in non-aggregate context");
-  }
-  oldcontext = MemoryContextSwitchTo(aggcontext);
-
-  unionptr = PG_GETARG_POINTER(0);
-  sketchptr = aod_union_get_result(unionptr);
-  bytes_out = aod_sketch_serialize(sketchptr, VARHDRSZ);
-  compact_aod_sketch_delete(sketchptr);
-  aod_union_delete(unionptr);
-  SET_VARSIZE(bytes_out.ptr, bytes_out.size);
-
-  MemoryContextSwitchTo(oldcontext);
-
-  PG_RETURN_BYTEA_P(bytes_out.ptr);
-}
-
-Datum pg_aod_intersection_get_result(PG_FUNCTION_ARGS) {
-  void* interptr;
-  void* sketchptr;
-  struct ptr_with_size bytes_out;
-
-  MemoryContext oldcontext;
-  MemoryContext aggcontext;
-
-  if (PG_ARGISNULL(0)) PG_RETURN_NULL();
-
-  if (!AggCheckCallContext(fcinfo, &aggcontext)) {
-    elog(ERROR, "aod_intersection_get_result called in non-aggregate context");
-  }
-  oldcontext = MemoryContextSwitchTo(aggcontext);
-
-  interptr = PG_GETARG_POINTER(0);
-  sketchptr = aod_intersection_get_result(interptr);
-  bytes_out = aod_sketch_serialize(sketchptr, VARHDRSZ);
-  compact_aod_sketch_delete(sketchptr);
-  aod_intersection_delete(interptr);
-  SET_VARSIZE(bytes_out.ptr, bytes_out.size);
-
-  MemoryContextSwitchTo(oldcontext);
-
-  PG_RETURN_BYTEA_P(bytes_out.ptr);
 }
 
 Datum pg_aod_sketch_union(PG_FUNCTION_ARGS) {
