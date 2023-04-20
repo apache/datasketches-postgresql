@@ -34,7 +34,8 @@ PG_FUNCTION_INFO_V1(pg_theta_sketch_union_agg);
 PG_FUNCTION_INFO_V1(pg_theta_sketch_intersection_agg);
 PG_FUNCTION_INFO_V1(pg_theta_sketch_from_internal);
 PG_FUNCTION_INFO_V1(pg_theta_sketch_get_estimate_from_internal);
-PG_FUNCTION_INFO_V1(pg_theta_sketch_combine);
+PG_FUNCTION_INFO_V1(pg_theta_sketch_union_combine);
+PG_FUNCTION_INFO_V1(pg_theta_sketch_intersection_combine);
 PG_FUNCTION_INFO_V1(pg_theta_sketch_serialize_state);
 PG_FUNCTION_INFO_V1(pg_theta_sketch_deserialize_state);
 PG_FUNCTION_INFO_V1(pg_theta_sketch_get_estimate);
@@ -50,7 +51,8 @@ Datum pg_theta_sketch_union_agg(PG_FUNCTION_ARGS);
 Datum pg_theta_sketch_intersection_agg(PG_FUNCTION_ARGS);
 Datum pg_theta_sketch_from_internal(PG_FUNCTION_ARGS);
 Datum pg_theta_sketch_get_estimate_from_internal(PG_FUNCTION_ARGS);
-Datum pg_theta_sketch_combine(PG_FUNCTION_ARGS);
+Datum pg_theta_sketch_union_combine(PG_FUNCTION_ARGS);
+Datum pg_theta_sketch_intersection_combine(PG_FUNCTION_ARGS);
 Datum pg_theta_sketch_serialize_state(PG_FUNCTION_ARGS);
 Datum pg_theta_sketch_deserialize_state(PG_FUNCTION_ARGS);
 Datum pg_theta_sketch_get_estimate(PG_FUNCTION_ARGS);
@@ -243,7 +245,7 @@ Datum pg_theta_sketch_get_estimate_from_internal(PG_FUNCTION_ARGS) {
   PG_RETURN_FLOAT8(estimate);
 }
 
-Datum pg_theta_sketch_combine(PG_FUNCTION_ARGS) {
+Datum pg_theta_sketch_union_combine(PG_FUNCTION_ARGS) {
   struct agg_state* stateptr1;
   struct agg_state* stateptr2;
   struct agg_state* stateptr;
@@ -262,45 +264,70 @@ Datum pg_theta_sketch_combine(PG_FUNCTION_ARGS) {
   stateptr2 = (struct agg_state*) PG_GETARG_POINTER(1);
 
   stateptr = palloc(sizeof(struct agg_state));
-  stateptr->type = stateptr1 ? stateptr1->type : stateptr2->type;
+  stateptr->type = IMMUTABLE_SKETCH;
   stateptr->lg_k = stateptr1 ? stateptr1->lg_k : stateptr2->lg_k;
-  if (stateptr->type == INTERSECTION) {
-    stateptr->ptr = theta_intersection_new_default();
-  } else {
-    stateptr->ptr = stateptr->lg_k ? theta_union_new(stateptr->lg_k) : theta_union_new_default();
-  }
+  stateptr->ptr = stateptr->lg_k ? theta_union_new(stateptr->lg_k) : theta_union_new_default();
   if (stateptr1) {
     if (stateptr1->type == UNION) {
       stateptr1->ptr = theta_union_get_result(stateptr1->ptr);
-      theta_union_update_with_sketch(stateptr->ptr, stateptr1->ptr);
-    } else if (stateptr1->type == INTERSECTION) {
-      stateptr1->ptr = theta_intersection_get_result(stateptr1->ptr);
-      theta_intersection_update_with_sketch(stateptr->ptr, stateptr1->ptr);
-    } else {
-      theta_union_update_with_sketch(stateptr->ptr, stateptr1->ptr);
     }
+    theta_union_update_with_sketch(stateptr->ptr, stateptr1->ptr);
     theta_sketch_delete(stateptr1->ptr);
     pfree(stateptr1);
   }
   if (stateptr2) {
     if (stateptr2->type == UNION) {
       stateptr2->ptr = theta_union_get_result(stateptr2->ptr);
-      theta_union_update_with_sketch(stateptr->ptr, stateptr2->ptr);
-    } else if (stateptr2->type == INTERSECTION) {
-      stateptr2->ptr = theta_intersection_get_result(stateptr2->ptr);
-      theta_intersection_update_with_sketch(stateptr->ptr, stateptr2->ptr);
-    } else {
-      theta_union_update_with_sketch(stateptr->ptr, stateptr2->ptr);
     }
+    theta_union_update_with_sketch(stateptr->ptr, stateptr2->ptr);
     theta_sketch_delete(stateptr2->ptr);
     pfree(stateptr2);
   }
-  if (stateptr->type == INTERSECTION) {
-    stateptr->ptr = theta_intersection_get_result(stateptr->ptr);
-  } else {
-    stateptr->ptr = theta_union_get_result(stateptr->ptr);
+  stateptr->ptr = theta_union_get_result(stateptr->ptr);
+
+  MemoryContextSwitchTo(oldcontext);
+
+  PG_RETURN_POINTER(stateptr);
+}
+
+Datum pg_theta_sketch_intersection_combine(PG_FUNCTION_ARGS) {
+  struct agg_state* stateptr1;
+  struct agg_state* stateptr2;
+  struct agg_state* stateptr;
+
+  MemoryContext oldcontext;
+  MemoryContext aggcontext;
+
+  if (PG_ARGISNULL(0) && PG_ARGISNULL(1)) PG_RETURN_NULL();
+
+  if (!AggCheckCallContext(fcinfo, &aggcontext)) {
+    elog(ERROR, "theta_sketch_combine called in non-aggregate context");
   }
+  oldcontext = MemoryContextSwitchTo(aggcontext);
+
+  stateptr1 = (struct agg_state*) PG_GETARG_POINTER(0);
+  stateptr2 = (struct agg_state*) PG_GETARG_POINTER(1);
+
+  stateptr = palloc(sizeof(struct agg_state));
   stateptr->type = IMMUTABLE_SKETCH;
+  stateptr->ptr = theta_intersection_new_default();
+  if (stateptr1) {
+    if (stateptr1->type == INTERSECTION) {
+      stateptr1->ptr = theta_intersection_get_result(stateptr1->ptr);
+    }
+    theta_intersection_update_with_sketch(stateptr->ptr, stateptr1->ptr);
+    theta_sketch_delete(stateptr1->ptr);
+    pfree(stateptr1);
+  }
+  if (stateptr2) {
+    if (stateptr2->type == INTERSECTION) {
+      stateptr2->ptr = theta_intersection_get_result(stateptr2->ptr);
+    }
+    theta_intersection_update_with_sketch(stateptr->ptr, stateptr2->ptr);
+    theta_sketch_delete(stateptr2->ptr);
+    pfree(stateptr2);
+  }
+  stateptr->ptr = theta_intersection_get_result(stateptr->ptr);
 
   MemoryContextSwitchTo(oldcontext);
 

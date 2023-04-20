@@ -338,7 +338,6 @@ Datum pg_aod_sketch_intersection_combine(PG_FUNCTION_ARGS) {
 
   stateptr = palloc(sizeof(struct aod_agg_state));
   stateptr->type = IMMUTABLE_SKETCH;
-  stateptr->lg_k = stateptr1 ? stateptr1->lg_k : stateptr2->lg_k;
   stateptr->num_values = stateptr1 ? stateptr1->num_values : stateptr2->num_values;
   stateptr->ptr = aod_intersection_new(stateptr->num_values);
   if (stateptr1) {

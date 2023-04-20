@@ -66,8 +66,12 @@ CREATE OR REPLACE FUNCTION theta_sketch_intersection_agg(internal, theta_sketch)
     AS '$libdir/datasketches', 'pg_theta_sketch_intersection_agg'
     LANGUAGE C IMMUTABLE PARALLEL SAFE;
 
-CREATE OR REPLACE FUNCTION theta_sketch_combine(internal, internal) RETURNS internal
-    AS '$libdir/datasketches', 'pg_theta_sketch_combine'
+CREATE OR REPLACE FUNCTION theta_sketch_union_combine(internal, internal) RETURNS internal
+    AS '$libdir/datasketches', 'pg_theta_sketch_union_combine'
+    LANGUAGE C IMMUTABLE PARALLEL SAFE;
+
+CREATE OR REPLACE FUNCTION theta_sketch_intersection_combine(internal, internal) RETURNS internal
+    AS '$libdir/datasketches', 'pg_theta_sketch_intersection_combine'
     LANGUAGE C IMMUTABLE PARALLEL SAFE;
 
 CREATE OR REPLACE FUNCTION theta_sketch_serialize_state(internal) RETURNS bytea
@@ -81,7 +85,7 @@ CREATE OR REPLACE FUNCTION theta_sketch_deserialize_state(bytea, internal) RETUR
 CREATE OR REPLACE AGGREGATE theta_sketch_distinct(anyelement) (
     STYPE = internal,
     SFUNC = theta_sketch_build_agg,
-    COMBINEFUNC = theta_sketch_combine,
+    COMBINEFUNC = theta_sketch_union_combine,
     SERIALFUNC = theta_sketch_serialize_state,
     DESERIALFUNC = theta_sketch_deserialize_state, 
     FINALFUNC = theta_sketch_get_estimate_from_internal,
@@ -91,7 +95,7 @@ CREATE OR REPLACE AGGREGATE theta_sketch_distinct(anyelement) (
 CREATE OR REPLACE AGGREGATE theta_sketch_distinct(anyelement, int) (
     STYPE = internal,
     SFUNC = theta_sketch_build_agg,
-    COMBINEFUNC = theta_sketch_combine,
+    COMBINEFUNC = theta_sketch_union_combine,
     SERIALFUNC = theta_sketch_serialize_state,
     DESERIALFUNC = theta_sketch_deserialize_state, 
     FINALFUNC = theta_sketch_get_estimate_from_internal,
@@ -101,7 +105,7 @@ CREATE OR REPLACE AGGREGATE theta_sketch_distinct(anyelement, int) (
 CREATE AGGREGATE theta_sketch_build(anyelement) (
     STYPE = internal,
     SFUNC = theta_sketch_build_agg,
-    COMBINEFUNC = theta_sketch_combine,
+    COMBINEFUNC = theta_sketch_union_combine,
     SERIALFUNC = theta_sketch_serialize_state,
     DESERIALFUNC = theta_sketch_deserialize_state, 
     FINALFUNC = theta_sketch_from_internal,
@@ -111,7 +115,7 @@ CREATE AGGREGATE theta_sketch_build(anyelement) (
 CREATE OR REPLACE AGGREGATE theta_sketch_build(anyelement, int) (
     STYPE = internal,
     SFUNC = theta_sketch_build_agg,
-    COMBINEFUNC = theta_sketch_combine,
+    COMBINEFUNC = theta_sketch_union_combine,
     SERIALFUNC = theta_sketch_serialize_state,
     DESERIALFUNC = theta_sketch_deserialize_state, 
     FINALFUNC = theta_sketch_from_internal,
@@ -121,7 +125,7 @@ CREATE OR REPLACE AGGREGATE theta_sketch_build(anyelement, int) (
 CREATE OR REPLACE AGGREGATE theta_sketch_build(anyelement, int, real) (
     STYPE = internal,
     SFUNC = theta_sketch_build_agg,
-    COMBINEFUNC = theta_sketch_combine,
+    COMBINEFUNC = theta_sketch_union_combine,
     SERIALFUNC = theta_sketch_serialize_state,
     DESERIALFUNC = theta_sketch_deserialize_state, 
     FINALFUNC = theta_sketch_from_internal,
@@ -131,7 +135,7 @@ CREATE OR REPLACE AGGREGATE theta_sketch_build(anyelement, int, real) (
 CREATE OR REPLACE AGGREGATE theta_sketch_union(theta_sketch) (
     STYPE = internal,
     SFUNC = theta_sketch_union_agg,
-    COMBINEFUNC = theta_sketch_combine,
+    COMBINEFUNC = theta_sketch_union_combine,
     SERIALFUNC = theta_sketch_serialize_state,
     DESERIALFUNC = theta_sketch_deserialize_state, 
     FINALFUNC = theta_sketch_from_internal,
@@ -141,7 +145,7 @@ CREATE OR REPLACE AGGREGATE theta_sketch_union(theta_sketch) (
 CREATE OR REPLACE AGGREGATE theta_sketch_union(theta_sketch, int) (
     STYPE = internal,
     SFUNC = theta_sketch_union_agg,
-    COMBINEFUNC = theta_sketch_combine,
+    COMBINEFUNC = theta_sketch_union_combine,
     SERIALFUNC = theta_sketch_serialize_state,
     DESERIALFUNC = theta_sketch_deserialize_state, 
     FINALFUNC = theta_sketch_from_internal,
@@ -151,7 +155,7 @@ CREATE OR REPLACE AGGREGATE theta_sketch_union(theta_sketch, int) (
 CREATE OR REPLACE AGGREGATE theta_sketch_intersection(theta_sketch) (
     STYPE = internal,
     SFUNC = theta_sketch_intersection_agg,
-    COMBINEFUNC = theta_sketch_combine,
+    COMBINEFUNC = theta_sketch_intersection_combine,
     SERIALFUNC = theta_sketch_serialize_state,
     DESERIALFUNC = theta_sketch_deserialize_state, 
     FINALFUNC = theta_sketch_from_internal,

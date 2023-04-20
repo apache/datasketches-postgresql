@@ -195,7 +195,7 @@ void theta_union_update_with_bytes(void* unionptr, const void* buffer, unsigned 
 void* theta_union_get_result(void* unionptr) {
   try {
     auto sketchptr = new (palloc(sizeof(compact_theta_sketch_pg))) compact_theta_sketch_pg(static_cast<const theta_union_pg*>(unionptr)->get_result());
-    static_cast<const theta_union_pg*>(unionptr)->~theta_union_pg();
+    static_cast<theta_union_pg*>(unionptr)->~theta_union_pg();
     pfree(unionptr);
     return sketchptr;
   } catch (std::exception& e) {
@@ -241,7 +241,7 @@ void theta_intersection_update_with_bytes(void* interptr, const void* buffer, un
 void* theta_intersection_get_result(void* interptr) {
   try {
     auto sketchptr = new (palloc(sizeof(compact_theta_sketch_pg))) compact_theta_sketch_pg(static_cast<const theta_intersection_pg*>(interptr)->get_result());
-    static_cast<const theta_intersection_pg*>(interptr)->~theta_intersection_pg();
+    static_cast<theta_intersection_pg*>(interptr)->~theta_intersection_pg();
     pfree(interptr);
     return sketchptr;
   } catch (std::exception& e) {
