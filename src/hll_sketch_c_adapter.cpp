@@ -152,7 +152,7 @@ void hll_union_update(void* unionptr, const void* sketchptr) {
 
 void* hll_union_get_result(void* unionptr) {
   try {
-    auto sketchptr = new (palloc(sizeof(hll_sketch_pg))) hll_sketch_pg(static_cast<hll_union_pg*>(unionptr)->get_result());
+    auto sketchptr = new (palloc(sizeof(hll_sketch_pg))) hll_sketch_pg(static_cast<const hll_union_pg*>(unionptr)->get_result());
     static_cast<hll_union_pg*>(unionptr)->~hll_union_pg();
     pfree(unionptr);
     return sketchptr;
@@ -164,7 +164,7 @@ void* hll_union_get_result(void* unionptr) {
 
 void* hll_union_get_result_tgt_type(void* unionptr, unsigned tgt_type) {
   try {
-    auto sketchptr = new (palloc(sizeof(hll_sketch_pg))) hll_sketch_pg(static_cast<hll_union_pg*>(unionptr)->get_result(
+    auto sketchptr = new (palloc(sizeof(hll_sketch_pg))) hll_sketch_pg(static_cast<const hll_union_pg*>(unionptr)->get_result(
       tgt_type == 4 ? datasketches::target_hll_type::HLL_4 : tgt_type == 6 ? datasketches::target_hll_type::HLL_6 : datasketches::target_hll_type::HLL_8
     ));
     static_cast<hll_union_pg*>(unionptr)->~hll_union_pg();

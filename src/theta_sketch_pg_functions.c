@@ -25,7 +25,6 @@
 #include <catalog/pg_type.h>
 
 #include "theta_sketch_c_adapter.h"
-#include "base64.h"
 #include "agg_state.h"
 
 /* PG_FUNCTION_INFO_V1 macro to pass functions to postgres */
@@ -256,7 +255,7 @@ Datum pg_theta_sketch_union_combine(PG_FUNCTION_ARGS) {
   if (PG_ARGISNULL(0) && PG_ARGISNULL(1)) PG_RETURN_NULL();
 
   if (!AggCheckCallContext(fcinfo, &aggcontext)) {
-    elog(ERROR, "theta_sketch_combine called in non-aggregate context");
+    elog(ERROR, "theta_sketch_union_combine called in non-aggregate context");
   }
   oldcontext = MemoryContextSwitchTo(aggcontext);
 
@@ -301,7 +300,7 @@ Datum pg_theta_sketch_intersection_combine(PG_FUNCTION_ARGS) {
   if (PG_ARGISNULL(0) && PG_ARGISNULL(1)) PG_RETURN_NULL();
 
   if (!AggCheckCallContext(fcinfo, &aggcontext)) {
-    elog(ERROR, "theta_sketch_combine called in non-aggregate context");
+    elog(ERROR, "theta_sketch_intersection_combine called in non-aggregate context");
   }
   oldcontext = MemoryContextSwitchTo(aggcontext);
 

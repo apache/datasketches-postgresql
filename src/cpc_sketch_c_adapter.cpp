@@ -147,7 +147,7 @@ void cpc_union_update(void* unionptr, const void* sketchptr) {
 
 void* cpc_union_get_result(void* unionptr) {
   try {
-    auto sketchptr = new (palloc(sizeof(cpc_sketch_pg))) cpc_sketch_pg(static_cast<cpc_union_pg*>(unionptr)->get_result());
+    auto sketchptr = new (palloc(sizeof(cpc_sketch_pg))) cpc_sketch_pg(static_cast<const cpc_union_pg*>(unionptr)->get_result());
     static_cast<cpc_union_pg*>(unionptr)->~cpc_union_pg();
     pfree(unionptr);
     return sketchptr;

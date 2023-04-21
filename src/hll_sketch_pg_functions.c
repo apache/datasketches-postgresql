@@ -25,7 +25,6 @@
 #include <catalog/pg_type.h>
 
 #include "hll_sketch_c_adapter.h"
-#include "base64.h"
 
 enum hll_agg_state_type { SKETCH, UNION };
 

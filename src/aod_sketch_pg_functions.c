@@ -25,7 +25,6 @@
 #include <catalog/pg_type.h>
 
 #include "aod_sketch_c_adapter.h"
-#include "base64.h"
 #include "kll_float_sketch_c_adapter.h"
 
 enum aod_agg_state_type { MUTABLE_SKETCH, IMMUTABLE_SKETCH, UNION, INTERSECTION };
@@ -329,7 +328,7 @@ Datum pg_aod_sketch_intersection_combine(PG_FUNCTION_ARGS) {
   if (PG_ARGISNULL(0) && PG_ARGISNULL(1)) PG_RETURN_NULL();
 
   if (!AggCheckCallContext(fcinfo, &aggcontext)) {
-    elog(ERROR, "aod_sketch_combine called in non-aggregate context");
+    elog(ERROR, "aod_sketch_intersection_combine called in non-aggregate context");
   }
   oldcontext = MemoryContextSwitchTo(aggcontext);
 

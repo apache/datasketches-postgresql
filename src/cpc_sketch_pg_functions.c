@@ -25,7 +25,6 @@
 #include <catalog/pg_type.h>
 
 #include "cpc_sketch_c_adapter.h"
-#include "base64.h"
 #include "agg_state.h"
 
 const unsigned CPC_DEFAULT_LG_K = 11;
