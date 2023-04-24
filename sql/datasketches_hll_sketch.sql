@@ -78,7 +78,7 @@ CREATE OR REPLACE FUNCTION hll_sketch_deserialize_state(bytea, internal) RETURNS
     AS '$libdir/datasketches', 'pg_hll_sketch_deserialize_state'
     LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
 
-CREATE AGGREGATE hll_sketch_distinct(anyelement) (
+CREATE OR REPLACE AGGREGATE hll_sketch_distinct(anyelement) (
     STYPE = internal,
     SFUNC = hll_sketch_build_agg,
     COMBINEFUNC = hll_sketch_combine,
@@ -88,7 +88,7 @@ CREATE AGGREGATE hll_sketch_distinct(anyelement) (
     PARALLEL = SAFE
 );
 
-CREATE AGGREGATE hll_sketch_distinct(anyelement, int) (
+CREATE OR REPLACE AGGREGATE hll_sketch_distinct(anyelement, int) (
     STYPE = internal,
     SFUNC = hll_sketch_build_agg,
     COMBINEFUNC = hll_sketch_combine,
@@ -98,7 +98,7 @@ CREATE AGGREGATE hll_sketch_distinct(anyelement, int) (
     PARALLEL = SAFE
 );
 
-CREATE AGGREGATE hll_sketch_build(anyelement) (
+CREATE OR REPLACE AGGREGATE hll_sketch_build(anyelement) (
     STYPE = internal,
     SFUNC = hll_sketch_build_agg,
     COMBINEFUNC = hll_sketch_combine,
@@ -108,7 +108,7 @@ CREATE AGGREGATE hll_sketch_build(anyelement) (
     PARALLEL = SAFE
 );
 
-CREATE AGGREGATE hll_sketch_build(anyelement, int) (
+CREATE OR REPLACE AGGREGATE hll_sketch_build(anyelement, int) (
     STYPE = internal,
     SFUNC = hll_sketch_build_agg,
     COMBINEFUNC = hll_sketch_combine,
@@ -118,7 +118,7 @@ CREATE AGGREGATE hll_sketch_build(anyelement, int) (
     PARALLEL = SAFE
 );
 
-CREATE AGGREGATE hll_sketch_build(anyelement, int, int) (
+CREATE OR REPLACE AGGREGATE hll_sketch_build(anyelement, int, int) (
     STYPE = internal,
     SFUNC = hll_sketch_build_agg,
     COMBINEFUNC = hll_sketch_combine,
@@ -128,7 +128,7 @@ CREATE AGGREGATE hll_sketch_build(anyelement, int, int) (
     PARALLEL = SAFE
 );
 
-CREATE AGGREGATE hll_sketch_union(hll_sketch) (
+CREATE OR REPLACE AGGREGATE hll_sketch_union(hll_sketch) (
     STYPE = internal,
     SFUNC = hll_sketch_union_agg,
     COMBINEFUNC = hll_sketch_combine,
@@ -138,7 +138,7 @@ CREATE AGGREGATE hll_sketch_union(hll_sketch) (
     PARALLEL = SAFE
 );
 
-CREATE AGGREGATE hll_sketch_union(hll_sketch, int) (
+CREATE OR REPLACE AGGREGATE hll_sketch_union(hll_sketch, int) (
     STYPE = internal,
     SFUNC = hll_sketch_union_agg,
     COMBINEFUNC = hll_sketch_combine,
@@ -148,7 +148,7 @@ CREATE AGGREGATE hll_sketch_union(hll_sketch, int) (
     PARALLEL = SAFE
 );
 
-CREATE AGGREGATE hll_sketch_union(hll_sketch, int, int) (
+CREATE OR REPLACE AGGREGATE hll_sketch_union(hll_sketch, int, int) (
     STYPE = internal,
     SFUNC = hll_sketch_union_agg,
     COMBINEFUNC = hll_sketch_combine,

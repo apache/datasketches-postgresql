@@ -74,7 +74,7 @@ CREATE OR REPLACE FUNCTION req_float_sketch_finalize(internal) RETURNS req_float
     AS '$libdir/datasketches', 'pg_req_float_sketch_serialize'
     LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
 
-CREATE AGGREGATE req_float_sketch_build(real) (
+CREATE OR REPLACE AGGREGATE req_float_sketch_build(real) (
     STYPE = internal,
     SFUNC = req_float_sketch_build_agg,
     COMBINEFUNC = req_float_sketch_combine,
@@ -84,7 +84,7 @@ CREATE AGGREGATE req_float_sketch_build(real) (
     PARALLEL = SAFE
 );
 
-CREATE AGGREGATE req_float_sketch_build(real, int) (
+CREATE OR REPLACE AGGREGATE req_float_sketch_build(real, int) (
     STYPE = internal,
     SFUNC = req_float_sketch_build_agg,
     COMBINEFUNC = req_float_sketch_combine,
@@ -94,7 +94,7 @@ CREATE AGGREGATE req_float_sketch_build(real, int) (
     PARALLEL = SAFE
 );
 
-CREATE AGGREGATE req_float_sketch_build(real, int, boolean) (
+CREATE OR REPLACE AGGREGATE req_float_sketch_build(real, int, boolean) (
     STYPE = internal,
     SFUNC = req_float_sketch_build_agg,
     COMBINEFUNC = req_float_sketch_combine,
@@ -104,7 +104,7 @@ CREATE AGGREGATE req_float_sketch_build(real, int, boolean) (
     PARALLEL = SAFE
 );
 
-CREATE AGGREGATE req_float_sketch_merge(req_float_sketch) (
+CREATE OR REPLACE AGGREGATE req_float_sketch_merge(req_float_sketch) (
     STYPE = internal,
     SFUNC = req_float_sketch_merge_agg,
     COMBINEFUNC = req_float_sketch_combine,
@@ -114,7 +114,7 @@ CREATE AGGREGATE req_float_sketch_merge(req_float_sketch) (
     PARALLEL = SAFE
 );
 
-CREATE AGGREGATE req_float_sketch_merge(req_float_sketch, int) (
+CREATE OR REPLACE AGGREGATE req_float_sketch_merge(req_float_sketch, int) (
     STYPE = internal,
     SFUNC = req_float_sketch_merge_agg,
     COMBINEFUNC = req_float_sketch_combine,
@@ -124,7 +124,7 @@ CREATE AGGREGATE req_float_sketch_merge(req_float_sketch, int) (
     PARALLEL = SAFE
 );
 
-CREATE AGGREGATE req_float_sketch_merge(req_float_sketch, int, boolean) (
+CREATE OR REPLACE AGGREGATE req_float_sketch_merge(req_float_sketch, int, boolean) (
     STYPE = internal,
     SFUNC = req_float_sketch_merge_agg,
     COMBINEFUNC = req_float_sketch_combine,

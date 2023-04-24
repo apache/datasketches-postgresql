@@ -86,7 +86,7 @@ CREATE OR REPLACE FUNCTION aod_sketch_deserialize_state(bytea, internal) RETURNS
     AS '$libdir/datasketches', 'pg_aod_sketch_deserialize_state'
     LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
 
-CREATE AGGREGATE aod_sketch_build(anyelement, double precision[]) (
+CREATE OR REPLACE AGGREGATE aod_sketch_build(anyelement, double precision[]) (
     STYPE = internal,
     SFUNC = aod_sketch_build_agg,
     COMBINEFUNC = aod_sketch_union_combine,
@@ -96,7 +96,7 @@ CREATE AGGREGATE aod_sketch_build(anyelement, double precision[]) (
     PARALLEL = SAFE
 );
 
-CREATE AGGREGATE aod_sketch_build(anyelement, double precision[], int) (
+CREATE OR REPLACE AGGREGATE aod_sketch_build(anyelement, double precision[], int) (
     STYPE = internal,
     SFUNC = aod_sketch_build_agg,
     COMBINEFUNC = aod_sketch_union_combine,
@@ -106,7 +106,7 @@ CREATE AGGREGATE aod_sketch_build(anyelement, double precision[], int) (
     PARALLEL = SAFE
 );
 
-CREATE AGGREGATE aod_sketch_build(anyelement, double precision[], int, real) (
+CREATE OR REPLACE AGGREGATE aod_sketch_build(anyelement, double precision[], int, real) (
     STYPE = internal,
     SFUNC = aod_sketch_build_agg,
     COMBINEFUNC = aod_sketch_union_combine,
@@ -116,7 +116,7 @@ CREATE AGGREGATE aod_sketch_build(anyelement, double precision[], int, real) (
     PARALLEL = SAFE
 );
 
-CREATE AGGREGATE aod_sketch_union(aod_sketch) (
+CREATE OR REPLACE AGGREGATE aod_sketch_union(aod_sketch) (
     STYPE = internal,
     SFUNC = aod_sketch_union_agg,
     COMBINEFUNC = aod_sketch_union_combine,
@@ -126,7 +126,7 @@ CREATE AGGREGATE aod_sketch_union(aod_sketch) (
     PARALLEL = SAFE
 );
 
-CREATE AGGREGATE aod_sketch_union(aod_sketch, int) (
+CREATE OR REPLACE AGGREGATE aod_sketch_union(aod_sketch, int) (
     STYPE = internal,
     SFUNC = aod_sketch_union_agg,
     COMBINEFUNC = aod_sketch_union_combine,
@@ -136,7 +136,7 @@ CREATE AGGREGATE aod_sketch_union(aod_sketch, int) (
     PARALLEL = SAFE
 );
 
-CREATE AGGREGATE aod_sketch_union(aod_sketch, int, int) (
+CREATE OR REPLACE AGGREGATE aod_sketch_union(aod_sketch, int, int) (
     STYPE = internal,
     SFUNC = aod_sketch_union_agg,
     COMBINEFUNC = aod_sketch_union_combine,
@@ -146,7 +146,7 @@ CREATE AGGREGATE aod_sketch_union(aod_sketch, int, int) (
     PARALLEL = SAFE
 );
 
-CREATE AGGREGATE aod_sketch_intersection(aod_sketch) (
+CREATE OR REPLACE AGGREGATE aod_sketch_intersection(aod_sketch) (
     STYPE = internal,
     SFUNC = aod_sketch_intersection_agg,
     COMBINEFUNC = aod_sketch_intersection_combine,
@@ -156,7 +156,7 @@ CREATE AGGREGATE aod_sketch_intersection(aod_sketch) (
     PARALLEL = SAFE
 );
 
-CREATE AGGREGATE aod_sketch_intersection(aod_sketch, int) (
+CREATE OR REPLACE AGGREGATE aod_sketch_intersection(aod_sketch, int) (
     STYPE = internal,
     SFUNC = aod_sketch_intersection_agg,
     COMBINEFUNC = aod_sketch_intersection_combine,

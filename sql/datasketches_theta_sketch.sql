@@ -102,7 +102,7 @@ CREATE OR REPLACE AGGREGATE theta_sketch_distinct(anyelement, int) (
     PARALLEL = SAFE
 );
 
-CREATE AGGREGATE theta_sketch_build(anyelement) (
+CREATE OR REPLACE AGGREGATE theta_sketch_build(anyelement) (
     STYPE = internal,
     SFUNC = theta_sketch_build_agg,
     COMBINEFUNC = theta_sketch_union_combine,

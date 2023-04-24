@@ -62,7 +62,7 @@ CREATE OR REPLACE FUNCTION frequent_strings_sketch_finalize(internal) RETURNS fr
     AS '$libdir/datasketches', 'pg_frequent_strings_sketch_serialize'
     LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
 
-CREATE AGGREGATE frequent_strings_sketch_build(int, varchar) (
+CREATE OR REPLACE AGGREGATE frequent_strings_sketch_build(int, varchar) (
     STYPE = internal,
     SFUNC = frequent_strings_sketch_build_agg,
     COMBINEFUNC = frequent_strings_sketch_combine,
@@ -72,7 +72,7 @@ CREATE AGGREGATE frequent_strings_sketch_build(int, varchar) (
     PARALLEL = SAFE
 );
 
-CREATE AGGREGATE frequent_strings_sketch_build(int, varchar, bigint) (
+CREATE OR REPLACE AGGREGATE frequent_strings_sketch_build(int, varchar, bigint) (
     STYPE = internal,
     SFUNC = frequent_strings_sketch_build_agg,
     COMBINEFUNC = frequent_strings_sketch_combine,
@@ -82,7 +82,7 @@ CREATE AGGREGATE frequent_strings_sketch_build(int, varchar, bigint) (
     PARALLEL = SAFE
 );
 
-CREATE AGGREGATE frequent_strings_sketch_merge(int, frequent_strings_sketch) (
+CREATE OR REPLACE AGGREGATE frequent_strings_sketch_merge(int, frequent_strings_sketch) (
     STYPE = internal,
     SFUNC = frequent_strings_sketch_merge_agg,
     COMBINEFUNC = frequent_strings_sketch_combine,

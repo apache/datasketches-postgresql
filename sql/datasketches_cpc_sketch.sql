@@ -70,7 +70,7 @@ CREATE OR REPLACE FUNCTION cpc_sketch_deserialize_state(bytea, internal) RETURNS
     AS '$libdir/datasketches', 'pg_cpc_sketch_deserialize_state'
     LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
 
-CREATE AGGREGATE cpc_sketch_distinct(anyelement) (
+CREATE OR REPLACE AGGREGATE cpc_sketch_distinct(anyelement) (
     STYPE = internal,
     SFUNC = cpc_sketch_build_agg,
     COMBINEFUNC = cpc_sketch_combine,
@@ -80,7 +80,7 @@ CREATE AGGREGATE cpc_sketch_distinct(anyelement) (
     PARALLEL = SAFE
 );
 
-CREATE AGGREGATE cpc_sketch_distinct(anyelement, int) (
+CREATE OR REPLACE AGGREGATE cpc_sketch_distinct(anyelement, int) (
     STYPE = internal,
     SFUNC = cpc_sketch_build_agg,
     COMBINEFUNC = cpc_sketch_combine,
@@ -90,7 +90,7 @@ CREATE AGGREGATE cpc_sketch_distinct(anyelement, int) (
     PARALLEL = SAFE
 );
 
-CREATE AGGREGATE cpc_sketch_build(anyelement) (
+CREATE OR REPLACE AGGREGATE cpc_sketch_build(anyelement) (
     STYPE = internal,
     SFUNC = cpc_sketch_build_agg,
     COMBINEFUNC = cpc_sketch_combine,
@@ -100,7 +100,7 @@ CREATE AGGREGATE cpc_sketch_build(anyelement) (
     PARALLEL = SAFE
 );
 
-CREATE AGGREGATE cpc_sketch_build(anyelement, int) (
+CREATE OR REPLACE AGGREGATE cpc_sketch_build(anyelement, int) (
     STYPE = internal,
     SFUNC = cpc_sketch_build_agg,
     COMBINEFUNC = cpc_sketch_combine,
@@ -110,7 +110,7 @@ CREATE AGGREGATE cpc_sketch_build(anyelement, int) (
     PARALLEL = SAFE
 );
 
-CREATE AGGREGATE cpc_sketch_union(cpc_sketch) (
+CREATE OR REPLACE AGGREGATE cpc_sketch_union(cpc_sketch) (
     STYPE = internal,
     SFUNC = cpc_sketch_union_agg,
     COMBINEFUNC = cpc_sketch_combine,
@@ -120,7 +120,7 @@ CREATE AGGREGATE cpc_sketch_union(cpc_sketch) (
     PARALLEL = SAFE
 );
 
-CREATE AGGREGATE cpc_sketch_union(cpc_sketch, int) (
+CREATE OR REPLACE AGGREGATE cpc_sketch_union(cpc_sketch, int) (
     STYPE = internal,
     SFUNC = cpc_sketch_union_agg,
     COMBINEFUNC = cpc_sketch_combine,

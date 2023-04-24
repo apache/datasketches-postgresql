@@ -66,7 +66,7 @@ CREATE OR REPLACE FUNCTION kll_double_sketch_finalize(internal) RETURNS kll_doub
     AS '$libdir/datasketches', 'pg_kll_double_sketch_serialize'
     LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
 
-CREATE AGGREGATE kll_double_sketch_build(double precision) (
+CREATE OR REPLACE AGGREGATE kll_double_sketch_build(double precision) (
     STYPE = internal,
     SFUNC = kll_double_sketch_build_agg,
     COMBINEFUNC = kll_double_sketch_combine,
@@ -76,7 +76,7 @@ CREATE AGGREGATE kll_double_sketch_build(double precision) (
     PARALLEL = SAFE
 );
 
-CREATE AGGREGATE kll_double_sketch_build(double precision, int) (
+CREATE OR REPLACE AGGREGATE kll_double_sketch_build(double precision, int) (
     STYPE = internal,
     SFUNC = kll_double_sketch_build_agg,
     COMBINEFUNC = kll_double_sketch_combine,
@@ -86,7 +86,7 @@ CREATE AGGREGATE kll_double_sketch_build(double precision, int) (
     PARALLEL = SAFE
 );
 
-CREATE AGGREGATE kll_double_sketch_merge(kll_double_sketch) (
+CREATE OR REPLACE AGGREGATE kll_double_sketch_merge(kll_double_sketch) (
     STYPE = internal,
     SFUNC = kll_double_sketch_merge_agg,
     COMBINEFUNC = kll_double_sketch_combine,
@@ -96,7 +96,7 @@ CREATE AGGREGATE kll_double_sketch_merge(kll_double_sketch) (
     PARALLEL = SAFE
 );
 
-CREATE AGGREGATE kll_double_sketch_merge(kll_double_sketch, int) (
+CREATE OR REPLACE AGGREGATE kll_double_sketch_merge(kll_double_sketch, int) (
     STYPE = internal,
     SFUNC = kll_double_sketch_merge_agg,
     COMBINEFUNC = kll_double_sketch_combine,

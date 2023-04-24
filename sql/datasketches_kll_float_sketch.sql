@@ -66,7 +66,7 @@ CREATE OR REPLACE FUNCTION kll_float_sketch_finalize(internal) RETURNS kll_float
     AS '$libdir/datasketches', 'pg_kll_float_sketch_serialize'
     LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
 
-CREATE AGGREGATE kll_float_sketch_build(real) (
+CREATE OR REPLACE AGGREGATE kll_float_sketch_build(real) (
     STYPE = internal,
     SFUNC = kll_float_sketch_build_agg,
     COMBINEFUNC = kll_float_sketch_combine,
@@ -76,7 +76,7 @@ CREATE AGGREGATE kll_float_sketch_build(real) (
     PARALLEL = SAFE
 );
 
-CREATE AGGREGATE kll_float_sketch_build(real, int) (
+CREATE OR REPLACE AGGREGATE kll_float_sketch_build(real, int) (
     STYPE = internal,
     SFUNC = kll_float_sketch_build_agg,
     COMBINEFUNC = kll_float_sketch_combine,
@@ -86,7 +86,7 @@ CREATE AGGREGATE kll_float_sketch_build(real, int) (
     PARALLEL = SAFE
 );
 
-CREATE AGGREGATE kll_float_sketch_merge(kll_float_sketch) (
+CREATE OR REPLACE AGGREGATE kll_float_sketch_merge(kll_float_sketch) (
     STYPE = internal,
     SFUNC = kll_float_sketch_merge_agg,
     COMBINEFUNC = kll_float_sketch_combine,
@@ -96,7 +96,7 @@ CREATE AGGREGATE kll_float_sketch_merge(kll_float_sketch) (
     PARALLEL = SAFE
 );
 
-CREATE AGGREGATE kll_float_sketch_merge(kll_float_sketch, int) (
+CREATE OR REPLACE AGGREGATE kll_float_sketch_merge(kll_float_sketch, int) (
     STYPE = internal,
     SFUNC = kll_float_sketch_merge_agg,
     COMBINEFUNC = kll_float_sketch_combine,
