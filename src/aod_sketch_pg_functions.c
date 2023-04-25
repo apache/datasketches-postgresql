@@ -129,7 +129,7 @@ Datum pg_aod_sketch_build_agg(PG_FUNCTION_ARGS) {
     stateptr->type = MUTABLE_SKETCH;
     stateptr->lg_k = PG_NARGS() > 3 ? PG_GETARG_INT32(3) : 0;
     stateptr->num_values = arr_len;
-    p = PG_NARGS() > 4 ? PG_GETARG_FLOAT4(4) : 1;
+    p = PG_NARGS() > 4 ? PG_GETARG_FLOAT4(4) : 0;
     if (stateptr->lg_k) {
       stateptr->ptr = p ? aod_sketch_new_lgk_p(arr_len, stateptr->lg_k, p) : aod_sketch_new_lgk(arr_len, stateptr->lg_k);
     } else {

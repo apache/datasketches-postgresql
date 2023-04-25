@@ -90,7 +90,7 @@ Datum pg_theta_sketch_build_agg(PG_FUNCTION_ARGS) {
     stateptr = palloc(sizeof(struct agg_state));
     stateptr->type = MUTABLE_SKETCH;
     stateptr->lg_k = PG_NARGS() > 2 ? PG_GETARG_INT32(2) : 0;
-    p = PG_NARGS() > 3 ? PG_GETARG_FLOAT4(3) : 1;
+    p = PG_NARGS() > 3 ? PG_GETARG_FLOAT4(3) : 0;
     if (stateptr->lg_k) {
       stateptr->ptr = p ? theta_sketch_new_lgk_p(stateptr->lg_k, p) : theta_sketch_new_lgk(stateptr->lg_k);
     } else {
