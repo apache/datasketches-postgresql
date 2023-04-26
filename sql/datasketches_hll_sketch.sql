@@ -19,11 +19,11 @@ CREATE TYPE hll_sketch;
 
 CREATE OR REPLACE FUNCTION hll_sketch_in(cstring) RETURNS hll_sketch
      AS '$libdir/datasketches', 'pg_sketch_in'
-     LANGUAGE C STRICT IMMUTABLE;
+     LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
 
 CREATE OR REPLACE FUNCTION hll_sketch_out(hll_sketch) RETURNS cstring
      AS '$libdir/datasketches', 'pg_sketch_out'
-     LANGUAGE C STRICT IMMUTABLE;
+     LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
 
 CREATE TYPE hll_sketch (
     INPUT = hll_sketch_in,
@@ -34,114 +34,154 @@ CREATE TYPE hll_sketch (
 CREATE CAST (bytea as hll_sketch) WITHOUT FUNCTION AS ASSIGNMENT;
 CREATE CAST (hll_sketch as bytea) WITHOUT FUNCTION AS ASSIGNMENT;
 
-CREATE OR REPLACE FUNCTION hll_sketch_add_item(internal, anyelement) RETURNS internal
-    AS '$libdir/datasketches', 'pg_hll_sketch_add_item'
-    LANGUAGE C IMMUTABLE;
+CREATE OR REPLACE FUNCTION hll_sketch_build_agg(internal, anyelement) RETURNS internal
+    AS '$libdir/datasketches', 'pg_hll_sketch_build_agg'
+    LANGUAGE C IMMUTABLE PARALLEL SAFE;
 
-CREATE OR REPLACE FUNCTION hll_sketch_add_item(internal, anyelement, int) RETURNS internal
-    AS '$libdir/datasketches', 'pg_hll_sketch_add_item'
-    LANGUAGE C IMMUTABLE;
+CREATE OR REPLACE FUNCTION hll_sketch_build_agg(internal, anyelement, int) RETURNS internal
+    AS '$libdir/datasketches', 'pg_hll_sketch_build_agg'
+    LANGUAGE C IMMUTABLE PARALLEL SAFE;
 
-CREATE OR REPLACE FUNCTION hll_sketch_add_item(internal, anyelement, int, int) RETURNS internal
-    AS '$libdir/datasketches', 'pg_hll_sketch_add_item'
-    LANGUAGE C IMMUTABLE;
-
-CREATE OR REPLACE FUNCTION hll_sketch_get_estimate(hll_sketch) RETURNS double precision
-    AS '$libdir/datasketches', 'pg_hll_sketch_get_estimate'
-    LANGUAGE C STRICT IMMUTABLE;
-
-CREATE OR REPLACE FUNCTION hll_sketch_get_estimate_and_bounds(hll_sketch) RETURNS double precision[]
-    AS '$libdir/datasketches', 'pg_hll_sketch_get_estimate_and_bounds'
-    LANGUAGE C STRICT IMMUTABLE;
-
-CREATE OR REPLACE FUNCTION hll_sketch_get_estimate_and_bounds(hll_sketch, int) RETURNS double precision[]
-    AS '$libdir/datasketches', 'pg_hll_sketch_get_estimate_and_bounds'
-    LANGUAGE C STRICT IMMUTABLE;
+CREATE OR REPLACE FUNCTION hll_sketch_build_agg(internal, anyelement, int, int) RETURNS internal
+    AS '$libdir/datasketches', 'pg_hll_sketch_build_agg'
+    LANGUAGE C IMMUTABLE PARALLEL SAFE;
 
 CREATE OR REPLACE FUNCTION hll_sketch_from_internal(internal) RETURNS hll_sketch
     AS '$libdir/datasketches', 'pg_hll_sketch_from_internal'
-    LANGUAGE C STRICT IMMUTABLE;
+    LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
 
 CREATE OR REPLACE FUNCTION hll_sketch_get_estimate_from_internal(internal) RETURNS double precision
     AS '$libdir/datasketches', 'pg_hll_sketch_get_estimate_from_internal'
-    LANGUAGE C STRICT IMMUTABLE;
-
-CREATE OR REPLACE FUNCTION hll_sketch_to_string(hll_sketch) RETURNS TEXT
-    AS '$libdir/datasketches', 'pg_hll_sketch_to_string'
-    LANGUAGE C STRICT IMMUTABLE;
+    LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
 
 CREATE OR REPLACE FUNCTION hll_sketch_union_agg(internal, hll_sketch) RETURNS internal
     AS '$libdir/datasketches', 'pg_hll_sketch_union_agg'
-    LANGUAGE C IMMUTABLE;
+    LANGUAGE C IMMUTABLE PARALLEL SAFE;
 
 CREATE OR REPLACE FUNCTION hll_sketch_union_agg(internal, hll_sketch, int) RETURNS internal
     AS '$libdir/datasketches', 'pg_hll_sketch_union_agg'
-    LANGUAGE C IMMUTABLE;
+    LANGUAGE C IMMUTABLE PARALLEL SAFE;
 
 CREATE OR REPLACE FUNCTION hll_sketch_union_agg(internal, hll_sketch, int, int) RETURNS internal
     AS '$libdir/datasketches', 'pg_hll_sketch_union_agg'
-    LANGUAGE C IMMUTABLE;
+    LANGUAGE C IMMUTABLE PARALLEL SAFE;
 
-CREATE OR REPLACE FUNCTION hll_union_get_result(internal) RETURNS hll_sketch
-    AS '$libdir/datasketches', 'pg_hll_union_get_result'
-    LANGUAGE C STRICT IMMUTABLE;
+CREATE OR REPLACE FUNCTION hll_sketch_combine(internal, internal) RETURNS internal
+    AS '$libdir/datasketches', 'pg_hll_sketch_combine'
+    LANGUAGE C IMMUTABLE PARALLEL SAFE;
 
-CREATE AGGREGATE hll_sketch_distinct(anyelement) (
-    sfunc = hll_sketch_add_item,
-    stype = internal,
-    finalfunc = hll_sketch_get_estimate_from_internal
+CREATE OR REPLACE FUNCTION hll_sketch_serialize_state(internal) RETURNS bytea
+    AS '$libdir/datasketches', 'pg_hll_sketch_serialize_state'
+    LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
+
+CREATE OR REPLACE FUNCTION hll_sketch_deserialize_state(bytea, internal) RETURNS internal
+    AS '$libdir/datasketches', 'pg_hll_sketch_deserialize_state'
+    LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
+
+CREATE OR REPLACE AGGREGATE hll_sketch_distinct(anyelement) (
+    STYPE = internal,
+    SFUNC = hll_sketch_build_agg,
+    COMBINEFUNC = hll_sketch_combine,
+    SERIALFUNC = hll_sketch_serialize_state,
+    DESERIALFUNC = hll_sketch_deserialize_state, 
+    FINALFUNC = hll_sketch_get_estimate_from_internal,
+    PARALLEL = SAFE
 );
 
-CREATE AGGREGATE hll_sketch_distinct(anyelement, int) (
-    sfunc = hll_sketch_add_item,
-    stype = internal,
-    finalfunc = hll_sketch_get_estimate_from_internal
+CREATE OR REPLACE AGGREGATE hll_sketch_distinct(anyelement, int) (
+    STYPE = internal,
+    SFUNC = hll_sketch_build_agg,
+    COMBINEFUNC = hll_sketch_combine,
+    SERIALFUNC = hll_sketch_serialize_state,
+    DESERIALFUNC = hll_sketch_deserialize_state, 
+    FINALFUNC = hll_sketch_get_estimate_from_internal,
+    PARALLEL = SAFE
 );
 
-CREATE AGGREGATE hll_sketch_build(anyelement) (
-    sfunc = hll_sketch_add_item,
-    stype = internal,
-    finalfunc = hll_sketch_from_internal
+CREATE OR REPLACE AGGREGATE hll_sketch_build(anyelement) (
+    STYPE = internal,
+    SFUNC = hll_sketch_build_agg,
+    COMBINEFUNC = hll_sketch_combine,
+    SERIALFUNC = hll_sketch_serialize_state,
+    DESERIALFUNC = hll_sketch_deserialize_state, 
+    FINALFUNC = hll_sketch_from_internal,
+    PARALLEL = SAFE
 );
 
-CREATE AGGREGATE hll_sketch_build(anyelement, int) (
-    sfunc = hll_sketch_add_item,
-    stype = internal,
-    finalfunc = hll_sketch_from_internal
+CREATE OR REPLACE AGGREGATE hll_sketch_build(anyelement, int) (
+    STYPE = internal,
+    SFUNC = hll_sketch_build_agg,
+    COMBINEFUNC = hll_sketch_combine,
+    SERIALFUNC = hll_sketch_serialize_state,
+    DESERIALFUNC = hll_sketch_deserialize_state, 
+    FINALFUNC = hll_sketch_from_internal,
+    PARALLEL = SAFE
 );
 
-CREATE AGGREGATE hll_sketch_build(anyelement, int, int) (
-    sfunc = hll_sketch_add_item,
-    stype = internal,
-    finalfunc = hll_sketch_from_internal
+CREATE OR REPLACE AGGREGATE hll_sketch_build(anyelement, int, int) (
+    STYPE = internal,
+    SFUNC = hll_sketch_build_agg,
+    COMBINEFUNC = hll_sketch_combine,
+    SERIALFUNC = hll_sketch_serialize_state,
+    DESERIALFUNC = hll_sketch_deserialize_state, 
+    FINALFUNC = hll_sketch_from_internal,
+    PARALLEL = SAFE
 );
 
-CREATE AGGREGATE hll_sketch_union(hll_sketch) (
-    sfunc = hll_sketch_union_agg,
-    stype = internal,
-    finalfunc = hll_union_get_result
+CREATE OR REPLACE AGGREGATE hll_sketch_union(hll_sketch) (
+    STYPE = internal,
+    SFUNC = hll_sketch_union_agg,
+    COMBINEFUNC = hll_sketch_combine,
+    SERIALFUNC = hll_sketch_serialize_state,
+    DESERIALFUNC = hll_sketch_deserialize_state, 
+    FINALFUNC = hll_sketch_from_internal,
+    PARALLEL = SAFE
 );
 
-CREATE AGGREGATE hll_sketch_union(hll_sketch, int) (
-    sfunc = hll_sketch_union_agg,
-    stype = internal,
-    finalfunc = hll_union_get_result
+CREATE OR REPLACE AGGREGATE hll_sketch_union(hll_sketch, int) (
+    STYPE = internal,
+    SFUNC = hll_sketch_union_agg,
+    COMBINEFUNC = hll_sketch_combine,
+    SERIALFUNC = hll_sketch_serialize_state,
+    DESERIALFUNC = hll_sketch_deserialize_state, 
+    FINALFUNC = hll_sketch_from_internal,
+    PARALLEL = SAFE
 );
 
-CREATE AGGREGATE hll_sketch_union(hll_sketch, int, int) (
-    sfunc = hll_sketch_union_agg,
-    stype = internal,
-    finalfunc = hll_union_get_result
+CREATE OR REPLACE AGGREGATE hll_sketch_union(hll_sketch, int, int) (
+    STYPE = internal,
+    SFUNC = hll_sketch_union_agg,
+    COMBINEFUNC = hll_sketch_combine,
+    SERIALFUNC = hll_sketch_serialize_state,
+    DESERIALFUNC = hll_sketch_deserialize_state, 
+    FINALFUNC = hll_sketch_from_internal,
+    PARALLEL = SAFE
 );
+
+CREATE OR REPLACE FUNCTION hll_sketch_get_estimate(hll_sketch) RETURNS double precision
+    AS '$libdir/datasketches', 'pg_hll_sketch_get_estimate'
+    LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
+
+CREATE OR REPLACE FUNCTION hll_sketch_get_estimate_and_bounds(hll_sketch) RETURNS double precision[]
+    AS '$libdir/datasketches', 'pg_hll_sketch_get_estimate_and_bounds'
+    LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
+
+CREATE OR REPLACE FUNCTION hll_sketch_get_estimate_and_bounds(hll_sketch, int) RETURNS double precision[]
+    AS '$libdir/datasketches', 'pg_hll_sketch_get_estimate_and_bounds'
+    LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
+
+CREATE OR REPLACE FUNCTION hll_sketch_to_string(hll_sketch) RETURNS TEXT
+    AS '$libdir/datasketches', 'pg_hll_sketch_to_string'
+    LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
 
 CREATE OR REPLACE FUNCTION hll_sketch_union(hll_sketch, hll_sketch) RETURNS hll_sketch
     AS '$libdir/datasketches', 'pg_hll_sketch_union'
-    LANGUAGE C IMMUTABLE;
+    LANGUAGE C IMMUTABLE PARALLEL SAFE;
 
 CREATE OR REPLACE FUNCTION hll_sketch_union(hll_sketch, hll_sketch, int) RETURNS hll_sketch
     AS '$libdir/datasketches', 'pg_hll_sketch_union'
-    LANGUAGE C IMMUTABLE;
+    LANGUAGE C IMMUTABLE PARALLEL SAFE;
 
 CREATE OR REPLACE FUNCTION hll_sketch_union(hll_sketch, hll_sketch, int, int) RETURNS hll_sketch
     AS '$libdir/datasketches', 'pg_hll_sketch_union'
-    LANGUAGE C IMMUTABLE;
+    LANGUAGE C IMMUTABLE PARALLEL SAFE;

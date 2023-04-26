@@ -25,31 +25,32 @@
 #include <catalog/pg_type.h>
 
 #include "req_float_sketch_c_adapter.h"
-#include "base64.h"
 
 /* PG_FUNCTION_INFO_V1 macro to pass functions to postgres */
-PG_FUNCTION_INFO_V1(pg_req_float_sketch_add_item);
+PG_FUNCTION_INFO_V1(pg_req_float_sketch_build_agg);
+PG_FUNCTION_INFO_V1(pg_req_float_sketch_merge_agg);
+PG_FUNCTION_INFO_V1(pg_req_float_sketch_serialize);
+PG_FUNCTION_INFO_V1(pg_req_float_sketch_deserialize);
+PG_FUNCTION_INFO_V1(pg_req_float_sketch_combine);
 PG_FUNCTION_INFO_V1(pg_req_float_sketch_get_rank);
 PG_FUNCTION_INFO_V1(pg_req_float_sketch_get_quantile);
 PG_FUNCTION_INFO_V1(pg_req_float_sketch_get_n);
 PG_FUNCTION_INFO_V1(pg_req_float_sketch_to_string);
-PG_FUNCTION_INFO_V1(pg_req_float_sketch_merge);
-PG_FUNCTION_INFO_V1(pg_req_float_sketch_from_internal);
 PG_FUNCTION_INFO_V1(pg_req_float_sketch_get_pmf);
 PG_FUNCTION_INFO_V1(pg_req_float_sketch_get_cdf);
 PG_FUNCTION_INFO_V1(pg_req_float_sketch_get_quantiles);
 PG_FUNCTION_INFO_V1(pg_req_float_sketch_get_histogram);
 
 /* function declarations */
-Datum pg_req_float_sketch_recv(PG_FUNCTION_ARGS);
-Datum pg_req_float_sketch_send(PG_FUNCTION_ARGS);
-Datum pg_req_float_sketch_add_item(PG_FUNCTION_ARGS);
+Datum pg_req_float_sketch_build_agg(PG_FUNCTION_ARGS);
+Datum pg_req_float_sketch_merge_agg(PG_FUNCTION_ARGS);
+Datum pg_req_float_sketch_serialize(PG_FUNCTION_ARGS);
+Datum pg_req_float_sketch_deserialize(PG_FUNCTION_ARGS);
+Datum pg_req_float_sketch_combine(PG_FUNCTION_ARGS);
 Datum pg_req_float_sketch_get_rank(PG_FUNCTION_ARGS);
 Datum pg_req_float_sketch_get_quantile(PG_FUNCTION_ARGS);
 Datum pg_req_float_sketch_get_n(PG_FUNCTION_ARGS);
 Datum pg_req_float_sketch_to_string(PG_FUNCTION_ARGS);
-Datum pg_req_float_sketch_merge(PG_FUNCTION_ARGS);
-Datum pg_req_float_sketch_from_internal(PG_FUNCTION_ARGS);
 Datum pg_req_float_sketch_get_pmf(PG_FUNCTION_ARGS);
 Datum pg_req_float_sketch_get_cdf(PG_FUNCTION_ARGS);
 Datum pg_req_float_sketch_get_quantiles(PG_FUNCTION_ARGS);
@@ -57,7 +58,7 @@ Datum pg_req_float_sketch_get_histogram(PG_FUNCTION_ARGS);
 
 static const unsigned DEFAULT_NUM_BINS = 10;
 
-Datum pg_req_float_sketch_add_item(PG_FUNCTION_ARGS) {
+Datum pg_req_float_sketch_build_agg(PG_FUNCTION_ARGS) {
   void* sketchptr;
   float value;
   int k;
@@ -73,7 +74,7 @@ Datum pg_req_float_sketch_add_item(PG_FUNCTION_ARGS) {
   }
 
   if (!AggCheckCallContext(fcinfo, &aggcontext)) {
-    elog(ERROR, "req_float_sketch_add_item called in non-aggregate context");
+    elog(ERROR, "req_float_sketch_build_agg called in non-aggregate context");
   }
   oldcontext = MemoryContextSwitchTo(aggcontext);
 
@@ -87,6 +88,116 @@ Datum pg_req_float_sketch_add_item(PG_FUNCTION_ARGS) {
 
   value = PG_GETARG_FLOAT4(1);
   req_float_sketch_update(sketchptr, value);
+
+  MemoryContextSwitchTo(oldcontext);
+
+  PG_RETURN_POINTER(sketchptr);
+}
+
+Datum pg_req_float_sketch_merge_agg(PG_FUNCTION_ARGS) {
+  void* sketchptr;
+  bytea* sketch_bytes;
+  void* in_sketchptr;
+  int k;
+  bool hra;
+
+  MemoryContext oldcontext;
+  MemoryContext aggcontext;
+
+  if (PG_ARGISNULL(0) && PG_ARGISNULL(1)) {
+    PG_RETURN_NULL();
+  } else if (PG_ARGISNULL(1)) {
+    PG_RETURN_POINTER(PG_GETARG_POINTER(0)); // no update value. return unmodified state
+  }
+
+  if (!AggCheckCallContext(fcinfo, &aggcontext)) {
+    elog(ERROR, "req_float_sketch_merge_agg called in non-aggregate context");
+  }
+  oldcontext = MemoryContextSwitchTo(aggcontext);
+
+  if (PG_ARGISNULL(0)) {
+    k = PG_NARGS() > 2 ? PG_GETARG_INT32(2) : DEFAULT_K;
+    hra = PG_NARGS() > 3 ? PG_GETARG_BOOL(3) : true;
+    sketchptr = req_float_sketch_new(k ? k : DEFAULT_K, hra);
+  } else {
+    sketchptr = PG_GETARG_POINTER(0);
+  }
+
+  sketch_bytes = PG_GETARG_BYTEA_P(1);
+  in_sketchptr = req_float_sketch_deserialize(VARDATA(sketch_bytes), VARSIZE(sketch_bytes) - VARHDRSZ);
+  req_float_sketch_merge(sketchptr, in_sketchptr);
+  req_float_sketch_delete(in_sketchptr);
+
+  MemoryContextSwitchTo(oldcontext);
+
+  PG_RETURN_POINTER(sketchptr);
+}
+
+Datum pg_req_float_sketch_serialize(PG_FUNCTION_ARGS) {
+  void* sketchptr;
+  struct ptr_with_size bytes_out;
+  MemoryContext aggcontext;
+
+  if (PG_ARGISNULL(0)) PG_RETURN_NULL();
+  if (!AggCheckCallContext(fcinfo, &aggcontext)) {
+    elog(ERROR, "req_float_sketch_serialize called in non-aggregate context");
+  }
+  sketchptr = PG_GETARG_POINTER(0);
+  bytes_out = req_float_sketch_serialize(sketchptr, VARHDRSZ);
+  req_float_sketch_delete(sketchptr);
+  SET_VARSIZE(bytes_out.ptr, bytes_out.size);
+  PG_RETURN_BYTEA_P(bytes_out.ptr);
+}
+
+Datum pg_req_float_sketch_deserialize(PG_FUNCTION_ARGS) {
+  const bytea* bytes_in;
+  void* sketchptr;
+
+  MemoryContext oldcontext;
+  MemoryContext aggcontext;
+
+  if (PG_ARGISNULL(0)) PG_RETURN_NULL();
+
+  if (!AggCheckCallContext(fcinfo, &aggcontext)) {
+    elog(ERROR, "req_float_sketch_deserialize called in non-aggregate context");
+  }
+  oldcontext = MemoryContextSwitchTo(aggcontext);
+
+  bytes_in = PG_GETARG_BYTEA_P(0);
+  sketchptr = req_float_sketch_deserialize(VARDATA(bytes_in), VARSIZE(bytes_in) - VARHDRSZ);
+
+  MemoryContextSwitchTo(oldcontext);
+
+  PG_RETURN_POINTER(sketchptr);
+}
+
+Datum pg_req_float_sketch_combine(PG_FUNCTION_ARGS) {
+  void* sketchptr1;
+  void* sketchptr2;
+  void* sketchptr;
+
+  MemoryContext oldcontext;
+  MemoryContext aggcontext;
+
+  if (PG_ARGISNULL(0) && PG_ARGISNULL(1)) PG_RETURN_NULL();
+
+  if (!AggCheckCallContext(fcinfo, &aggcontext)) {
+    elog(ERROR, "req_float_sketch_combine called in non-aggregate context");
+  }
+  oldcontext = MemoryContextSwitchTo(aggcontext);
+
+  sketchptr1 = PG_GETARG_POINTER(0);
+  sketchptr2 = PG_GETARG_POINTER(1);
+
+  if (sketchptr1) {
+    sketchptr = sketchptr1;
+    if (sketchptr2) {
+      req_float_sketch_merge(sketchptr, sketchptr2);
+    }
+    req_float_sketch_delete(sketchptr2);
+  } else {
+    sketchptr = sketchptr2;
+  }
 
   MemoryContextSwitchTo(oldcontext);
 
@@ -143,61 +254,6 @@ Datum pg_req_float_sketch_to_string(PG_FUNCTION_ARGS) {
   str = req_float_sketch_to_string(sketchptr);
   req_float_sketch_delete(sketchptr);
   PG_RETURN_TEXT_P(cstring_to_text(str));
-}
-
-Datum pg_req_float_sketch_merge(PG_FUNCTION_ARGS) {
-  void* unionptr;
-  bytea* sketch_bytes;
-  void* sketchptr;
-  int k;
-  bool hra;
-
-  MemoryContext oldcontext;
-  MemoryContext aggcontext;
-
-  if (PG_ARGISNULL(0) && PG_ARGISNULL(1)) {
-    PG_RETURN_NULL();
-  } else if (PG_ARGISNULL(1)) {
-    PG_RETURN_POINTER(PG_GETARG_POINTER(0)); // no update value. return unmodified state
-  }
-
-  if (!AggCheckCallContext(fcinfo, &aggcontext)) {
-    elog(ERROR, "req_float_sketch_merge called in non-aggregate context");
-  }
-  oldcontext = MemoryContextSwitchTo(aggcontext);
-
-  if (PG_ARGISNULL(0)) {
-    k = PG_NARGS() > 2 ? PG_GETARG_INT32(2) : DEFAULT_K;
-    hra = PG_NARGS() > 3 ? PG_GETARG_BOOL(3) : true;
-    unionptr = req_float_sketch_new(k ? k : DEFAULT_K, hra);
-  } else {
-    unionptr = PG_GETARG_POINTER(0);
-  }
-
-  sketch_bytes = PG_GETARG_BYTEA_P(1);
-  sketchptr = req_float_sketch_deserialize(VARDATA(sketch_bytes), VARSIZE(sketch_bytes) - VARHDRSZ);
-  req_float_sketch_merge(unionptr, sketchptr);
-  req_float_sketch_delete(sketchptr);
-
-  MemoryContextSwitchTo(oldcontext);
-
-  PG_RETURN_POINTER(unionptr);
-}
-
-Datum pg_req_float_sketch_from_internal(PG_FUNCTION_ARGS) {
-  void* sketchptr;
-  struct ptr_with_size bytes_out;
-  MemoryContext aggcontext;
-
-  if (PG_ARGISNULL(0)) PG_RETURN_NULL();
-  if (!AggCheckCallContext(fcinfo, &aggcontext)) {
-    elog(ERROR, "req_float_sketch_from_internal called in non-aggregate context");
-  }
-  sketchptr = PG_GETARG_POINTER(0);
-  bytes_out = req_float_sketch_serialize(sketchptr, VARHDRSZ);
-  req_float_sketch_delete(sketchptr);
-  SET_VARSIZE(bytes_out.ptr, bytes_out.size);
-  PG_RETURN_BYTEA_P(bytes_out.ptr);
 }
 
 Datum pg_req_float_sketch_get_pmf(PG_FUNCTION_ARGS) {

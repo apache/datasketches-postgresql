@@ -218,9 +218,12 @@ void aod_union_update(void* unionptr, const void* sketchptr) {
   }
 }
 
-void* aod_union_get_result(const void* unionptr) {
+void* aod_union_get_result(void* unionptr) {
   try {
-    return new (palloc(sizeof(compact_aod_sketch_pg))) compact_aod_sketch_pg(static_cast<const aod_union_pg*>(unionptr)->get_result());
+    auto sketchptr = new (palloc(sizeof(compact_aod_sketch_pg))) compact_aod_sketch_pg(static_cast<const aod_union_pg*>(unionptr)->get_result());
+    static_cast<aod_union_pg*>(unionptr)->~aod_union_pg();
+    pfree(unionptr);
+    return sketchptr;
   } catch (std::exception& e) {
     pg_error(e.what());
   }
@@ -253,9 +256,12 @@ void aod_intersection_update(void* interptr, const void* sketchptr) {
   }
 }
 
-void* aod_intersection_get_result(const void* interptr) {
+void* aod_intersection_get_result(void* interptr) {
   try {
-    return new (palloc(sizeof(compact_aod_sketch_pg))) compact_aod_sketch_pg(static_cast<const aod_intersection_pg*>(interptr)->get_result());
+    auto sketchptr = new (palloc(sizeof(compact_aod_sketch_pg))) compact_aod_sketch_pg(static_cast<aod_intersection_pg*>(interptr)->get_result());
+    static_cast<aod_intersection_pg*>(interptr)->~aod_intersection_pg();
+    pfree(interptr);
+    return sketchptr;
   } catch (std::exception& e) {
     pg_error(e.what());
   }

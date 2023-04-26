@@ -26,22 +26,23 @@
 #include <funcapi.h>
 
 #include "frequent_strings_sketch_c_adapter.h"
-#include "base64.h"
 
 /* PG_FUNCTION_INFO_V1 macro to pass functions to postgres */
-PG_FUNCTION_INFO_V1(pg_frequent_strings_sketch_add_item);
-PG_FUNCTION_INFO_V1(pg_frequent_strings_sketch_merge);
-PG_FUNCTION_INFO_V1(pg_frequent_strings_sketch_from_internal);
+PG_FUNCTION_INFO_V1(pg_frequent_strings_sketch_build_agg);
+PG_FUNCTION_INFO_V1(pg_frequent_strings_sketch_merge_agg);
+PG_FUNCTION_INFO_V1(pg_frequent_strings_sketch_serialize);
+PG_FUNCTION_INFO_V1(pg_frequent_strings_sketch_deserialize);
+PG_FUNCTION_INFO_V1(pg_frequent_strings_sketch_combine);
 PG_FUNCTION_INFO_V1(pg_frequent_strings_sketch_to_string);
 PG_FUNCTION_INFO_V1(pg_frequent_strings_sketch_result_no_false_positives);
 PG_FUNCTION_INFO_V1(pg_frequent_strings_sketch_result_no_false_negatives);
 
 /* function declarations */
-Datum pg_frequent_strings_sketch_recv(PG_FUNCTION_ARGS);
-Datum pg_frequent_strings_sketch_send(PG_FUNCTION_ARGS);
-Datum pg_frequent_strings_sketch_add_item(PG_FUNCTION_ARGS);
-Datum pg_frequent_strings_sketch_merge(PG_FUNCTION_ARGS);
-Datum pg_frequent_strings_sketch_from_internal(PG_FUNCTION_ARGS);
+Datum pg_frequent_strings_sketch_build_agg(PG_FUNCTION_ARGS);
+Datum pg_frequent_strings_sketch_merge_agg(PG_FUNCTION_ARGS);
+Datum pg_frequent_strings_sketch_serialize(PG_FUNCTION_ARGS);
+Datum pg_frequent_strings_sketch_deserialize(PG_FUNCTION_ARGS);
+Datum pg_frequent_strings_sketch_combine(PG_FUNCTION_ARGS);
 Datum pg_frequent_strings_sketch_to_string(PG_FUNCTION_ARGS);
 Datum pg_frequent_strings_sketch_result_no_false_positives(PG_FUNCTION_ARGS);
 Datum pg_frequent_strings_sketch_result_no_false_negatives(PG_FUNCTION_ARGS);
@@ -49,7 +50,7 @@ Datum pg_frequent_strings_sketch_result_no_false_negatives(PG_FUNCTION_ARGS);
 Datum frequent_strings_sketch_get_result(PG_FUNCTION_ARGS, bool);
 
 
-Datum pg_frequent_strings_sketch_add_item(PG_FUNCTION_ARGS) {
+Datum pg_frequent_strings_sketch_build_agg(PG_FUNCTION_ARGS) {
   void* sketchptr;
   unsigned lg_k;
   const VarChar* str;
@@ -65,7 +66,7 @@ Datum pg_frequent_strings_sketch_add_item(PG_FUNCTION_ARGS) {
   }
 
   if (!AggCheckCallContext(fcinfo, &aggcontext)) {
-    elog(ERROR, "frequent_strings_sketch_add_item called in non-aggregate context");
+    elog(ERROR, "frequent_strings_sketch_build_agg called in non-aggregate context");
   }
   oldcontext = MemoryContextSwitchTo(aggcontext);
 
@@ -88,7 +89,7 @@ Datum pg_frequent_strings_sketch_add_item(PG_FUNCTION_ARGS) {
   PG_RETURN_POINTER(sketchptr);
 }
 
-Datum pg_frequent_strings_sketch_merge(PG_FUNCTION_ARGS) {
+Datum pg_frequent_strings_sketch_merge_agg(PG_FUNCTION_ARGS) {
   void* unionptr;
   bytea* sketch_bytes;
   void* sketchptr;
@@ -104,7 +105,7 @@ Datum pg_frequent_strings_sketch_merge(PG_FUNCTION_ARGS) {
   }
 
   if (!AggCheckCallContext(fcinfo, &aggcontext)) {
-    elog(ERROR, "frequent_strings_sketch_merge called in non-aggregate context");
+    elog(ERROR, "frequent_strings_sketch_merge_agg called in non-aggregate context");
   }
   oldcontext = MemoryContextSwitchTo(aggcontext);
 
@@ -125,19 +126,74 @@ Datum pg_frequent_strings_sketch_merge(PG_FUNCTION_ARGS) {
   PG_RETURN_POINTER(unionptr);
 }
 
-Datum pg_frequent_strings_sketch_from_internal(PG_FUNCTION_ARGS) {
+Datum pg_frequent_strings_sketch_serialize(PG_FUNCTION_ARGS) {
   void* sketchptr;
   struct ptr_with_size bytes_out;
   MemoryContext aggcontext;
   if (PG_ARGISNULL(0)) PG_RETURN_NULL();
   if (!AggCheckCallContext(fcinfo, &aggcontext)) {
-    elog(ERROR, "frequent_strings_sketch_from_internal called in non-aggregate context");
+    elog(ERROR, "frequent_strings_sketch_serialize called in non-aggregate context");
   }
   sketchptr = PG_GETARG_POINTER(0);
   bytes_out = frequent_strings_sketch_serialize(sketchptr, VARHDRSZ);
   frequent_strings_sketch_delete(sketchptr);
   SET_VARSIZE(bytes_out.ptr, bytes_out.size);
   PG_RETURN_BYTEA_P(bytes_out.ptr);
+}
+
+Datum pg_frequent_strings_sketch_deserialize(PG_FUNCTION_ARGS) {
+  const bytea* bytes_in;
+  void* sketchptr;
+
+  MemoryContext oldcontext;
+  MemoryContext aggcontext;
+
+  if (PG_ARGISNULL(0)) PG_RETURN_NULL();
+
+  if (!AggCheckCallContext(fcinfo, &aggcontext)) {
+    elog(ERROR, "frequent_strings_sketch_deserialize called in non-aggregate context");
+  }
+  oldcontext = MemoryContextSwitchTo(aggcontext);
+
+  bytes_in = PG_GETARG_BYTEA_P(0);
+  sketchptr = frequent_strings_sketch_deserialize(VARDATA(bytes_in), VARSIZE(bytes_in) - VARHDRSZ);
+
+  MemoryContextSwitchTo(oldcontext);
+
+  PG_RETURN_POINTER(sketchptr);
+}
+
+Datum pg_frequent_strings_sketch_combine(PG_FUNCTION_ARGS) {
+  void* sketchptr1;
+  void* sketchptr2;
+  void* sketchptr;
+
+  MemoryContext oldcontext;
+  MemoryContext aggcontext;
+
+  if (PG_ARGISNULL(0) && PG_ARGISNULL(1)) PG_RETURN_NULL();
+
+  if (!AggCheckCallContext(fcinfo, &aggcontext)) {
+    elog(ERROR, "frequent_strings_sketch_combine called in non-aggregate context");
+  }
+  oldcontext = MemoryContextSwitchTo(aggcontext);
+
+  sketchptr1 = PG_GETARG_POINTER(0);
+  sketchptr2 = PG_GETARG_POINTER(1);
+
+  if (sketchptr1) {
+    sketchptr = sketchptr1;
+    if (sketchptr2) {
+      frequent_strings_sketch_merge(sketchptr, sketchptr2);
+    }
+    frequent_strings_sketch_delete(sketchptr2);
+  } else {
+    sketchptr = sketchptr2;
+  }
+
+  MemoryContextSwitchTo(oldcontext);
+
+  PG_RETURN_POINTER(sketchptr);
 }
 
 Datum pg_frequent_strings_sketch_to_string(PG_FUNCTION_ARGS) {

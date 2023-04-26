@@ -19,11 +19,11 @@ CREATE TYPE kll_double_sketch;
 
 CREATE OR REPLACE FUNCTION kll_double_sketch_in(cstring) RETURNS kll_double_sketch
      AS '$libdir/datasketches', 'pg_sketch_in'
-     LANGUAGE C STRICT IMMUTABLE;
+     LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
 
 CREATE OR REPLACE FUNCTION kll_double_sketch_out(kll_double_sketch) RETURNS cstring
      AS '$libdir/datasketches', 'pg_sketch_out'
-     LANGUAGE C STRICT IMMUTABLE;
+     LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
 
 CREATE TYPE kll_double_sketch (
     INPUT = kll_double_sketch_in,
@@ -34,82 +34,110 @@ CREATE TYPE kll_double_sketch (
 CREATE CAST (bytea as kll_double_sketch) WITHOUT FUNCTION AS ASSIGNMENT;
 CREATE CAST (kll_double_sketch as bytea) WITHOUT FUNCTION AS ASSIGNMENT;
 
-CREATE OR REPLACE FUNCTION kll_double_sketch_add_item(internal, double precision) RETURNS internal
-    AS '$libdir/datasketches', 'pg_kll_double_sketch_add_item'
-    LANGUAGE C IMMUTABLE;
+CREATE OR REPLACE FUNCTION kll_double_sketch_build_agg(internal, double precision) RETURNS internal
+    AS '$libdir/datasketches', 'pg_kll_double_sketch_build_agg'
+    LANGUAGE C IMMUTABLE PARALLEL SAFE;
 
-CREATE OR REPLACE FUNCTION kll_double_sketch_add_item(internal, double precision, int) RETURNS internal
-    AS '$libdir/datasketches', 'pg_kll_double_sketch_add_item'
-    LANGUAGE C IMMUTABLE;
+CREATE OR REPLACE FUNCTION kll_double_sketch_build_agg(internal, double precision, int) RETURNS internal
+    AS '$libdir/datasketches', 'pg_kll_double_sketch_build_agg'
+    LANGUAGE C IMMUTABLE PARALLEL SAFE;
+
+CREATE OR REPLACE FUNCTION kll_double_sketch_merge_agg(internal, kll_double_sketch) RETURNS internal
+    AS '$libdir/datasketches', 'pg_kll_double_sketch_merge_agg'
+    LANGUAGE C IMMUTABLE PARALLEL SAFE;
+
+CREATE OR REPLACE FUNCTION kll_double_sketch_merge_agg(internal, kll_double_sketch, int) RETURNS internal
+    AS '$libdir/datasketches', 'pg_kll_double_sketch_merge_agg'
+    LANGUAGE C IMMUTABLE PARALLEL SAFE;
+
+CREATE OR REPLACE FUNCTION kll_double_sketch_serialize(internal) RETURNS bytea
+    AS '$libdir/datasketches', 'pg_kll_double_sketch_serialize'
+    LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
+
+CREATE OR REPLACE FUNCTION kll_double_sketch_deserialize(bytea, internal) RETURNS internal
+    AS '$libdir/datasketches', 'pg_kll_double_sketch_deserialize'
+    LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
+
+CREATE OR REPLACE FUNCTION kll_double_sketch_combine(internal, internal) RETURNS internal
+    AS '$libdir/datasketches', 'pg_kll_double_sketch_combine'
+    LANGUAGE C IMMUTABLE PARALLEL SAFE;
+
+CREATE OR REPLACE FUNCTION kll_double_sketch_finalize(internal) RETURNS kll_double_sketch
+    AS '$libdir/datasketches', 'pg_kll_double_sketch_serialize'
+    LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
+
+CREATE OR REPLACE AGGREGATE kll_double_sketch_build(double precision) (
+    STYPE = internal,
+    SFUNC = kll_double_sketch_build_agg,
+    COMBINEFUNC = kll_double_sketch_combine,
+    SERIALFUNC = kll_double_sketch_serialize,
+    DESERIALFUNC = kll_double_sketch_deserialize, 
+    FINALFUNC = kll_double_sketch_finalize,
+    PARALLEL = SAFE
+);
+
+CREATE OR REPLACE AGGREGATE kll_double_sketch_build(double precision, int) (
+    STYPE = internal,
+    SFUNC = kll_double_sketch_build_agg,
+    COMBINEFUNC = kll_double_sketch_combine,
+    SERIALFUNC = kll_double_sketch_serialize,
+    DESERIALFUNC = kll_double_sketch_deserialize, 
+    FINALFUNC = kll_double_sketch_finalize,
+    PARALLEL = SAFE
+);
+
+CREATE OR REPLACE AGGREGATE kll_double_sketch_merge(kll_double_sketch) (
+    STYPE = internal,
+    SFUNC = kll_double_sketch_merge_agg,
+    COMBINEFUNC = kll_double_sketch_combine,
+    SERIALFUNC = kll_double_sketch_serialize,
+    DESERIALFUNC = kll_double_sketch_deserialize, 
+    FINALFUNC = kll_double_sketch_finalize,
+    PARALLEL = SAFE
+);
+
+CREATE OR REPLACE AGGREGATE kll_double_sketch_merge(kll_double_sketch, int) (
+    STYPE = internal,
+    SFUNC = kll_double_sketch_merge_agg,
+    COMBINEFUNC = kll_double_sketch_combine,
+    SERIALFUNC = kll_double_sketch_serialize,
+    DESERIALFUNC = kll_double_sketch_deserialize, 
+    FINALFUNC = kll_double_sketch_finalize,
+    PARALLEL = SAFE
+);
 
 CREATE OR REPLACE FUNCTION kll_double_sketch_get_rank(kll_double_sketch, double precision) RETURNS double precision
     AS '$libdir/datasketches', 'pg_kll_double_sketch_get_rank'
-    LANGUAGE C STRICT IMMUTABLE;
+    LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
 
 CREATE OR REPLACE FUNCTION kll_double_sketch_get_quantile(kll_double_sketch, double precision) RETURNS double precision
     AS '$libdir/datasketches', 'pg_kll_double_sketch_get_quantile'
-    LANGUAGE C STRICT IMMUTABLE;
+    LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
 
 CREATE OR REPLACE FUNCTION kll_double_sketch_get_n(kll_double_sketch) RETURNS bigint
     AS '$libdir/datasketches', 'pg_kll_double_sketch_get_n'
-    LANGUAGE C STRICT IMMUTABLE;
+    LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
 
 CREATE OR REPLACE FUNCTION kll_double_sketch_to_string(kll_double_sketch) RETURNS TEXT
     AS '$libdir/datasketches', 'pg_kll_double_sketch_to_string'
-    LANGUAGE C STRICT IMMUTABLE;
-
-CREATE OR REPLACE FUNCTION kll_double_sketch_merge(internal, kll_double_sketch) RETURNS internal
-    AS '$libdir/datasketches', 'pg_kll_double_sketch_merge'
-    LANGUAGE C IMMUTABLE;
-
-CREATE OR REPLACE FUNCTION kll_double_sketch_merge(internal, kll_double_sketch, int) RETURNS internal
-    AS '$libdir/datasketches', 'pg_kll_double_sketch_merge'
-    LANGUAGE C IMMUTABLE;
-
-CREATE OR REPLACE FUNCTION kll_double_sketch_from_internal(internal) RETURNS kll_double_sketch
-    AS '$libdir/datasketches', 'pg_kll_double_sketch_from_internal'
-    LANGUAGE C STRICT IMMUTABLE;
-
-CREATE AGGREGATE kll_double_sketch_build(double precision) (
-    sfunc = kll_double_sketch_add_item,
-    stype = internal,
-    finalfunc = kll_double_sketch_from_internal
-);
-
-CREATE AGGREGATE kll_double_sketch_build(double precision, int) (
-    sfunc = kll_double_sketch_add_item,
-    stype = internal,
-    finalfunc = kll_double_sketch_from_internal
-);
-
-CREATE AGGREGATE kll_double_sketch_merge(kll_double_sketch) (
-    sfunc = kll_double_sketch_merge,
-    stype = internal,
-    finalfunc = kll_double_sketch_from_internal
-);
-
-CREATE AGGREGATE kll_double_sketch_merge(kll_double_sketch, int) (
-    sfunc = kll_double_sketch_merge,
-    stype = internal,
-    finalfunc = kll_double_sketch_from_internal
-);
+    LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
 
 CREATE OR REPLACE FUNCTION kll_double_sketch_get_pmf(kll_double_sketch, double precision[]) RETURNS double precision[]
     AS '$libdir/datasketches', 'pg_kll_double_sketch_get_pmf'
-    LANGUAGE C STRICT IMMUTABLE;
+    LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
 
 CREATE OR REPLACE FUNCTION kll_double_sketch_get_cdf(kll_double_sketch, double precision[]) RETURNS double precision[]
     AS '$libdir/datasketches', 'pg_kll_double_sketch_get_cdf'
-    LANGUAGE C STRICT IMMUTABLE;
+    LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
 
 CREATE OR REPLACE FUNCTION kll_double_sketch_get_quantiles(kll_double_sketch, double precision[]) RETURNS double precision[]
     AS '$libdir/datasketches', 'pg_kll_double_sketch_get_quantiles'
-    LANGUAGE C STRICT IMMUTABLE;
+    LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
 
 CREATE OR REPLACE FUNCTION kll_double_sketch_get_histogram(kll_double_sketch) RETURNS double precision[]
     AS '$libdir/datasketches', 'pg_kll_double_sketch_get_histogram'
-    LANGUAGE C STRICT IMMUTABLE;
+    LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
 
 CREATE OR REPLACE FUNCTION kll_double_sketch_get_histogram(kll_double_sketch, int) RETURNS double precision[]
     AS '$libdir/datasketches', 'pg_kll_double_sketch_get_histogram'
-    LANGUAGE C STRICT IMMUTABLE;
+    LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;

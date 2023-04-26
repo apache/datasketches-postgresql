@@ -23,8 +23,8 @@
 
 #include <hll.hpp>
 
-typedef datasketches::hll_sketch_alloc<palloc_allocator<char>> hll_sketch_pg;
-typedef datasketches::hll_union_alloc<palloc_allocator<char>> hll_union_pg;
+using hll_sketch_pg = datasketches::hll_sketch_alloc<palloc_allocator<char>>;
+using hll_union_pg = datasketches::hll_union_alloc<palloc_allocator<char>>;
 
 void* hll_sketch_new(unsigned lg_k) {
   try {
@@ -152,7 +152,10 @@ void hll_union_update(void* unionptr, const void* sketchptr) {
 
 void* hll_union_get_result(void* unionptr) {
   try {
-    return new (palloc(sizeof(hll_sketch_pg))) hll_sketch_pg(static_cast<hll_union_pg*>(unionptr)->get_result());
+    auto sketchptr = new (palloc(sizeof(hll_sketch_pg))) hll_sketch_pg(static_cast<const hll_union_pg*>(unionptr)->get_result());
+    static_cast<hll_union_pg*>(unionptr)->~hll_union_pg();
+    pfree(unionptr);
+    return sketchptr;
   } catch (std::exception& e) {
     pg_error(e.what());
   }
@@ -161,9 +164,12 @@ void* hll_union_get_result(void* unionptr) {
 
 void* hll_union_get_result_tgt_type(void* unionptr, unsigned tgt_type) {
   try {
-    return new (palloc(sizeof(hll_sketch_pg))) hll_sketch_pg(static_cast<hll_union_pg*>(unionptr)->get_result(
+    auto sketchptr = new (palloc(sizeof(hll_sketch_pg))) hll_sketch_pg(static_cast<const hll_union_pg*>(unionptr)->get_result(
       tgt_type == 4 ? datasketches::target_hll_type::HLL_4 : tgt_type == 6 ? datasketches::target_hll_type::HLL_6 : datasketches::target_hll_type::HLL_8
     ));
+    static_cast<hll_union_pg*>(unionptr)->~hll_union_pg();
+    pfree(unionptr);
+    return sketchptr;
   } catch (std::exception& e) {
     pg_error(e.what());
   }

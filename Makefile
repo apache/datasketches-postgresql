@@ -29,7 +29,7 @@ SQL_MODULES = sql/datasketches_cpc_sketch.sql \
   sql/datasketches_req_float_sketch.sql \
   sql/datasketches_quantiles_double_sketch.sql
 SQL_INSTALL = sql/$(EXTENSION)--$(EXTVERSION).sql
-DATA = $(SQL_INSTALL) sql/datasketches--1.3.0--1.4.0.sql sql/datasketches--1.4.0--1.5.0.sql
+DATA = $(SQL_INSTALL) sql/datasketches--1.3.0--1.4.0.sql sql/datasketches--1.4.0--1.5.0.sql sql/datasketches--1.5.0--1.6.0.sql
 
 EXTRA_CLEAN = $(SQL_INSTALL)
 
