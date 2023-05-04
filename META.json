@@ -1,7 +1,7 @@
 {
    "name": "datasketches",
    "abstract": "approximate algorithms for big data analysis",
-   "version": "1.6.0-SNAPSHOT",
+   "version": "1.7.0-SNAPSHOT",
    "maintainer": [
      "Apache DataSketches Dev List <dev@datasketches.apache.org>",
      "Apache DataSketches Users List <users@datasketches.apache.org>"
@@ -11,47 +11,47 @@
       "cpc_sketch": {
          "abstract": "CPC sketch for approximate distinct counting",
          "file": "sql/datasketches_cpc_sketch.sql",
-         "version": "1.6.0-SNAPSHOT"
+         "version": "1.7.0-SNAPSHOT"
       },
       "theta_sketch": {
          "abstract": "Theta sketch for approximate distinct counting with set operations",
          "file": "sql/datasketches_theta_sketch.sql",
-         "version": "1.6.0-SNAPSHOT"
+         "version": "1.7.0-SNAPSHOT"
       },
       "aod_sketch": {
          "abstract": "Specialized Tuple sketch with an array of double values associated with each key",
          "file": "sql/datasketches_aod_sketch.sql",
-         "version": "1.6.0-SNAPSHOT"
+         "version": "1.7.0-SNAPSHOT"
       },
       "hll_sketch": {
          "abstract": "HLL sketch for approximate distinct counting",
          "file": "sql/datasketches_hll_sketch.sql",
-         "version": "1.6.0-SNAPSHOT"
+         "version": "1.7.0-SNAPSHOT"
       },
       "kll_float_sketch": {
          "abstract": "KLL quantiles sketch for approximating distributions of float values (quanitles, ranks, histograms)",
          "file": "sql/datasketches_kll_float_sketch.sql",
-         "version": "1.6.0-SNAPSHOT"
+         "version": "1.7.0-SNAPSHOT"
       },
       "kll_double_sketch": {
          "abstract": "KLL quantiles sketch for approximating distributions of double values (quanitles, ranks, histograms)",
          "file": "sql/datasketches_kll_double_sketch.sql",
-         "version": "1.6.0-SNAPSHOT"
+         "version": "1.7.0-SNAPSHOT"
       },
       "req_float_sketch": {
          "abstract": "REQ (Relative Error Quantiles) sketch for approximating distributions of float values (quanitles, ranks, histograms)",
          "file": "sql/datasketches_req_float_sketch.sql",
-         "version": "1.6.0-SNAPSHOT"
+         "version": "1.7.0-SNAPSHOT"
       },
       "frequent_strings_sketch": {
          "abstract": "frequent items sketch for approximate computation of the most frequent strings",
          "file": "sql/datasketches_frequent_strings_sketch.sql",
-         "version": "1.6.0-SNAPSHOT"
+         "version": "1.7.0-SNAPSHOT"
       },
       "quantiles_double_sketch": {
          "abstract": "Quantiles sketch for approximating distributions of double values (quanitles, ranks, histograms), superseded by KLL sketch, included to support legacy sketch data from other platforms",
          "file": "sql/datasketches_quantiles_double_sketch.sql",
-         "version": "1.6.0-SNAPSHOT"
+         "version": "1.7.0-SNAPSHOT"
       }
    },
    "resources": {
