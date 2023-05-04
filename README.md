@@ -36,7 +36,7 @@ This module currently supports the following sketches:
 
 This code is intended to be distributed as a PostgreSQL extension on [PGXN site](https://pgxn.org/)
 
-This code is expected to be compatible with PostgreSQL versions 9.6 and higher. It was tested with REL\_11\_STABLE branch.
+This code is expected to be compatible with PostgreSQL versions 9.6 and higher.
 PostreSQL must be installed to compile the extension. The path to PostgreSQL executables must be set up (try running 'pg_config' to test).
 For PostgreSQL installation instructions see [PostgreSQL documentation](https://www.postgresql.org/docs/current/tutorial-start.html)
 
