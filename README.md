@@ -36,11 +36,11 @@ This module currently supports the following sketches:
 
 This code is intended to be distributed as a PostgreSQL extension on [PGXN site](https://pgxn.org/)
 
-This code is expected to be compatible with PostgreSQL versions 9.4 and higher. It was tested with REL\_11\_STABLE branch.
+This code is expected to be compatible with PostgreSQL versions 9.6 and higher. It was tested with REL\_11\_STABLE branch.
 PostreSQL must be installed to compile the extension. The path to PostgreSQL executables must be set up (try running 'pg_config' to test).
 For PostgreSQL installation instructions see [PostgreSQL documentation](https://www.postgresql.org/docs/current/tutorial-start.html)
 
-This code requires C++11. It was tested with GCC 4.8.5 (standard in RedHat at the time of this writing), GCC 8.2.0, GCC 9.2.0, Apple LLVM version 10.0.1 (clang-1001.0.46.4) and version 11.0.0 (clang-1100.0.33.8).
+This code requires C++11.
 
 This code depends on [datasketches-cpp](https://github.com/apache/datasketches-cpp/)
 and [Boost](https://www.boost.org/)
