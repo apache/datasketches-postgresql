@@ -32,7 +32,7 @@ This module currently supports the following sketches:
 - KLL float quantiles sketch - for estimating distributions: quantile, rank, PMF (histogram), CDF
 - Frequent strings sketch - capture the heaviest items (strings) by count or by some other weight
 
-## How to build and install [![Build Status](https://travis-ci.org/apache/incubator-datasketches-postgresql.svg?branch=master)](https://travis-ci.org/apache/incubator-datasketches-postgresql)
+## How to build and install
 
 This code is intended to be distributed as a PostgreSQL extension on [PGXN site](https://pgxn.org/)
 
