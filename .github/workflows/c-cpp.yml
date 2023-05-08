@@ -11,7 +11,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-#    - name: install
-#      run: sudo apt install -y postgresql-12 postgresql-client-12 postgresql-server-dev-12 libpq-dev
+    - name: install
+      run: sudo apt-get -y install postgresql-14 postgresql-client-14 postgresql-server-dev-14 libpq-dev
     - name: make
       run: make
