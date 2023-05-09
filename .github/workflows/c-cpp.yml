@@ -24,7 +24,7 @@ jobs:
     - name: make
       run: make
     - name: install
-      run: make install
+      run: sudo make install
     - name: start server
       run: |
         sudo systemctl start postgresql.service
