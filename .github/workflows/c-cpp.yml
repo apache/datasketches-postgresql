@@ -10,9 +10,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name checkout
+    - name: checkout
       uses: actions/checkout@v3
-    - name checkout datasketches-cpp
+    - name: checkout datasketches-cpp
       uses: actions/checkout@v3
         with:
           repository: apache/datasketches-cpp
