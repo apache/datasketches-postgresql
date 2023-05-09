@@ -88,3 +88,6 @@ boost:
 	wget $(BOOST_URL)
 	unzip $(BOOST_FILE).zip
 	ln -s $(BOOST_FILE) boost
+
+tests:
+	@for t in test/*.sql; do psql test -f $$t; done
