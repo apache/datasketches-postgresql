@@ -10,8 +10,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: install
+    - name checkout
+      uses: actions/checkout@v3
+    - name checkout datasketches-cpp
+      uses: actions/checkout@v3
+        with:
+          repository: apache/datasketches-cpp
+          path: datasketches-cpp
+    - name: download Boost
+      run: make boost
+    - name: install PostgreSQL
       run: sudo apt-get -y install postgresql-14 postgresql-client-14 postgresql-server-dev-14 libpq-dev
     - name: make
       run: make

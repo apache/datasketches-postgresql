@@ -49,6 +49,9 @@ CORE = datasketches-cpp
 
 # assume a dir or link named "boost" in the current dir
 BOOST = boost
+BOOST_VER = 1.82.0
+BOOST_FILE = boost_$(subst .,_,$(BOOST_VER))
+BOOST_URL = https://boostorg.jfrog.io/artifactory/main/release/$(BOOST_VER)/source/$(BOOST_FILE).zip
 
 PG_CPPFLAGS = -fPIC -I/usr/local/include -I$(BOOST) -I$(CORE)/common/include \
   -I$(CORE)/kll/include \
@@ -80,3 +83,8 @@ $(SQL_INSTALL): $(SQL_MODULES)
 	cat $^ > $@
 
 install: $(SQL_INSTALL)
+
+boost:
+	wget $(BOOST_URL)
+	unzip $(BOOST_FILE).zip
+	ln -s $(BOOST_FILE) boost
