@@ -1,8 +1,10 @@
 name: C/C++ CI
 
 on:
-  # allow manual runs
-  workflow_dispatch:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
 
 jobs:
   build:
@@ -29,10 +31,9 @@ jobs:
       run: |
         sudo systemctl start postgresql.service
         pg_isready
+    - name: create test database
+      run: sudo -u postgres createdb test
     - name: copy tests
       run: cp -r test /tmp
     - name: run tests
-      run: |
-        sudo -u postgres for t in /tmp/test/*.sql; do
-          psql test -f $t
-        done
+      run: sudo -u postgres bash -c "cd; for t in /tmp/test/*.sql; do psql test -f \$t; done"
