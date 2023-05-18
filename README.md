@@ -16,98 +16,137 @@
     specific language governing permissions and limitations
     under the License.
 -->
-# PostgreSQL Adaptor for C++ DataSketches
+# PostgreSQL DataSketches Extension
 
-Please visit the main [DataSketches website](https://datasketches.apache.org) for more information. 
+Please visit our [DataSketches website](https://datasketches.apache.org) for more information. 
 
-If you are interested in making contributions to this site please see our [Community](https://datasketches.apache.org/docs/Community/) page for how to contact us.
+If you are interested in making contributions to this site please see our 
+[Community](https://datasketches.apache.org/docs/Community/) page for how to contact us.
 
 ---
 
-This module currently supports the following sketches:
+## This extension currently supports the following sketches:
 
 - CPC (Compressed Probabilistic Counting) sketch - very compact (smaller than HLL when serialized) distinct-counting sketch
-- Theta sketch - distinct counting with set operations (intersection, a-not-b)
+- Theta sketch - distinct counting with set operations (union, intersection, a-not-b)
 - HLL sketch - very compact distinct-counting sketch based on HyperLogLog algorithm
 - KLL float quantiles sketch - for estimating distributions: quantile, rank, PMF (histogram), CDF
 - Frequent strings sketch - capture the heaviest items (strings) by count or by some other weight
 
-## How to build and install
+## Building this PostgreSQL Extension Requires 4 Dependencies
 
-This code is intended to be distributed as a PostgreSQL extension on [PGXN site](https://pgxn.org/)
+* C++11
+* Boost version 1.76.0 we know this works, older and newer may work as well
+* PostgreSQL database versions 9.6 and higher
+* [DataSketches *C++/Python Core*](https://github.com/apache/datasketches-cpp) version 4.1.0 or later
 
-This code is expected to be compatible with PostgreSQL versions 9.6 and higher.
-PostreSQL must be installed to compile the extension. The path to PostgreSQL executables must be set up (try running 'pg_config' to test).
-For PostgreSQL installation instructions see [PostgreSQL documentation](https://www.postgresql.org/docs/current/tutorial-start.html)
+## Preparing the Components
 
-This code requires C++11.
+### Installing PostgreSQL Database
 
-This code depends on [datasketches-cpp](https://github.com/apache/datasketches-cpp/)
-and [Boost](https://www.boost.org/)
+* If you think your system already has the PostgreSQL database installed, try running '*pg_config*' to check the version.
+This will also indicate if the path to the PostgreSQL executables have been set up. If it is already installed, you can
+move to the next step.
+* If it is not installed, here are the installation instructions:
+[PostgreSQL documentation](https://www.postgresql.org/docs/current/tutorial-start.html)
 
-There are two slightly different ways to build this extension: from a PGXN distribution or from two separate packages: datasketches-postgresql and datasketches-cpp (either from GitHub or from [Apache archive](http://archive.apache.org/dist/datasketches/))
+### Preparing the PostgreSQL DataSketches Extension
+There are two different ways to obtain this extension.
 
-### PGXN extension
+* A single download from the **PGXN distribution**, which already contains the DataSketches **C++ Core** component,
+* Or download two separate packages, DataSketches **C++/Python Core** and DataSketches **C++ PostgreSQL Extension**, 
+both of which can be obtained from
+[DataSketches download](https://datasketches.apache.org/docs/Community/Downloads.html).
 
-   - Download the datasketches extension from [PGXN](https://pgxn.org/dist/datasketches/)
-   - Unzip the package (the core library datasketches-cpp is included)
+#### Downloading From the PGXN distribution
+    
+* Download the PostgreSQL **datasketches extension** from [PGXN](https://pgxn.org/dist/datasketches/)
+* Unzip the package (the DataSketches C++ Core is included)
+* Proceed to [Preparing Boost](#toc_10)
 
-### GitHub or Apache archive
+#### Downloading separate packages
 
-   - Clone or download from GitHub or download from Apache archive both the datasketches-postgresql code and the core library datasketches-cpp (version mentioned above)
-   - Place the core library as a subdirectory (or a link to it) inside of the datasketches-postgresql like so:
-      - datasketches-cpp
-      - datasketches-postgresql
-          - datasketches-cpp -> ../datasketches-cpp
+##### Downloading DataSketches *C++ PostgreSQL Extension*
 
-### Boost
+* Download the DataSketches **C++ PostgreSQL Extension** into its own directory from
+[DataSketches download](https://datasketches.apache.org/docs/Community/Downloads.html)
+* Or from [GitHub](https://github.com/apache/datasketches-postgresql) selecting the correct version release tag.
+* Unzip the package
 
-   - [Download Boost](https://www.boost.org/users/download/)
-   - Unzip and rename or make a link with no version in the name like so:
-      - boost -> boost_1_76_0
+##### Downloading DataSketches C++/Python Core
 
-### Building and installing
+* Download the DataSketches **C++/Python Core** into its own directory from
+[DataSketches download](https://datasketches.apache.org/docs/Community/Downloads.html) selecting the correct version.
+(You may need to check the archives: "Recent ZIP Releases".)
+* Or from [GitHub](https://github.com/apache/datasketches-cpp) selecting the correct version release tag.
+* Unzip and create a link in the same directory where the *DataSketches C++ PostgreSQL Extension* is:
+    * *datasketches-cpp* -> apache-datasketches-cpp-\<version\>
 
-   - make
-   - sudo make install
+### Preparing Boost
 
-On MacOSX Mojave, if you see a warning like this:
-`clang: warning: no such sysroot directory: ‘/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk’ [-Wmissing-sysroot]`
-and the compilation fails because of not being able to find system include files, this is a known OSX problem. There are known solutions on the Internet.
+* [Download Boost](https://www.boost.org/users/download/)
+* Unzip and create a link in the same directory where the *DataSketches C++ PostgreSQL Extension* is:
+    * *boost* -> boost_\<version\>
+
+### Building
+
+From the command line at the PGXN installed root or the root of the C++ PostgreSQL Adaptor run:
+
+* *make*
+* *sudo make install*  #sudo may not be required depending on how C++ was installed
+
+NOTE: On MacOSX Mojave, if you see a warning similar to this:
+
+```
+clang: warning: no such sysroot directory: 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk’
+[-Wmissing-sysroot]`
+```
+and the compilation fails because of not being able to find system include files, this is a known OSX problem. 
+There are known solutions on the Internet.
 
 ### Verifying installation with a test database
 
-   - Make sure that PostgreSQL is running. For instance, using Homebrew on MacOSX, start the service:
-     - brew services start postgresql
-   - Create a test database if it does not exist yet (on the command line):
-      - createdb test
-   - Run the client (console) using the test database, create the extension and try some of the datasketches functions:
-      - psql test
-      - test=# create extension datasketches;
-      - test=# select cpc\_sketch\_to\_string(cpc\_sketch\_build(1));
-      - test=# \q
+* Make sure that PostgreSQL is running. For instance, using Homebrew on MacOSX, start the service:
+    * *brew services start postgresql*
+* Create a test database if it does not exist yet:
+    * *createdb test*
+* Run the client (console) using the test database, create the extension and try some of the datasketches functions:
+    * *psql test*
+    * test=# *create extension datasketches;*
+    * test=# *select cpc\_sketch\_to\_string(cpc\_sketch\_build(1));*
 
-The select statement above should produce the following result:
+The select statement above should produce something similar to the following:
 
-	       cpc_sketch_to_string        
-	-----------------------------------
-	 ### CPC sketch summary:          +
-	    lgK            : 11           +
-	    seed hash      : 93cc         +
-	    C              : 1            +
-	    flavor         : 1            +
-	    merged         : false        +
-	    compressed     : false        +
-	    intresting col : 0            +
-	    HIP estimate   : 1            +
-	    kxp            : 2047.5       +
-	    offset         : 0            +
-	    table          : allocated    +
-	    num SV         : 1            +
-	    window         : not allocated+
-	 ### End sketch summary           +
-	 
-	(1 row)
+```
+       cpc_sketch_to_string        
+-----------------------------------
+ ### CPC sketch summary:          +
+    lg_k           : 11           +
+    seed hash      : 93cc         +
+    C              : 1            +
+    flavor         : 1            +
+    merged         : false        +
+    HIP estimate   : 1            +
+    kxp            : 2047.5       +
+    interesting col: 0            +
+    table entries  : 1            +
+    window         : not allocated+
+ ### End sketch summary           +
+ 
+(1 row)
+```
+### Quitting and Stopping the PostgreSQL database
+In the same console that you started the database and ran the test
+
+To quit the test:
+
+* test=# *\q*
+
+To stop the database server:
+
+* *brew services stop postgresql* (this is platform dependent)
+
 
 ## Docker
 
@@ -275,7 +314,7 @@ Non-aggregate union:
 	-------------------------
 	        2.00000000496705
 
-### Estimating quanitles, ranks and histograms with KLL sketch
+### Estimating quantiles, ranks and histograms with KLL sketch
 
 Table "normal" has 1 million values from the normal (Gaussian) distribution with mean=0 and stddev=1.
 We can build a sketch, which represents the distribution:
@@ -319,7 +358,7 @@ The ARRAY[-2, -1, 0, 1, 2] of 5 split points defines 6 intervals (bins): (-inf,-
 	------------------------
 	                1000000
 
-In this simple example we know the value of N since we constructed this sketch, but in a general case sketches are merged across dimensions of data hypercube, so the vale of N is not known in advance.
+In this simple example we know the value of N since we constructed this sketch, but in a general case sketches are merged across dimensions of data hypercube, so the value of N is not known in advance.
 
 Note that the normal distribution was used just to show the basic usage. The sketch does not make any assumptions about the distribution.
 
@@ -341,7 +380,7 @@ Suppose zipf\_1p1\_8k\_100m table has 100 million random values drawn from such
 a distribution, and the values are converted to strings.
 
 Suppose the goal is to get the most frequent strings from this table. In
-terms of the frequent items sketch we have to chose a threshold. Let's try
+terms of the frequent items sketch, we have to choose a threshold. Let's try
 to capture values that repeat more than 1 million times, or more than 1% of
 the 100 million entries in the table. According to the [error table](https://datasketches.github.io/docs/Frequency/FrequentItemsErrorTable.html),
 frequent items sketch of size 2<sup>9</sup> must capture all values more
