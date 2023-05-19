@@ -93,7 +93,7 @@ both of which can be obtained from
 From the command line at the PGXN installed root or the root of the C++ PostgreSQL Adaptor run:
 
 * *make*
-* *sudo make install*  #sudo may not be required depending on how C++ was installed
+* *sudo make install*  #sudo may not be required depending on how PSQL was installed
 
 NOTE: On MacOSX Mojave, if you see a warning similar to this:
 
