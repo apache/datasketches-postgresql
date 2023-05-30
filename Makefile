@@ -49,7 +49,7 @@ CORE = datasketches-cpp
 
 # assume a dir or link named "boost" in the current dir
 BOOST = boost
-BOOST_VER = 1.82.0
+BOOST_VER = 1.75.0
 BOOST_FILE = boost_$(subst .,_,$(BOOST_VER))
 BOOST_URL = https://boostorg.jfrog.io/artifactory/main/release/$(BOOST_VER)/source/$(BOOST_FILE).zip
 
