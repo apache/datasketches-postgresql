@@ -22,7 +22,9 @@ jobs:
     - name: download Boost
       run: make boost
     - name: install PostgreSQL
-      run: sudo apt-get -y install postgresql-14 postgresql-client-14 postgresql-server-dev-14 libpq-dev
+      run: |
+        sudo apt update
+        sudo apt -y install postgresql-14 postgresql-client-14 postgresql-server-dev-14 libpq-dev
     - name: make
       run: make
     - name: install
