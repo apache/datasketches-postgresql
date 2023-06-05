@@ -28,15 +28,17 @@ If you are interested in making contributions to this site please see our
 ## This extension currently supports the following sketches:
 
 - CPC (Compressed Probabilistic Counting) sketch - very compact (smaller than HLL when serialized) distinct-counting sketch
-- Theta sketch - distinct counting with set operations (union, intersection, a-not-b)
 - HLL sketch - very compact distinct-counting sketch based on HyperLogLog algorithm
-- KLL float quantiles sketch - for estimating distributions: quantile, rank, PMF (histogram), CDF
+- Theta sketch - distinct counting with set operations (union, intersection, a-not-b)
+- Array Of Doubles (AOD) sketch - a kind of Tuple sketch with array of double values associated with each key
+- KLL (float and double) quantiles sketch - for estimating distributions: quantile, rank, PMF (histogram), CDF
+- Quantiles sketch (inferior to KLL, for long-term support of data sets)
 - Frequent strings sketch - capture the heaviest items (strings) by count or by some other weight
 
 ## Building this PostgreSQL Extension Requires 4 Dependencies
 
 * C++11
-* Boost version 1.76.0 we know this works, older and newer may work as well
+* Boost version 1.75.0 we know this works, older and newer may work as well
 * PostgreSQL database versions 9.6 and higher
 * [DataSketches *C++/Python Core*](https://github.com/apache/datasketches-cpp) version 4.1.0 or later
 
@@ -93,7 +95,7 @@ both of which can be obtained from
 From the command line at the PGXN installed root or the root of the C++ PostgreSQL Adaptor run:
 
 * *make*
-* *sudo make install*  #sudo may not be required depending on how PSQL was installed
+* *sudo make install*  #sudo may not be required depending on how PostgreSQL was installed
 
 NOTE: On MacOSX Mojave, if you see a warning similar to this:
 

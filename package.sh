@@ -34,11 +34,6 @@ fi
 # version of datasketches-cpp core library to include
 CORETAG=4.1.0
 
-# boost version to include
-BOOSTVER=1.76.0
-BOOSTNAME=boost_${BOOSTVER//./_}
-BOOSTURL=https://boostorg.jfrog.io/artifactory/main/release/$BOOSTVER/source/$BOOSTNAME.zip
-
 DST=datasketches-$VER
 
 PGARCH=postgresql-$VER.zip
@@ -51,7 +46,6 @@ git archive --format zip --prefix=$DST/ --output $PGARCH $TAG
 cd ../datasketches-cpp
 git archive --format zip --output ../datasketches-postgresql/$COREARCH $CORETAG
 cd ../datasketches-postgresql
-#wget $BOOSTURL
 
 unzip $PGARCH
 COREDIR=$DST/datasketches-cpp
@@ -62,10 +56,7 @@ unzip $COREARCH -d $COREDIR
 rm $COREDIR/README.md
 rm $COREDIR/*/README.md
 
-#unzip $BOOSTNAME.zip
-#mv boost_${BOOSTVER//./_}/boost $DST
-
 zip -r $DST.zip $DST
 
-rm -f $PGARCH $COREARCH $BOOSTNAME.zip
-rm -rf $DST $BOOSTNAME
+rm -f $PGARCH $COREARCH
+rm -rf $DST
