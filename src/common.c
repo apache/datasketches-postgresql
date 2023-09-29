@@ -21,6 +21,7 @@
 #include <utils/builtins.h>
 
 #include "base64.h"
+#include "varatt.h"
 
 PG_MODULE_MAGIC;
 
