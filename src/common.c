@@ -21,7 +21,12 @@
 #include <utils/builtins.h>
 
 #include "base64.h"
+
+// Since version 16 of PG, all functionality for variable-length
+// data was moved from postgres.h into the new file varatt.h
+#if PG_VERSION_NUM >= 160000
 #include "varatt.h"
+#endif
 
 PG_MODULE_MAGIC;
 
