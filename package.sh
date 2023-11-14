@@ -32,7 +32,7 @@ if [ -z $2 ]; then
 fi
 
 # version of datasketches-cpp core library to include
-CORETAG=4.1.0
+CORETAG=5.0.0
 
 DST=datasketches-$VER
 

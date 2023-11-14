@@ -155,10 +155,9 @@ Datum* kll_double_sketch_get_pmf_or_cdf(const void* sketchptr, const double* spl
 
 Datum* kll_double_sketch_get_quantiles(const void* sketchptr, const double* fractions, unsigned num_fractions) {
   try {
-    auto array = static_cast<const kll_double_sketch*>(sketchptr)->get_quantiles(fractions, num_fractions);
     Datum* quantiles = (Datum*) palloc(sizeof(Datum) * num_fractions);
     for (unsigned i = 0; i < num_fractions; i++) {
-      quantiles[i] = pg_float8_get_datum(array[i]);
+      quantiles[i] = pg_float8_get_datum(static_cast<const kll_double_sketch*>(sketchptr)->get_quantile(fractions[i]));
     }
     return quantiles;
   } catch (std::exception& e) {

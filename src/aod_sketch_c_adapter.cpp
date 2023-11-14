@@ -23,9 +23,6 @@
 #include "kll_float_sketch_c_adapter.h"
 
 #include <array_of_doubles_sketch.hpp>
-#include <array_of_doubles_union.hpp>
-#include <array_of_doubles_intersection.hpp>
-#include <array_of_doubles_a_not_b.hpp>
 
 #include <boost/accumulators/accumulators.hpp>
 #include <boost/accumulators/statistics/stats.hpp>
@@ -33,14 +30,15 @@
 #include <boost/accumulators/statistics/variance.hpp>
 #include <boost/math/distributions/students_t.hpp>
 
-using update_aod_sketch_pg = datasketches::update_array_of_doubles_sketch_alloc<palloc_allocator<double>>;
-using compact_aod_sketch_pg = datasketches::compact_array_of_doubles_sketch_alloc<palloc_allocator<double>>;
-using aod_union_pg = datasketches::array_of_doubles_union_alloc<palloc_allocator<double>>;
+using aod = datasketches::array<double, palloc_allocator<double>>;
+using update_aod_sketch_pg = datasketches::update_array_tuple_sketch<aod>;
+using compact_aod_sketch_pg = datasketches::compact_array_tuple_sketch<aod>;
+using aod_union_pg = datasketches::array_tuple_union<aod>;
 // using the union policy in the intersection since this is how it is done in Druid
-using aod_intersection_pg = datasketches::array_of_doubles_intersection<datasketches::array_of_doubles_union_policy_alloc<palloc_allocator<double>>, palloc_allocator<double>>;
-using aod_a_not_b_pg = datasketches::array_of_doubles_a_not_b_alloc<palloc_allocator<double>>;
+using aod_intersection_pg = datasketches::array_tuple_intersection<aod, datasketches::default_array_tuple_union_policy<aod>>;
+using aod_a_not_b_pg = datasketches::array_tuple_a_not_b<aod>;
 
-std::ostream& operator<<(std::ostream& os, const datasketches::aod<palloc_allocator<double>>& v) {
+std::ostream& operator<<(std::ostream& os, const aod& v) {
   os << "(";
   for (size_t i = 0; i < v.size(); ++i) {
     if (i != 0) os << ", ";
