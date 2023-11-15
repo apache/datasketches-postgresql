@@ -40,7 +40,7 @@ If you are interested in making contributions to this site please see our
 * C++11
 * Boost version 1.75.0 we know this works, older and newer may work as well
 * PostgreSQL database versions 9.6 and higher
-* [DataSketches *C++/Python Core*](https://github.com/apache/datasketches-cpp) version 4.1.0 or later
+* [DataSketches *C++ Core*](https://github.com/apache/datasketches-cpp) version 5.0.0 or later
 
 ## Preparing the Components
 
@@ -56,7 +56,7 @@ move to the next step.
 There are two different ways to obtain this extension.
 
 * A single download from the **PGXN distribution**, which already contains the DataSketches **C++ Core** component,
-* Or download two separate packages, DataSketches **C++/Python Core** and DataSketches **C++ PostgreSQL Extension**, 
+* Or download two separate packages, DataSketches **C++ Core** and DataSketches **C++ PostgreSQL Extension**, 
 both of which can be obtained from
 [DataSketches download](https://datasketches.apache.org/docs/Community/Downloads.html).
 
@@ -75,9 +75,9 @@ both of which can be obtained from
 * Or from [GitHub](https://github.com/apache/datasketches-postgresql) selecting the correct version release tag.
 * Unzip the package
 
-##### Downloading DataSketches C++/Python Core
+##### Downloading DataSketches C++ Core
 
-* Download the DataSketches **C++/Python Core** into its own directory from
+* Download the DataSketches **C++ Core** into its own directory from
 [DataSketches download](https://datasketches.apache.org/docs/Community/Downloads.html) selecting the correct version.
 (You may need to check the archives: "Recent ZIP Releases".)
 * Or from [GitHub](https://github.com/apache/datasketches-cpp) selecting the correct version release tag.
