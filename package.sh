@@ -54,7 +54,6 @@ unzip $COREARCH -d $COREDIR
 
 # extra readme files confuse pgxn.org
 rm $COREDIR/README.md
-rm $COREDIR/*/README.md
 
 zip -r $DST.zip $DST
 
