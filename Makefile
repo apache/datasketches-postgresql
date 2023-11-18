@@ -31,9 +31,10 @@ SQL_MODULES = sql/datasketches_cpc_sketch.sql \
 SQL_INSTALL = sql/$(EXTENSION)--$(EXTVERSION).sql
 DATA = $(SQL_INSTALL) \
   sql/datasketches--1.3.0--1.4.0.sql \
+  sql/datasketches--1.3.0--1.6.0.sql \
   sql/datasketches--1.4.0--1.5.0.sql \
   sql/datasketches--1.5.0--1.6.0.sql \
-  sql/datasketches--1.3.0--1.6.0.sql
+  sql/datasketches--1.6.0--1.7.0.sql
 
 EXTRA_CLEAN = $(SQL_INSTALL)
 
