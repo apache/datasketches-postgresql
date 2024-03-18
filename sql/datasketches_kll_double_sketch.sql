@@ -118,6 +118,14 @@ CREATE OR REPLACE FUNCTION kll_double_sketch_get_n(kll_double_sketch) RETURNS bi
     AS '$libdir/datasketches', 'pg_kll_double_sketch_get_n'
     LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
 
+CREATE OR REPLACE FUNCTION kll_double_sketch_get_max_item(kll_double_sketch) RETURNS double precision
+    AS '$libdir/datasketches', 'pg_kll_double_sketch_get_max_item'
+    LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
+
+CREATE OR REPLACE FUNCTION kll_double_sketch_get_min_item(kll_double_sketch) RETURNS double precision
+    AS '$libdir/datasketches', 'pg_kll_double_sketch_get_min_item'
+    LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
+
 CREATE OR REPLACE FUNCTION kll_double_sketch_to_string(kll_double_sketch) RETURNS TEXT
     AS '$libdir/datasketches', 'pg_kll_double_sketch_to_string'
     LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;

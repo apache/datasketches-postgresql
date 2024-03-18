@@ -35,6 +35,8 @@ PG_FUNCTION_INFO_V1(pg_kll_float_sketch_combine);
 PG_FUNCTION_INFO_V1(pg_kll_float_sketch_get_rank);
 PG_FUNCTION_INFO_V1(pg_kll_float_sketch_get_quantile);
 PG_FUNCTION_INFO_V1(pg_kll_float_sketch_get_n);
+PG_FUNCTION_INFO_V1(pg_kll_float_sketch_get_max_item);
+PG_FUNCTION_INFO_V1(pg_kll_float_sketch_get_min_item);
 PG_FUNCTION_INFO_V1(pg_kll_float_sketch_to_string);
 PG_FUNCTION_INFO_V1(pg_kll_float_sketch_get_pmf);
 PG_FUNCTION_INFO_V1(pg_kll_float_sketch_get_cdf);
@@ -50,6 +52,8 @@ Datum pg_kll_float_sketch_combine(PG_FUNCTION_ARGS);
 Datum pg_kll_float_sketch_get_rank(PG_FUNCTION_ARGS);
 Datum pg_kll_float_sketch_get_quantile(PG_FUNCTION_ARGS);
 Datum pg_kll_float_sketch_get_n(PG_FUNCTION_ARGS);
+Datum pg_kll_float_sketch_get_max_item(PG_FUNCTION_ARGS);
+Datum pg_kll_float_sketch_get_min_item(PG_FUNCTION_ARGS);
 Datum pg_kll_float_sketch_to_string(PG_FUNCTION_ARGS);
 Datum pg_kll_float_sketch_get_pmf(PG_FUNCTION_ARGS);
 Datum pg_kll_float_sketch_get_cdf(PG_FUNCTION_ARGS);
@@ -235,6 +239,28 @@ Datum pg_kll_float_sketch_get_n(PG_FUNCTION_ARGS) {
   n = kll_float_sketch_get_n(sketchptr);
   kll_float_sketch_delete(sketchptr);
   PG_RETURN_INT64(n);
+}
+
+Datum pg_kll_float_sketch_get_max_item(PG_FUNCTION_ARGS) {
+    const bytea* bytes_in;
+    void* sketchptr;
+    float value;
+    bytes_in = PG_GETARG_BYTEA_P(0);
+    sketchptr = kll_float_sketch_deserialize(VARDATA(bytes_in), VARSIZE(bytes_in) - VARHDRSZ);
+    value = kll_float_sketch_get_max_item(sketchptr);
+    kll_float_sketch_delete(sketchptr);
+    PG_RETURN_FLOAT4(value);
+}
+
+Datum pg_kll_float_sketch_get_min_item(PG_FUNCTION_ARGS) {
+    const bytea* bytes_in;
+    void* sketchptr;
+    float value;
+    bytes_in = PG_GETARG_BYTEA_P(0);
+    sketchptr = kll_float_sketch_deserialize(VARDATA(bytes_in), VARSIZE(bytes_in) - VARHDRSZ);
+    value = kll_float_sketch_get_min_item(sketchptr);
+    kll_float_sketch_delete(sketchptr);
+    PG_RETURN_FLOAT4(value);
 }
 
 Datum pg_kll_float_sketch_to_string(PG_FUNCTION_ARGS) {

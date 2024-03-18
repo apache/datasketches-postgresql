@@ -17,6 +17,8 @@ insert into kll_sketch_test
 ;
 
 -- get min and max values
+select kll_double_sketch_get_min_item(sketch) as min_item from kll_sketch_test;
+select kll_double_sketch_get_max_item(sketch) as max_item from kll_sketch_test;
 select kll_double_sketch_get_quantiles(sketch, array[0, 1]) as min_max from kll_sketch_test;
 select kll_double_sketch_to_string(sketch) from kll_sketch_test;
 

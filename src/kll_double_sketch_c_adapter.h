@@ -36,6 +36,8 @@ void kll_double_sketch_merge(void* sketchptr1, const void* sketchptr2);
 double kll_double_sketch_get_rank(const void* sketchptr, double value);
 double kll_double_sketch_get_quantile(const void* sketchptr, double rank);
 unsigned long long kll_double_sketch_get_n(const void* sketchptr);
+double kll_double_sketch_get_max_item(const void* sketchptr);
+double kll_double_sketch_get_min_item(const void* sketchptr);
 char* kll_double_sketch_to_string(const void* sketchptr);
 
 struct ptr_with_size kll_double_sketch_serialize(const void* sketchptr, unsigned header_size);
