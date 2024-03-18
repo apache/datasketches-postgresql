@@ -71,7 +71,7 @@ CREATE OR REPLACE AGGREGATE kll_float_sketch_build(real) (
     SFUNC = kll_float_sketch_build_agg,
     COMBINEFUNC = kll_float_sketch_combine,
     SERIALFUNC = kll_float_sketch_serialize,
-    DESERIALFUNC = kll_float_sketch_deserialize, 
+    DESERIALFUNC = kll_float_sketch_deserialize,
     FINALFUNC = kll_float_sketch_finalize,
     PARALLEL = SAFE
 );
@@ -81,7 +81,7 @@ CREATE OR REPLACE AGGREGATE kll_float_sketch_build(real, int) (
     SFUNC = kll_float_sketch_build_agg,
     COMBINEFUNC = kll_float_sketch_combine,
     SERIALFUNC = kll_float_sketch_serialize,
-    DESERIALFUNC = kll_float_sketch_deserialize, 
+    DESERIALFUNC = kll_float_sketch_deserialize,
     FINALFUNC = kll_float_sketch_finalize,
     PARALLEL = SAFE
 );
@@ -91,7 +91,7 @@ CREATE OR REPLACE AGGREGATE kll_float_sketch_merge(kll_float_sketch) (
     SFUNC = kll_float_sketch_merge_agg,
     COMBINEFUNC = kll_float_sketch_combine,
     SERIALFUNC = kll_float_sketch_serialize,
-    DESERIALFUNC = kll_float_sketch_deserialize, 
+    DESERIALFUNC = kll_float_sketch_deserialize,
     FINALFUNC = kll_float_sketch_finalize,
     PARALLEL = SAFE
 );
@@ -101,7 +101,7 @@ CREATE OR REPLACE AGGREGATE kll_float_sketch_merge(kll_float_sketch, int) (
     SFUNC = kll_float_sketch_merge_agg,
     COMBINEFUNC = kll_float_sketch_combine,
     SERIALFUNC = kll_float_sketch_serialize,
-    DESERIALFUNC = kll_float_sketch_deserialize, 
+    DESERIALFUNC = kll_float_sketch_deserialize,
     FINALFUNC = kll_float_sketch_finalize,
     PARALLEL = SAFE
 );
@@ -116,6 +116,14 @@ CREATE OR REPLACE FUNCTION kll_float_sketch_get_quantile(kll_float_sketch, doubl
 
 CREATE OR REPLACE FUNCTION kll_float_sketch_get_n(kll_float_sketch) RETURNS bigint
     AS '$libdir/datasketches', 'pg_kll_float_sketch_get_n'
+    LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
+
+CREATE OR REPLACE FUNCTION kll_float_sketch_get_max_item(kll_float_sketch) RETURNS real
+    AS '$libdir/datasketches', 'pg_kll_float_sketch_get_max_item'
+    LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
+
+CREATE OR REPLACE FUNCTION kll_float_sketch_get_min_item(kll_float_sketch) RETURNS real
+    AS '$libdir/datasketches', 'pg_kll_float_sketch_get_min_item'
     LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
 
 CREATE OR REPLACE FUNCTION kll_float_sketch_to_string(kll_float_sketch) RETURNS TEXT

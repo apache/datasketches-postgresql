@@ -86,6 +86,24 @@ unsigned long long kll_float_sketch_get_n(const void* sketchptr) {
   pg_unreachable();
 }
 
+float kll_float_sketch_get_max_item(const void *sketchptr) {
+    try {
+        return static_cast<const kll_float_sketch *>(sketchptr)->get_max_item();
+    } catch (std::exception &e) {
+        pg_error(e.what());
+    }
+    pg_unreachable();
+}
+
+float kll_float_sketch_get_min_item(const void *sketchptr) {
+    try {
+        return static_cast<const kll_float_sketch *>(sketchptr)->get_min_item();
+    } catch (std::exception &e) {
+        pg_error(e.what());
+    }
+    pg_unreachable();
+}
+
 char* kll_float_sketch_to_string(const void* sketchptr) {
   try {
     auto str = static_cast<const kll_float_sketch*>(sketchptr)->to_string();

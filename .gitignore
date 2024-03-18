@@ -3,6 +3,9 @@
 .project
 .settings/
 
+# CLion project files
+.idea
+
 # Visual Studio Code
 .vscode/
 

@@ -36,6 +36,8 @@ void kll_float_sketch_merge(void* sketchptr1, const void* sketchptr2);
 double kll_float_sketch_get_rank(const void* sketchptr, float value);
 float kll_float_sketch_get_quantile(const void* sketchptr, double rank);
 unsigned long long kll_float_sketch_get_n(const void* sketchptr);
+float kll_float_sketch_get_max_item(const void* sketchptr);
+float kll_float_sketch_get_min_item(const void* sketchptr);
 char* kll_float_sketch_to_string(const void* sketchptr);
 
 struct ptr_with_size kll_float_sketch_serialize(const void* sketchptr, unsigned header_size);
