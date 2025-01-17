@@ -13,9 +13,9 @@ jobs:
 
     steps:
     - name: checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: checkout datasketches-cpp
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         repository: apache/datasketches-cpp
         path: datasketches-cpp
@@ -24,7 +24,7 @@ jobs:
     - name: install PostgreSQL
       run: |
         sudo apt update
-        sudo apt -y install postgresql-14 postgresql-client-14 postgresql-server-dev-14 libpq-dev
+        sudo apt -y install postgresql-16 postgresql-client-16 postgresql-server-dev-16 libpq-dev
     - name: make
       run: make
     - name: install
