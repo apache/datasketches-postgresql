@@ -157,6 +157,16 @@ char* aod_sketch_to_string(const void* sketchptr, bool print_entries) {
   pg_unreachable();
 }
 
+unsigned aod_sketch_get_num_values(const void* sketchptr) {
+  try {
+    uint8_t num_values = static_cast<const compact_aod_sketch_pg*>(sketchptr)->get_num_values();
+    return num_values;
+  } catch (std::exception& e) {
+    pg_error(e.what());
+  }
+  pg_unreachable();
+}
+
 ptr_with_size aod_sketch_serialize(const void* sketchptr, unsigned header_size) {
   try {
     ptr_with_size p;

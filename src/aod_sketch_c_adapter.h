@@ -39,6 +39,7 @@ double update_aod_sketch_get_estimate(const void* sketchptr);
 double compact_aod_sketch_get_estimate(const void* sketchptr);
 void** aod_sketch_get_estimate_and_bounds(const void* sketchptr, unsigned num_std_devs);
 char* aod_sketch_to_string(const void* sketchptr, bool print_entries);
+unsigned aod_sketch_get_num_values(const void* sketchptr);
 
 struct ptr_with_size aod_sketch_serialize(const void* sketchptr, unsigned header_size);
 void* aod_sketch_deserialize(const char* buffer, unsigned length);

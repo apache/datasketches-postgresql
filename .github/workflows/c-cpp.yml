@@ -24,7 +24,7 @@ jobs:
     - name: install PostgreSQL
       run: |
         sudo apt update
-        sudo apt -y install postgresql-16 postgresql-client-16 postgresql-server-dev-16 libpq-dev
+        sudo apt -y install postgresql-16 postgresql-client-16 postgresql-server-dev-16 libpq-dev clang-19
     - name: make
       run: make
     - name: install
