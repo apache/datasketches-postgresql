@@ -189,6 +189,10 @@ Datum pg_aod_sketch_union_agg(PG_FUNCTION_ARGS) {
 
   sketch_bytes = PG_GETARG_BYTEA_P(1);
   sketchptr = aod_sketch_deserialize(VARDATA(sketch_bytes), VARSIZE(sketch_bytes) - VARHDRSZ);
+  if (stateptr->num_values != aod_sketch_get_num_values(sketchptr)) {
+    compact_aod_sketch_delete(sketchptr);
+    elog(ERROR, "pg_aod_sketch_union_agg expects the same num_values in sketches");
+  }
   aod_union_update(stateptr->ptr, sketchptr);
   compact_aod_sketch_delete(sketchptr);
 
