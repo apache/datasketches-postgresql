@@ -35,6 +35,9 @@ void quantiles_double_sketch_update(void* sketchptr, double value);
 void quantiles_double_sketch_merge(void* sketchptr1, const void* sketchptr2);
 double quantiles_double_sketch_get_rank(const void* sketchptr, double value);
 double quantiles_double_sketch_get_quantile(const void* sketchptr, double rank);
+double quantiles_double_sketch_ks_delta(const void* sketchptr1, const void* sketchptr2);
+double quantiles_double_sketch_ks_threshold(const void* sketchptr1, const void* sketchptr2, double p);
+bool quantiles_double_sketch_ks_test(const void* sketchptr1, const void* sketchptr2, double p);
 unsigned long long quantiles_double_sketch_get_n(const void* sketchptr);
 char* quantiles_double_sketch_to_string(const void* sketchptr);
 

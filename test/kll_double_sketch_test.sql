@@ -31,5 +31,19 @@ select kll_double_sketch_get_pmf(kll_double_sketch_merge(sketch, 20), array[2, 5
 select kll_double_sketch_get_cdf(kll_double_sketch_merge(sketch, 20), array[2, 5, 7]) as cdf from kll_sketch_test;
 select kll_double_sketch_get_histogram(kll_double_sketch_merge(sketch, 20), 5) as histogram from kll_sketch_test;
 
+-- Kolmogorov-Smirnov comparison of identical and disjoint distributions
+select kll_double_sketch_ks_delta(a.sketch, a.sketch) as same_delta,
+       kll_double_sketch_ks_test(a.sketch, a.sketch, 0.05) as same_rejected
+from kll_sketch_test a
+limit 1;
+
+select kll_double_sketch_ks_delta(a.sketch, b.sketch) as different_delta,
+       kll_double_sketch_ks_threshold(a.sketch, b.sketch, 0.05) as threshold,
+       kll_double_sketch_ks_test(a.sketch, b.sketch, 0.05) as different_rejected
+from kll_sketch_test a
+cross join kll_sketch_test b
+where kll_double_sketch_get_min_item(a.sketch) = 1
+  and kll_double_sketch_get_min_item(b.sketch) = 6;
+
 drop table kll_sketch_test;
 drop extension datasketches;

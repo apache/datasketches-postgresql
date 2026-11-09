@@ -34,6 +34,9 @@ PG_FUNCTION_INFO_V1(pg_quantiles_double_sketch_deserialize);
 PG_FUNCTION_INFO_V1(pg_quantiles_double_sketch_combine);
 PG_FUNCTION_INFO_V1(pg_quantiles_double_sketch_get_rank);
 PG_FUNCTION_INFO_V1(pg_quantiles_double_sketch_get_quantile);
+PG_FUNCTION_INFO_V1(pg_quantiles_double_sketch_ks_delta);
+PG_FUNCTION_INFO_V1(pg_quantiles_double_sketch_ks_threshold);
+PG_FUNCTION_INFO_V1(pg_quantiles_double_sketch_ks_test);
 PG_FUNCTION_INFO_V1(pg_quantiles_double_sketch_get_n);
 PG_FUNCTION_INFO_V1(pg_quantiles_double_sketch_to_string);
 PG_FUNCTION_INFO_V1(pg_quantiles_double_sketch_get_pmf);
@@ -49,6 +52,9 @@ Datum pg_quantiles_double_sketch_deserialize(PG_FUNCTION_ARGS);
 Datum pg_quantiles_double_sketch_combine(PG_FUNCTION_ARGS);
 Datum pg_quantiles_double_sketch_get_rank(PG_FUNCTION_ARGS);
 Datum pg_quantiles_double_sketch_get_quantile(PG_FUNCTION_ARGS);
+Datum pg_quantiles_double_sketch_ks_delta(PG_FUNCTION_ARGS);
+Datum pg_quantiles_double_sketch_ks_threshold(PG_FUNCTION_ARGS);
+Datum pg_quantiles_double_sketch_ks_test(PG_FUNCTION_ARGS);
 Datum pg_quantiles_double_sketch_get_n(PG_FUNCTION_ARGS);
 Datum pg_quantiles_double_sketch_to_string(PG_FUNCTION_ARGS);
 Datum pg_quantiles_double_sketch_get_pmf(PG_FUNCTION_ARGS);
@@ -224,6 +230,61 @@ Datum pg_quantiles_double_sketch_get_quantile(PG_FUNCTION_ARGS) {
   value = quantiles_double_sketch_get_quantile(sketchptr, rank);
   quantiles_double_sketch_delete(sketchptr);
   PG_RETURN_FLOAT8(value);
+}
+
+Datum pg_quantiles_double_sketch_ks_delta(PG_FUNCTION_ARGS) {
+  const bytea* bytes_in1;
+  const bytea* bytes_in2;
+  void* sketchptr1;
+  void* sketchptr2;
+  double delta;
+
+  bytes_in1 = PG_GETARG_BYTEA_P(0);
+  bytes_in2 = PG_GETARG_BYTEA_P(1);
+  sketchptr1 = quantiles_double_sketch_deserialize(VARDATA(bytes_in1), VARSIZE(bytes_in1) - VARHDRSZ);
+  sketchptr2 = quantiles_double_sketch_deserialize(VARDATA(bytes_in2), VARSIZE(bytes_in2) - VARHDRSZ);
+  delta = quantiles_double_sketch_ks_delta(sketchptr1, sketchptr2);
+  quantiles_double_sketch_delete(sketchptr1);
+  quantiles_double_sketch_delete(sketchptr2);
+  PG_RETURN_FLOAT8(delta);
+}
+
+Datum pg_quantiles_double_sketch_ks_threshold(PG_FUNCTION_ARGS) {
+  const bytea* bytes_in1;
+  const bytea* bytes_in2;
+  void* sketchptr1;
+  void* sketchptr2;
+  double threshold;
+  double p;
+
+  bytes_in1 = PG_GETARG_BYTEA_P(0);
+  bytes_in2 = PG_GETARG_BYTEA_P(1);
+  p = PG_GETARG_FLOAT8(2);
+  sketchptr1 = quantiles_double_sketch_deserialize(VARDATA(bytes_in1), VARSIZE(bytes_in1) - VARHDRSZ);
+  sketchptr2 = quantiles_double_sketch_deserialize(VARDATA(bytes_in2), VARSIZE(bytes_in2) - VARHDRSZ);
+  threshold = quantiles_double_sketch_ks_threshold(sketchptr1, sketchptr2, p);
+  quantiles_double_sketch_delete(sketchptr1);
+  quantiles_double_sketch_delete(sketchptr2);
+  PG_RETURN_FLOAT8(threshold);
+}
+
+Datum pg_quantiles_double_sketch_ks_test(PG_FUNCTION_ARGS) {
+  const bytea* bytes_in1;
+  const bytea* bytes_in2;
+  void* sketchptr1;
+  void* sketchptr2;
+  bool result;
+  double p;
+
+  bytes_in1 = PG_GETARG_BYTEA_P(0);
+  bytes_in2 = PG_GETARG_BYTEA_P(1);
+  p = PG_GETARG_FLOAT8(2);
+  sketchptr1 = quantiles_double_sketch_deserialize(VARDATA(bytes_in1), VARSIZE(bytes_in1) - VARHDRSZ);
+  sketchptr2 = quantiles_double_sketch_deserialize(VARDATA(bytes_in2), VARSIZE(bytes_in2) - VARHDRSZ);
+  result = quantiles_double_sketch_ks_test(sketchptr1, sketchptr2, p);
+  quantiles_double_sketch_delete(sketchptr1);
+  quantiles_double_sketch_delete(sketchptr2);
+  PG_RETURN_BOOL(result);
 }
 
 Datum pg_quantiles_double_sketch_get_n(PG_FUNCTION_ARGS) {
