@@ -114,6 +114,18 @@ CREATE OR REPLACE FUNCTION kll_double_sketch_get_quantile(kll_double_sketch, dou
     AS '$libdir/datasketches', 'pg_kll_double_sketch_get_quantile'
     LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
 
+CREATE OR REPLACE FUNCTION kll_double_sketch_ks_delta(kll_double_sketch, kll_double_sketch) RETURNS double precision
+    AS '$libdir/datasketches', 'pg_kll_double_sketch_ks_delta'
+    LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
+
+CREATE OR REPLACE FUNCTION kll_double_sketch_ks_threshold(kll_double_sketch, kll_double_sketch, double precision) RETURNS double precision
+    AS '$libdir/datasketches', 'pg_kll_double_sketch_ks_threshold'
+    LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
+
+CREATE OR REPLACE FUNCTION kll_double_sketch_ks_test(kll_double_sketch, kll_double_sketch, double precision) RETURNS boolean
+    AS '$libdir/datasketches', 'pg_kll_double_sketch_ks_test'
+    LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
+
 CREATE OR REPLACE FUNCTION kll_double_sketch_get_n(kll_double_sketch) RETURNS bigint
     AS '$libdir/datasketches', 'pg_kll_double_sketch_get_n'
     LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;

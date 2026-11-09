@@ -22,6 +22,7 @@
 #include "postgres_h_substitute.h"
 
 #include <quantiles_sketch.hpp>
+#include <kolmogorov_smirnov.hpp>
 
 using quantiles_double_sketch = datasketches::quantiles_sketch<double, std::less<double>, palloc_allocator<double>>;
 
@@ -71,6 +72,44 @@ double quantiles_double_sketch_get_rank(const void* sketchptr, double value) {
 double quantiles_double_sketch_get_quantile(const void* sketchptr, double rank) {
   try {
     return static_cast<const quantiles_double_sketch*>(sketchptr)->get_quantile(rank);
+  } catch (std::exception& e) {
+    pg_error(e.what());
+  }
+  pg_unreachable();
+}
+
+double quantiles_double_sketch_ks_delta(const void* sketchptr1, const void* sketchptr2) {
+  try {
+    return datasketches::kolmogorov_smirnov::delta(
+      *static_cast<const quantiles_double_sketch*>(sketchptr1),
+      *static_cast<const quantiles_double_sketch*>(sketchptr2)
+    );
+  } catch (std::exception& e) {
+    pg_error(e.what());
+  }
+  pg_unreachable();
+}
+
+double quantiles_double_sketch_ks_threshold(const void* sketchptr1, const void* sketchptr2, double p) {
+  try {
+    return datasketches::kolmogorov_smirnov::threshold(
+      *static_cast<const quantiles_double_sketch*>(sketchptr1),
+      *static_cast<const quantiles_double_sketch*>(sketchptr2),
+      p
+    );
+  } catch (std::exception& e) {
+    pg_error(e.what());
+  }
+  pg_unreachable();
+}
+
+bool quantiles_double_sketch_ks_test(const void* sketchptr1, const void* sketchptr2, double p) {
+  try {
+    return datasketches::kolmogorov_smirnov::test(
+      *static_cast<const quantiles_double_sketch*>(sketchptr1),
+      *static_cast<const quantiles_double_sketch*>(sketchptr2),
+      p
+    );
   } catch (std::exception& e) {
     pg_error(e.what());
   }

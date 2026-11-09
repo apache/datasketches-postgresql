@@ -22,6 +22,7 @@
 #include "postgres_h_substitute.h"
 
 #include <kll_sketch.hpp>
+#include <kolmogorov_smirnov.hpp>
 
 using kll_float_sketch = datasketches::kll_sketch<float, std::less<float>, palloc_allocator<float>>;
 
@@ -71,6 +72,44 @@ double kll_float_sketch_get_rank(const void* sketchptr, float value) {
 float kll_float_sketch_get_quantile(const void* sketchptr, double rank) {
   try {
     return static_cast<const kll_float_sketch*>(sketchptr)->get_quantile(rank);
+  } catch (std::exception& e) {
+    pg_error(e.what());
+  }
+  pg_unreachable();
+}
+
+double kll_float_sketch_ks_delta(const void* sketchptr1, const void* sketchptr2) {
+  try {
+    return datasketches::kolmogorov_smirnov::delta(
+      *static_cast<const kll_float_sketch*>(sketchptr1),
+      *static_cast<const kll_float_sketch*>(sketchptr2)
+    );
+  } catch (std::exception& e) {
+    pg_error(e.what());
+  }
+  pg_unreachable();
+}
+
+double kll_float_sketch_ks_threshold(const void* sketchptr1, const void* sketchptr2, double p) {
+  try {
+    return datasketches::kolmogorov_smirnov::threshold(
+      *static_cast<const kll_float_sketch*>(sketchptr1),
+      *static_cast<const kll_float_sketch*>(sketchptr2),
+      p
+    );
+  } catch (std::exception& e) {
+    pg_error(e.what());
+  }
+  pg_unreachable();
+}
+
+bool kll_float_sketch_ks_test(const void* sketchptr1, const void* sketchptr2, double p) {
+  try {
+    return datasketches::kolmogorov_smirnov::test(
+      *static_cast<const kll_float_sketch*>(sketchptr1),
+      *static_cast<const kll_float_sketch*>(sketchptr2),
+      p
+    );
   } catch (std::exception& e) {
     pg_error(e.what());
   }

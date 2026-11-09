@@ -114,6 +114,18 @@ CREATE OR REPLACE FUNCTION quantiles_double_sketch_get_quantile(quantiles_double
     AS '$libdir/datasketches', 'pg_quantiles_double_sketch_get_quantile'
     LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
 
+CREATE OR REPLACE FUNCTION quantiles_double_sketch_ks_delta(quantiles_double_sketch, quantiles_double_sketch) RETURNS double precision
+    AS '$libdir/datasketches', 'pg_quantiles_double_sketch_ks_delta'
+    LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
+
+CREATE OR REPLACE FUNCTION quantiles_double_sketch_ks_threshold(quantiles_double_sketch, quantiles_double_sketch, double precision) RETURNS double precision
+    AS '$libdir/datasketches', 'pg_quantiles_double_sketch_ks_threshold'
+    LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
+
+CREATE OR REPLACE FUNCTION quantiles_double_sketch_ks_test(quantiles_double_sketch, quantiles_double_sketch, double precision) RETURNS boolean
+    AS '$libdir/datasketches', 'pg_quantiles_double_sketch_ks_test'
+    LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
+
 CREATE OR REPLACE FUNCTION quantiles_double_sketch_get_n(quantiles_double_sketch) RETURNS bigint
     AS '$libdir/datasketches', 'pg_quantiles_double_sketch_get_n'
     LANGUAGE C STRICT IMMUTABLE PARALLEL SAFE;
