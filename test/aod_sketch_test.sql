@@ -22,7 +22,7 @@ select aod_sketch_to_string(sketch) from aod_sketch_test;
 -- default lgk
 select aod_sketch_get_estimate(aod_sketch_union(sketch)) from aod_sketch_test;
 -- lgk = 16
-select aod_sketch_get_estimate(aod_sketch_union(sketch, 16)) from aod_sketch_test;
+select aod_sketch_get_estimate(aod_sketch_union(sketch, 1, 16)) from aod_sketch_test;
 
 select aod_sketch_get_estimate(aod_sketch_intersection(sketch)) from aod_sketch_test;
 
