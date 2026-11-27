@@ -144,7 +144,8 @@ Datum pg_aod_sketch_build_agg(PG_FUNCTION_ARGS) {
   get_typlenbyvalalign(element_type, &typlen, &typbyval, &typalign);
   if (typlen == -1) {
     // varlena
-    aod_sketch_update(stateptr->ptr, VARDATA_ANY(element), VARSIZE_ANY_EXHDR(element), values);
+    const void* ptr = DatumGetPointer(element);
+    aod_sketch_update(stateptr->ptr, VARDATA_ANY(ptr), VARSIZE_ANY_EXHDR(ptr), values);
   } else if (typbyval) {
     // fixed-length passed by value
     aod_sketch_update(stateptr->ptr, &element, typlen, values);
