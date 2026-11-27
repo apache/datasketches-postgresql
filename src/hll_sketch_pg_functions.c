@@ -109,7 +109,8 @@ Datum pg_hll_sketch_build_agg(PG_FUNCTION_ARGS) {
   get_typlenbyvalalign(element_type, &typlen, &typbyval, &typalign);
   if (typlen == -1) {
     // varlena
-    hll_sketch_update(stateptr->ptr, VARDATA_ANY(element), VARSIZE_ANY_EXHDR(element));
+    const void* ptr = DatumGetPointer(element);
+    hll_sketch_update(stateptr->ptr, VARDATA_ANY(ptr), VARSIZE_ANY_EXHDR(ptr));
   } else if (typbyval) {
     // fixed-length passed by value
     hll_sketch_update(stateptr->ptr, &element, typlen);
